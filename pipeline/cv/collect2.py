@@ -64,6 +64,8 @@ def images_near(pt):
 
 
 def fetch(i):
+    if "computed_geometry" not in i:
+        return 0
     lon, lat = i["computed_geometry"]["coordinates"]
     cell = f"{int(lon / 0.02)}_{int(lat / 0.02)}"
     split = "val" if int(hashlib.md5(cell.encode()).hexdigest(), 16) % 100 < 15 else "train"
