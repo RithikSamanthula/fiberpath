@@ -3,8 +3,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useIndex } from "@/lib/useIndex";
 
 type Box = { x: number; y: number; w: number; h: number; score?: number };
-type Item = { url: string; lat: number; lon: number; county: string; boxes: Box[] };
-type Saved = { lat: number; lon: number; county: string; at: string; boxes: (Box & { ok: boolean })[]; missed: Box[] };
+type Item = { id: string; url: string; lat: number; lon: number; county: string; boxes: Box[] };
+type Saved = { id: string; lat: number; lon: number; county: string; at: string; boxes: (Box & { ok: boolean })[]; missed: Box[] };
 
 // counties whose photos the detector trained on, so they are not used for checking it
 const TRAINED = new Set(["13281", "13059", "42093", "48397", "22121", "18163", "29227", "29199", "54073", "21041", "37089", "12125", "13247", "13121"]);
@@ -42,7 +42,7 @@ export default function Label() {
         const d = await fetch(`/api/detect?u=${encodeURIComponent(im.url)}&t=0.3`).then((r) => r.json());
         if (!d.boxes) continue;
         const boxes: Box[] = d.boxes.filter((b: { cls?: number }) => (b.cls ?? 0) === 0);
-        setItem({ url: im.url, lat: im.lat, lon: im.lon, county: `${c.name}, ${c.state}`, boxes });
+        setItem({ id: String(im.id), url: im.url, lat: im.lat, lon: im.lon, county: `${c.name}, ${c.state}`, boxes });
         setState({}); setExtra([]); setMsg("");
         return;
       } catch {}
@@ -117,7 +117,7 @@ export default function Label() {
   const done = (skip: boolean) => {
     if (!item) return;
     if (!skip) {
-      const rec: Saved = { lat: item.lat, lon: item.lon, county: item.county, at: new Date().toISOString(), boxes: item.boxes.map((b, i) => ({ ...b, ok: state[i] !== false })), missed: extra };
+      const rec: Saved = { id: item.id, lat: item.lat, lon: item.lon, county: item.county, at: new Date().toISOString(), boxes: item.boxes.map((b, i) => ({ ...b, ok: state[i] !== false })), missed: extra };
       const all = [...saved, rec];
       setSaved(all);
       try { localStorage.setItem(KEY, JSON.stringify(all)); } catch {}
