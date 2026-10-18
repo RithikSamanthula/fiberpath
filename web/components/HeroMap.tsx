@@ -2,6 +2,9 @@
 import { useEffect, useMemo, useState } from "react";
 import MapView, { Layers } from "@/components/MapView";
 import { County, loadCountyLite } from "@/lib/data";
+import { useLoop } from "@/lib/useClock";
+
+const HOLD: [number, number] = [1, 3];
 import { dollars, edgeCosts, num, totalCost } from "@/lib/cost";
 
 const layers: Layers = { roads: true, plan: true, homes: true, towers: true, poles: false, wireless: false };
@@ -9,22 +12,8 @@ const layers: Layers = { roads: true, plan: true, homes: true, towers: true, pol
 // A real county plan drawing itself, on a loop. Nothing here is mocked: it is the Towns County, GA plan.
 export default function HeroMap() {
   const [d, setD] = useState<County | null>(null);
-  const [p, setP] = useState(0);
+  const p = useLoop(7, HOLD, !!d);
   useEffect(() => { loadCountyLite("towns-ga").then(setD).catch(() => {}); }, []);
-
-  useEffect(() => {
-    if (!d || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { setP(1); return; }
-    let raf = 0, t0 = performance.now();
-    const loop = (t: number) => {
-      const s = (t - t0) / 1000;
-      const cycle = 11;
-      const c = s % cycle;
-      setP(c < 1 ? 0 : c < 8 ? (c - 1) / 7 : 1);
-      raf = requestAnimationFrame(loop);
-    };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, [d]);
 
   const stat = useMemo(() => {
     if (!d) return null;
@@ -49,9 +38,9 @@ export default function HeroMap() {
       <div style={{ height: 380, display: "flex", flexDirection: "column" }}>
         <MapView data={d} layers={layers} progress={p} still />
       </div>
-      <div style={{ display: "flex", gap: 28, padding: "14px 18px", color: "#fff", flexWrap: "wrap" }}>
-        <div><div style={{ fontSize: 28, fontWeight: 800 }}>{num(homes)}</div><div className="label" style={{ color: "#aebad0" }}>Homes connected</div></div>
-        <div><div style={{ fontSize: 28, fontWeight: 800 }}>{p >= 1 ? dollars(spent / homes) : dollars(spent)}</div><div className="label" style={{ color: "#aebad0" }}>{p >= 1 ? "Cost per home" : "Spent so far"}</div></div>
+      <div style={{ display: "flex", gap: 28, padding: "14px 18px", color: "#fff", height: 84, overflow: "hidden", whiteSpace: "nowrap" }}>
+        <div style={{ minWidth: 120 }}><div style={{ fontSize: 28, fontWeight: 800 }}>{num(homes)}</div><div className="label" style={{ color: "#aebad0" }}>Homes connected</div></div>
+        <div style={{ minWidth: 170 }}><div style={{ fontSize: 28, fontWeight: 800 }}>{p >= 1 ? dollars(spent / homes) : dollars(spent)}</div><div className="label" style={{ color: "#aebad0" }}>{p >= 1 ? "Cost per home" : "Spent so far"}</div></div>
         <div style={{ marginLeft: "auto", alignSelf: "center", fontSize: 13, color: "#aebad0" }}>{d.meta.name}, {d.meta.state}</div>
       </div>
     </div>

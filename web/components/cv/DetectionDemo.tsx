@@ -40,7 +40,7 @@ export default function DetectionDemo() {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.9fr) minmax(240px, 1fr)", gap: 20, alignItems: "stretch" }} className="demo-grid">
       <div>
-        <PhotoDetect key={`${i}-${s}`} src={cur.img} boxes={cur.boxes} candidates={cur.candidates} stage={STEPS[s].stage} animate ratio={0.5625} />
+        <PhotoDetect key={i} src={cur.img} boxes={cur.boxes} candidates={cur.candidates} stage={STEPS[s].stage} animate ratio={0.5625} />
         <div style={{ display: "flex", marginTop: 10 }}>
           {STEPS.map((st, k) => (
             <div key={k} style={{ flex: 1, padding: "8px 12px", borderTop: `4px solid ${k === s ? "#4d8dff" : "#2a3d5c"}`, color: k === s ? "#fff" : "#7f93b5" }}>

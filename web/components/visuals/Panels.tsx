@@ -5,6 +5,9 @@ import Terrain3D from "@/components/Terrain3D";
 import { County, ensureGrids, loadCountyLite } from "@/lib/data";
 import { dollars, edgeCosts, num, totalCost } from "@/lib/cost";
 import { viewshed } from "@/lib/geo";
+import { useLoop } from "@/lib/useClock";
+
+const HOLD: [number, number] = [0.8, 3.5];
 
 function useVisible<T extends HTMLElement>() {
   const ref = useRef<T>(null);
@@ -32,8 +35,8 @@ function Frame({ title, big, note, children, tall, forwardRef }: { title: string
   return (
     <figure ref={forwardRef} style={{ margin: 0, background: "#0f1b2d", borderRadius: 3, overflow: "hidden", position: "relative", height: tall ? 460 : 380, display: "flex", flexDirection: "column" }}>
       <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>{children}</div>
-      <figcaption style={{ position: "absolute", left: 0, bottom: 0, right: 0, padding: "14px 16px", background: "#0a1424", color: "#fff", display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 28, fontWeight: 800, lineHeight: 1 }}>{big}</span>
+      <figcaption style={{ position: "absolute", left: 0, bottom: 0, right: 0, padding: "14px 16px", background: "#0a1424", color: "#fff", display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap", height: 104, overflow: "hidden", alignContent: "flex-start" }}>
+        <span style={{ fontSize: 28, fontWeight: 800, lineHeight: 1, whiteSpace: "nowrap", minWidth: 150 }}>{big}</span>
         <span className="label" style={{ color: "#8fa3c4" }}>{title}</span>
         <span className="small" style={{ color: "#c6d1e4", flexBasis: "100%" }}>{note}</span>
       </figcaption>
@@ -78,15 +81,7 @@ export function WirelessPanel() {
 export function NetworkPanel() {
   const [ref, vis] = useVisible<HTMLDivElement>();
   const d = useTowns(vis);
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    if (!d) return;
-    let raf = 0;
-    const t0 = performance.now();
-    const loop = (t: number) => { const c = ((t - t0) / 1000) % 12; setP(c < 0.8 ? 0 : c < 8.5 ? (c - 0.8) / 7.7 : 1); raf = requestAnimationFrame(loop); };
-    raf = requestAnimationFrame(loop);
-    return () => cancelAnimationFrame(raf);
-  }, [d]);
+  const p = useLoop(7.7, HOLD, !!d);
   const stat = useMemo(() => {
     if (!d) return null;
     const a = d.meta.assumptions, c = totalCost(d.meta.totals, a);
