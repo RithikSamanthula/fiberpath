@@ -35,6 +35,7 @@ export default function Planner() {
   const [showDemand, setShowDemand] = useState(true);
   const raf = useRef(0);
   const [terrain, setTerrain] = useState(true);
+  const [sat, setSat] = useState(false);
   const [view3d, setView3d] = useState(false);
   const [budgetMask, setBudgetMask] = useState<Uint8Array | null>(null);
   const [tool, setTool] = useState(false);
@@ -116,6 +117,7 @@ export default function Planner() {
           selected={sel}
           onPick={setSel}
           contours={terrain ? cont : null}
+          satellite={sat}
           reach={budgetMask ?? vs?.res ?? null}
           pulse={progress >= 1}
           ghost={ghost}
@@ -159,6 +161,7 @@ export default function Planner() {
           ))}
           <button className="btn sm line" aria-pressed={showDemand} onClick={() => setShowDemand((v) => !v)}>Demand</button>
           <button className="btn sm line" aria-pressed={terrain} onClick={() => setTerrain((v) => !v)}>Terrain</button>
+          <button className="btn sm line" aria-pressed={sat} onClick={() => setSat((v) => !v)}>Aerial photos</button>
         </div>
         {demand && (
           <p className="small" style={{ marginTop: 8 }}>

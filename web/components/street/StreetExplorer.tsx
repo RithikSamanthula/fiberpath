@@ -5,7 +5,7 @@ import PhotoDetect from "@/components/cv/PhotoDetect";
 import PoleScene3D from "./PoleScene3D";
 import { compare, Det, Frame, locate } from "@/lib/poleLocate";
 
-type Mode = "explore" | "ride";
+type Mode = "explore" | "ride" | "fiber";
 const TOKEN = process.env.NEXT_PUBLIC_MAPILLARY_TOKEN;
 const px = (u: string) => `/api/img?u=${encodeURIComponent(u)}`;
 
@@ -19,6 +19,7 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
   const camH = 1.6;
   const [ref, setRef] = useState<[number, number][]>([]);
   const [playing, setPlaying] = useState(false);
+  const [split, setSplit] = useState(0.45);
   const run = useRef(0);
 
   useEffect(() => {
@@ -86,6 +87,7 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
           <div className="row" style={{ gap: 0 }}>
             <button className="btn sm line" aria-pressed={mode === "explore"} onClick={() => { setMode("explore"); setPlaying(false); }}>Look around</button>
             <button className="btn sm line" aria-pressed={mode === "ride"} onClick={() => { setMode("ride"); setSel(0); setPlaying(true); }}>Ride along</button>
+            <button className="btn sm line" aria-pressed={mode === "fiber"} onClick={() => { setMode("fiber"); setPlaying(false); }}>See it with fiber</button>
           </div>
           <div className="row" style={{ gap: 8 }}>
             {onMove && <button className="btn sm line" onClick={() => onMove(frames[0].lat, frames[0].lon)}>‹ Back along the road</button>}
@@ -96,6 +98,12 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
 
         {mode === "explore" ? (
           <Viewer frames={frames} dets={dets} sel={sel} onSel={setSel} />
+        ) : mode === "fiber" ? (
+          <div>
+            <PhotoDetect key={cur.id} src={px(cur.url)} boxes={curDets} stage={curDets ? "fiber" : "photo"} split={split} animate={false} ratio={0.62} />
+            <input type="range" min={0.02} max={0.98} step={0.01} value={split} onChange={(e) => setSplit(Number(e.target.value))} style={{ width: "100%", marginTop: 6, accentColor: "#1b5fd1" }} aria-label="Slide to compare the street today with fiber on its poles" />
+            <p className="small">Drag the handle. The right side shows fiber hung on the utility poles the detector found. Fiber on poles costs about $9 a foot, and burying it costs about $19.</p>
+          </div>
         ) : (
           <div style={{ position: "relative" }}>
             <PhotoDetect key={cur.id} src={px(cur.url)} boxes={curDets} stage={curDets ? "final" : "photo"} animate={false} ratio={0.62} />

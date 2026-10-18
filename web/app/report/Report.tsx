@@ -112,21 +112,43 @@ export default function Report() {
         {demand ? <><strong>{num(demand.total)}</strong> {demand.total === 1 ? "home has" : "homes have"} asked for service in {meta.name}.</> : "Demand counts are not available right now."}
         {" "}Counts only appear on the map where five or more homes in the same area have asked. No address is ever shown.</p>
 
-      {b && (
-        <>
-          <h2>Compared with a real project</h2>
-          <table>
-            <thead><tr><th /><th className="r">Homes</th><th className="r">Total</th><th className="r">Per home</th></tr></thead>
-            <tbody>
-              <tr><td>FiberPath estimate</td><td className="r">{num(c.homes)}</td><td className="r">{money(c.total)}</td><td className="r">{dollars(c.perHome)}</td></tr>
-              <tr><td>{b.name} project</td><td className="r">{num(b.homes)}</td><td className="r">{money(b.total)}</td><td className="r">{dollars(b.per_home)}</td></tr>
-            </tbody>
-          </table>
-          <p>
-            Our per-home estimate is {Math.abs(((c.perHome - b.per_home) / b.per_home) * 100).toFixed(0)}% {c.perHome >= b.per_home ? "above" : "below"} the published figure. This is a sanity check, not proof: the {b.name} project covers different homes and an unknown technology mix, and its total includes {money(b.grant)} in BEAD funding.
-          </p>
-        </>
-      )}
+      {b && (() => {
+        const costs = data.homes.filter((h) => h.tech > 0).map((h) => h.cost).sort((x, y) => x - y);
+        const n = Math.min(b.homes, costs.length);
+        const cheapest = costs.slice(0, n).reduce((s, v) => s + v, 0) / Math.max(n, 1);
+        const ft = t.aerialFt + t.buriedFt;
+        const allPoles = (ft * a.aerialPerFt + t.fiberHomes * a.dropBase + t.dropFt * a.dropPerFt + t.towers * a.towerEach + t.wirelessHomes * a.wirelessCpe) / Math.max(c.homes, 1);
+        const rows: [string, number][] = [
+          ["Every home in this plan", c.perHome],
+          [`The cheapest ${num(n)} homes in this plan`, cheapest],
+          ["Every home, if all fiber could use poles", allPoles],
+          [`${b.name} project (${num(b.homes)} homes)`, b.per_home],
+        ];
+        const top = Math.max(...rows.map((r) => r[1]));
+        return (
+          <>
+            <h2>Compared with a real project</h2>
+            <p>{b.name} is an electric co-op in this part of Georgia. It plans to connect {num(b.homes)} hard-to-reach homes for {money(b.total)}, or {dollars(b.per_home)} a home, with {money(b.grant)} of that from the federal BEAD program.</p>
+            <div style={{ marginTop: 12 }}>
+              {rows.map(([l, v], i) => (
+                <div key={l} style={{ display: "grid", gridTemplateColumns: "minmax(160px, 320px) 1fr 80px", gap: 12, alignItems: "center", padding: "6px 0" }}>
+                  <span>{l}</span>
+                  <div className="bar" style={{ height: 18, marginTop: 0 }}><i style={{ width: `${(v / top) * 100}%`, background: i === 3 ? "#d64533" : "#1b5fd1" }} /></div>
+                  <b style={{ textAlign: "right" }}>{dollars(v)}</b>
+                </div>
+              ))}
+            </div>
+            <h3>Why the numbers differ</h3>
+            <ul style={{ paddingLeft: 20, display: "grid", gap: 8, maxWidth: "70ch" }}>
+              <li>The real project covers hard-to-reach homes that were picked on purpose. Our plan covers every home that lacks good internet, so cheap and costly homes are averaged together. Looking at only our cheapest {num(n)} homes gives {dollars(cheapest)}.</li>
+              <li>A co-op that owns its poles can hang fiber on them. Our plan finds poles in street photos, but photo coverage is uneven, so much of the route is priced as buried, which costs about twice as much. If every route could use poles, our average would be {dollars(allPoles)}.</li>
+              <li>We use standard prices for cable, connections and towers. A co-op&apos;s own contracts, existing fiber and easements can make its real costs lower.</li>
+              <li>The real project reaches homes by fiber only, while our plan sends {num(t.wirelessHomes)} homes to wireless towers where that is cheaper.</li>
+            </ul>
+            <p className="small" style={{ marginTop: 10 }}>The real figure falls between our all-homes average and our cheapest-homes average, so the model is in a believable range. We cannot check it more closely without knowing which homes the co-op will serve.</p>
+          </>
+        );
+      })()}
 
       <h2>What has been checked</h2>
       <table>

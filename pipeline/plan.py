@@ -207,20 +207,26 @@ def coverage(c, proj, lon, lat, hx, hy):
     Uses an FCC availability file if one is present (see README); otherwise falls back
     to a clearly-labeled proxy: homes outside the town cores count as unserved.
     """
-    p = os.path.join(os.path.dirname(__file__), "data", f"{c['slug']}-fcc-h3.csv")
-    if os.path.exists(p):
+    d = os.path.join(os.path.dirname(__file__), "data")
+    cands = [os.path.join(d, f"{c['slug']}-fcc-h3.csv"), os.path.join(d, f"state-{c['geoid'][:2]}-fcc-h3.csv")]
+    p = next((x for x in cands if os.path.exists(x)), None)
+    if p:
         import csv
 
         import h3
 
-        speed = {}
+        down, up = {}, {}
         with open(p) as f:
             for r in csv.DictReader(f):
-                speed[r["h3_res8_id"]] = max(speed.get(r["h3_res8_id"], 0), float(r["max_advertised_download_speed"]))
+                k = r["h3_res8_id"]
+                down[k] = max(down.get(k, 0), float(r["max_advertised_download_speed"]))
+                up[k] = max(up.get(k, 0), float(r.get("max_advertised_upload_speed") or 0))
         st = np.zeros(len(lon), dtype=int)
         for i, (lo, la) in enumerate(zip(lon, lat)):
-            s = speed.get(h3.latlng_to_cell(la, lo, 8), 0)
-            st[i] = 0 if s >= 100 else (1 if s >= 25 else 2)
+            k = h3.latlng_to_cell(la, lo, 8)
+            dn, u = down.get(k, 0), up.get(k, 0)
+            # the federal lines: served is 100/20 or better, underserved is 25/3 up to that, unserved is less
+            st[i] = 0 if (dn >= 100 and u >= 20) else (1 if (dn >= 25 and u >= 3) else 2)
         return st, "fcc"
     served = np.zeros(len(lon), dtype=bool)
     for la, lo, r in c["cores"]:

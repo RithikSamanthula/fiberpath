@@ -22,7 +22,7 @@ export default function HomeContext({ slug, home, lat, lon }: { slug?: string; h
     <div className={slug && home && !noPhotos ? "hh-visuals" : ""} style={{ marginTop: 20 }}>
       {slug && home && (
         <div style={{ minHeight: noPhotos ? 440 : 360, display: "flex", flexDirection: "column", borderRadius: 3, overflow: "hidden", position: "relative", background: "#0f1b2d" }}>
-          {d ? <MapView data={d} layers={layers} selected={home} link={link} progress={1} pulse focus={{ lon: home.lon, lat: home.lat, zoom: 22000, key: home.i }} /> : <span style={{ margin: "auto", color: "#aebad0" }}>Loading the plan</span>}
+          {d ? <MapView data={d} layers={layers} selected={home} link={link} progress={1} pulse satellite focus={{ lon: home.lon, lat: home.lat, zoom: 22000, key: home.i }} /> : <span style={{ margin: "auto", color: "#aebad0" }}>Loading the plan</span>}
           <span className="label" style={{ position: "absolute", left: 10, top: 10, background: "#fff", padding: "4px 8px" }}>Your home on the plan</span>
         </div>
       )}

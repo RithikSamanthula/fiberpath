@@ -27,18 +27,21 @@ type Props = {
   onMapClick?: ((lon: number, lat: number) => void) | null;
   still?: boolean; // no pan or zoom, for decorative maps
   pulse?: boolean; // animate data pulses flowing out from the hub along every route
+  satellite?: boolean; // aerial photos under the map, when zoomed in close
 };
 
 type View = { lon: number; lat: number; s: number };
 
-export default function MapView({ data, layers, progress = 1, selected, onPick, focus, link, hexes, contours, reach, ghost, onMapClick, still, pulse }: Props) {
+export default function MapView({ data, layers, progress = 1, selected, onPick, focus, link, hexes, contours, reach, ghost, onMapClick, still, pulse, satellite }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const view = useRef<View | null>(null);
   const size = useRef({ w: 0, h: 0, dpr: 1 });
   const raf = useRef(0);
-  const props = useRef({ data, layers, progress, selected, link, hexes, contours, reach, ghost, pulse });
-  props.current = { data, layers, progress, selected, link, hexes, contours, reach, ghost, pulse };
+  const props = useRef({ data, layers, progress, selected, link, hexes, contours, reach, ghost, pulse, satellite });
+  props.current = { data, layers, progress, selected, link, hexes, contours, reach, ghost, pulse, satellite };
+  const tiles = useRef(new Map<string, HTMLImageElement | null>());
+  const redrawRef = useRef<() => void>(() => {});
   const [, setTick] = useState(0);
 
   const cosφ = () => Math.cos(((view.current?.lat ?? 35) * Math.PI) / 180);
@@ -51,7 +54,7 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
     if (!cv || !v) return;
     const { w, h, dpr } = size.current;
     const ctx = cv.getContext("2d")!;
-    const { data, layers, progress, selected, link, hexes, contours, reach, ghost, pulse } = props.current;
+    const { data, layers, progress, selected, link, hexes, contours, reach, ghost, pulse, satellite } = props.current;
     const BG = "#0f1b2d", ROAD = "#31435f", LINE = "#7d90b3", MUTE = "#51658a";
     const BLUE = "#4d8dff", AMBER = "#ffb81c", GREEN = "#38c47c", RED = "#ff5a4a", WHITE = "#ffffff";
     const k = cosφ();
@@ -64,6 +67,38 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
     ctx.fillStyle = LINE;
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
+
+    // aerial photos (USGS, public domain), drawn only when close enough for them to be useful
+    let aerial = false;
+    if (satellite) {
+      const pxPerDegLon = k * v.s;
+      const z = Math.round(Math.log2((pxPerDegLon * 360) / 256));
+      if (z >= 12 && z <= 18) {
+        aerial = true;
+        const n = 2 ** z;
+        const lonAt = (px: number) => (px - w / 2) / (k * v.s) + v.lon, latAt = (py: number) => v.lat - (py - h / 2) / v.s;
+        const tx0 = Math.floor(((lonAt(0) + 180) / 360) * n), tx1 = Math.floor(((lonAt(w) + 180) / 360) * n);
+        const ty = (lat: number) => Math.floor(((1 - Math.asinh(Math.tan((lat * Math.PI) / 180)) / Math.PI) / 2) * n);
+        const ty0 = ty(latAt(0)), ty1 = ty(latAt(h));
+        const latOf = (yy: number) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * yy) / n))) * 180) / Math.PI;
+        for (let tx = tx0; tx <= tx1; tx++) for (let tyy = ty0; tyy <= ty1; tyy++) {
+          const key = `${z}/${tx}/${tyy}`;
+          let img = tiles.current.get(key);
+          if (img === undefined) {
+            tiles.current.set(key, null);
+            const im = new Image();
+            im.onload = () => { tiles.current.set(key, im); redrawRef.current(); };
+            im.src = `https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/${z}/${tyy}/${tx}`;
+            continue;
+          }
+          if (!img) continue;
+          const lo0 = (tx / n) * 360 - 180, lo1 = ((tx + 1) / n) * 360 - 180;
+          const x0 = X(lo0), x1 = X(lo1), y0 = Y(latOf(tyy)), y1 = Y(latOf(tyy + 1));
+          ctx.drawImage(img, x0, y0, x1 - x0 + 0.6, y1 - y0 + 0.6);
+        }
+        ctx.fillStyle = "rgba(10,20,36,0.18)"; ctx.fillRect(0, 0, w, h);
+      }
+    }
 
     // county line
     ctx.lineWidth = 1.5;
@@ -88,7 +123,7 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
     }
 
     if (layers.roads) {
-      ctx.strokeStyle = ROAD;
+      ctx.strokeStyle = aerial ? "rgba(255,255,255,0.45)" : ROAD;
       ctx.lineWidth = 1;
       ctx.beginPath();
       for (const r of data.roads) {
@@ -365,7 +400,8 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
     return () => ro.disconnect();
   }, [fit, schedule]);
 
-  useEffect(schedule, [data, layers, progress, selected, link, hexes, contours, reach, ghost, schedule]);
+  redrawRef.current = schedule;
+  useEffect(schedule, [data, layers, progress, selected, link, hexes, contours, reach, ghost, satellite, schedule]);
 
   useEffect(() => {
     if (!focus || !view.current) return;

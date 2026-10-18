@@ -25,7 +25,7 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
   const grid = useRef<{ z: Float32Array; c: Float32Array; nx: number; ny: number; step: number; zmin: number; zmax: number } | null>(null);
   const prog = useRef(progress);
   prog.current = progress;
-  const [opts, setOpts] = useState({ houses: true, poles: true, wires: true, pulse: true });
+  const [opts, setOpts] = useState({ houses: true, poles: true, wires: true, pulse: true, skyline: false });
   const optsRef = useRef(opts);
   optsRef.current = opts;
   const hit = useRef<number[]>([]); // screen x, y and index of every home drawn last frame, for picking
@@ -171,7 +171,19 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
     const big = sc * 7 > 2.6;
     const col = ["#7d90b3", "#4d8dff", "#ffb81c", "#38c47c"];
     hit.current = [];
+    if (o.skyline) {
+      // every connected home becomes a bar as tall as its cost: green is cheap, red is expensive
+      for (const hm of data.homes) {
+        if (hm.tech === 0) continue;
+        const a = W(hm.lon, hm.lat, 0), b = W(hm.lon, hm.lat, Math.min(900, hm.cost / 16));
+        if (a[0] < -20 || a[0] > w + 20 || a[1] < -300 || a[1] > h + 300) continue;
+        ctx.strokeStyle = hm.cost < 4000 ? "#38c47c" : hm.cost < 9000 ? "#ffb81c" : "#ff5a4a";
+        ctx.lineWidth = Math.max(1.4, sc * 4);
+        ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+      }
+    }
     for (const hm of data.homes) {
+      if (o.skyline) break;
       if (hm.status === 0 && !big) continue;
       const up = hm.tech !== 0 && prog.current > 0 && hm.depth <= depth;
       const base = W(hm.lon, hm.lat, 0);
@@ -304,8 +316,8 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
         <div className="noprint" style={{ position: "absolute", left: 12, top: 12, display: "grid", gap: 6 }}>
           <div style={{ background: "#fff", padding: "6px 10px", fontSize: 13, borderRadius: 3 }}>Drag to rotate · scroll to zoom · select a home to fly to it</div>
           <div className="toggles">
-            {(["houses", "poles", "wires", "pulse"] as const).map((k) => (
-              <button key={k} className="btn sm" aria-pressed={opts[k]} style={{ background: opts[k] ? "#0f1b2d" : "#fff", color: opts[k] ? "#fff" : "#1b5fd1", borderColor: opts[k] ? "#0f1b2d" : "#1b5fd1" }} onClick={() => setOpts((v) => ({ ...v, [k]: !v[k] }))}>{k === "pulse" ? "Data pulses" : k[0].toUpperCase() + k.slice(1)}</button>
+            {(["houses", "poles", "wires", "pulse", "skyline"] as const).map((k) => (
+              <button key={k} className="btn sm" aria-pressed={opts[k]} style={{ background: opts[k] ? "#0f1b2d" : "#fff", color: opts[k] ? "#fff" : "#1b5fd1", borderColor: opts[k] ? "#0f1b2d" : "#1b5fd1" }} onClick={() => setOpts((v) => ({ ...v, [k]: !v[k] }))}>{k === "pulse" ? "Data pulses" : k === "skyline" ? "Cost skyline" : k[0].toUpperCase() + k.slice(1)}</button>
             ))}
           </div>
         </div>

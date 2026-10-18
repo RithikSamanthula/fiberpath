@@ -118,6 +118,10 @@ td.r, th.r { text-align: right; }
 .steps3 span { flex: 1; padding: 8px 0; border-top: 4px solid var(--line); font-size: 14px; color: #5b6b84; }
 .steps3 span.on { border-top-color: var(--blue); color: var(--ink); font-weight: 700; }
 .dash { display: grid; grid-template-columns: 1fr; gap: 28px; }
+.three { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.three div { display: grid; grid-template-columns: 44px 1fr; column-gap: 14px; align-items: start; }
+.three b { grid-row: span 2; width: 44px; height: 44px; background: var(--blue); color: #fff; display: grid; place-items: center; font-size: 22px; }
+.three h3 { margin: 0 0 4px; }
 .panels { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .demo-grid { }
 .hero h1 { font-size: 56px; }
@@ -225,3 +229,9 @@ canvas.map { position: absolute; inset: 0; width: 100%; height: 100%; touch-acti
   table, .stats { break-inside: avoid; }
   thead th { background: #fff; color: #000; border-bottom: 2px solid #000; }
 }
+
+@media (max-width: 860px) { .three { grid-template-columns: 1fr; } }
+
+.tour-grid { min-height: 60dvh; display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.4fr); gap: 36px; align-items: center; }
+@keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (max-width: 860px) { .tour-grid { grid-template-columns: 1fr; } }
