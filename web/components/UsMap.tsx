@@ -45,7 +45,7 @@ function projectAll(cs: C[]): [number, number][] {
   return out;
 }
 
-export default function UsMap({ onPick, height = 420 }: { onPick?: (c: C, slug: string | null) => void; height?: number }) {
+export default function UsMap({ onPick, height = 420, highlight }: { onPick?: (c: C, slug: string | null) => void; height?: number; highlight?: Set<string> }) {
   const router = useRouter();
   const [counties, setCounties] = useState<C[] | null>(null);
   const idx = useIndex() ?? [];
@@ -64,7 +64,8 @@ export default function UsMap({ onPick, height = 420 }: { onPick?: (c: C, slug: 
 
   useEffect(() => {
     const now = performance.now();
-    if (seen.current) for (const i of idx) if (!seen.current.has(i.geoid)) born.current.set(i.geoid, now);
+    // only a handful of new counties at once is a live arrival; a big jump is just the list finishing loading
+    if (seen.current) { const fresh = idx.filter((i) => !seen.current!.has(i.geoid)); if (fresh.length > 0 && fresh.length <= 6) for (const i of fresh) born.current.set(i.geoid, now); }
     seen.current = new Set(idx.map((i) => i.geoid));
     if (born.current.size) {
       let id = 0;
@@ -106,6 +107,10 @@ export default function UsMap({ onPick, height = 420 }: { onPick?: (c: C, slug: 
         if (!planned.has(cc[0])) return;
         ctx.beginPath(); ctx.arc(P[i].x, P[i].y, r + 2.2, 0, 7); ctx.fill(); ctx.stroke();
       });
+      if (highlight?.size) {
+        ctx.fillStyle = "#ffb81c"; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5;
+        counties.forEach((cc, i) => { if (!highlight.has(cc[0])) return; ctx.beginPath(); ctx.arc(P[i].x, P[i].y, r + 3.6, 0, 7); ctx.fill(); ctx.stroke(); });
+      }
       // counties that just finished planning flash a growing ring
       const nowT = performance.now();
       counties.forEach((cc, i) => {
@@ -123,7 +128,7 @@ export default function UsMap({ onPick, height = 420 }: { onPick?: (c: C, slug: 
     const ro = new ResizeObserver(draw);
     ro.observe(el);
     return () => ro.disconnect();
-  }, [counties, proj, planned, height]);
+  }, [counties, proj, planned, height, highlight]);
 
   function nearest(e: React.PointerEvent) {
     const r = cv.current!.getBoundingClientRect();

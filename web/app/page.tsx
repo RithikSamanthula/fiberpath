@@ -50,11 +50,9 @@ export default function Home() {
       </section>
 
       <section className="wrap" style={{ padding: "72px 20px 24px" }}>
-        <div className="cols">
-          <div className="col"><h3>For families</h3><p>See where your home stands and what it costs to reach.</p><p style={{ marginTop: 10 }}><Link href="/home">Check an address</Link></p></div>
-          <div className="col"><h3>For co-ops and small providers</h3><p>Get a build plan and a report you can attach to a grant application.</p><p style={{ marginTop: 10 }}><Link href="/report">See a report</Link></p></div>
-          <div className="col"><h3>For county and state offices</h3><p>Compare places and find where funding reaches the most homes.</p><p style={{ marginTop: 10 }}><Link href="/compare">Compare counties</Link></p></div>
-          <div className="col"><h3>For members of Congress</h3><p>See how many homes lack service and what it would cost to fix.</p><p style={{ marginTop: 10 }}><Link href="/explore">Explore the country</Link></p></div>
+        <div className="cols" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))" }}>
+          <div className="col blue"><h3>For families</h3><p>Check your address, see what it would cost to reach your home, and add your home to your community&apos;s count.</p><p style={{ marginTop: 12 }}><Link className="btn" href="/home">Check an address</Link></p></div>
+          <div className="col amber"><h3>For electric co-ops, broadband offices and Congress</h3><p>Plans, costs and reports for a whole service area, district or state. There is nothing to sign up for.</p><p style={{ marginTop: 12 }}><Link className="btn line" href="/pros">Open the counties portal</Link></p></div>
         </div>
       </section>
     </main>

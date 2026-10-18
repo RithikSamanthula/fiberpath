@@ -14,6 +14,6 @@ export function edgeCosts(plan: number[][], a: Assumptions) {
 }
 
 export const money = (n: number) =>
-  n >= 1e6 ? `$${(n / 1e6).toFixed(1)}M` : n >= 1e4 ? `$${Math.round(n / 1e3)}K` : `$${Math.round(n).toLocaleString("en-US")}`;
+  n >= 1e9 ? `$${(n / 1e9).toFixed(1)}B` : n >= 1e6 ? `$${(n / 1e6).toFixed(1)}M` : n >= 1e4 ? `$${Math.round(n / 1e3)}K` : `$${Math.round(n).toLocaleString("en-US")}`;
 export const dollars = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
 export const num = (n: number) => Math.round(n).toLocaleString("en-US");
