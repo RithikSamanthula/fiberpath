@@ -7,7 +7,7 @@ const nextConfig = {
   },
   outputFileTracingIncludes: {
     "/api/*": ["./public/data/**/*.json"],
-    "/api/detect": ["./models/**/*"],
+    "/api/detect": ["./models/**/*", "./node_modules/onnxruntime-node/bin/napi-v*/linux/x64/**/*", "./node_modules/onnxruntime-node/lib/**/*", "./node_modules/onnxruntime-common/**/*"],
   },
 };
 export default nextConfig;
