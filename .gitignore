@@ -17,3 +17,5 @@ web/tsconfig.tsbuildinfo
 web/public/data/index.json
 __pycache__/
 *.pyc
+pipeline/cv/hand/
+pipeline/cv/auto_state.json

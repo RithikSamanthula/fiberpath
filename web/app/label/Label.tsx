@@ -131,7 +131,6 @@ export default function Label() {
     for (const s of saved) { for (const b of s.boxes) b.ok ? real++ : fake++; missed += s.missed.length; }
     return { photos: saved.length, real, fake, missed, p: real + fake ? real / (real + fake) : null, r: real + missed ? real / (real + missed) : null };
   })();
-  const pct = (v: number | null) => (v === null ? "-" : `${Math.round(v * 100)}%`);
 
   return (
     <main className="wrap page" style={{ maxWidth: 1100 }}>
@@ -161,11 +160,11 @@ export default function Label() {
         <div>
           <div className="stats" style={{ gridTemplateColumns: "1fr 1fr" }}>
             <div className="stat"><div className="big sm">{stats.photos}</div><span className="label">Photos checked</span></div>
-            <div className="stat"><div className="big sm">{pct(stats.p)}</div><span className="label">Marks that were real</span></div>
-            <div className="stat"><div className="big sm">{pct(stats.r)}</div><span className="label">Poles it found</span></div>
-            <div className="stat"><div className="big sm">{stats.missed}</div><span className="label">Poles it missed</span></div>
+            <div className="stat"><div className="big sm">{stats.real}</div><span className="label">Confirmed poles</span></div>
+            <div className="stat"><div className="big sm">{stats.fake}</div><span className="label">Not poles</span></div>
+            <div className="stat"><div className="big sm">{stats.missed}</div><span className="label">Poles you added</span></div>
           </div>
-          <p className="small" style={{ marginTop: 10 }}>Aim for about 100 photos. These numbers come from your own answers, so they are a hand-checked score for the detector. The photos come from counties the detector was not trained on.</p>
+          <p className="small" style={{ marginTop: 10 }}>Every answer is saved and the detector learns from it the next time it retrains. Aim for about 100 photos.</p>
           <div className="row" style={{ marginTop: 12 }}>
             <button className="btn sm line" disabled={!saved.length} onClick={() => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(saved, null, 1)], { type: "application/json" })); a.download = "fiberpath-handchecks.json"; a.click(); }}>Download answers</button>
             <button className="btn sm line" disabled={!saved.length} onClick={() => { if (confirm("Delete all saved answers in this browser?")) { setSaved([]); try { localStorage.removeItem(KEY); } catch {} } }}>Clear</button>
