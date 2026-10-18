@@ -50,11 +50,11 @@ export default function Explore() {
   return (
     <main className="wrap page">
       <h1>Explore the country</h1>
-      <p className="lede">Pick a state to see its counties. Counties with a full plan open straight to the map. For the rest, ask for a plan: the counties with the most requests get planned first.</p>
+      <p className="lede">Pick a state to see its counties. Counties with a plan open on the map. For the others, you can ask for one.</p>
 
       <div style={{ marginTop: 28 }}><UsMap onPick={(c, slug) => { if (slug) location.href = `/county?county=${slug}`; else { setSt(c[2]); setQ(c[1].replace(" County", "")); } }} /></div>
       <div style={{ marginTop: 16 }}><LiveFeed /></div>
-      <p className="small" style={{ marginTop: 8 }}>Each dot is a county. Blue dots with a white ring have a full plan. Click any dot.</p>
+      <p className="small" style={{ marginTop: 8 }}>Each dot is a county. Blue dots with a white ring have a plan. Click one to open it.</p>
 
       <div className="row" style={{ marginTop: 28 }}>
         <label style={{ flex: "1 1 240px" }}><span className="label">State</span>
@@ -62,11 +62,11 @@ export default function Explore() {
             {STATES.map(([f, n]) => <option key={f} value={f}>{n}</option>)}
           </select></label>
         <label style={{ flex: "1 1 240px" }}><span className="label">Find a county</span>
-          <input className="field" style={{ marginTop: 4, minHeight: 46, fontSize: 16 }} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Start typing a name" /></label>
+          <input className="field" style={{ marginTop: 4, minHeight: 46, fontSize: 16 }} value={q} onChange={(e) => setQ(e.target.value)} placeholder="County name" /></label>
       </div>
 
       {err && <p className="box red" style={{ marginTop: 24 }} role="alert">{err}</p>}
-      {!list && !err && <p style={{ marginTop: 24 }}>Loading counties…</p>}
+      {!list && !err && <p style={{ marginTop: 24 }}>Loading counties</p>}
       {list && (
         <div className="list" style={{ marginTop: 24 }}>
           {shown.map((c) => (
@@ -93,8 +93,8 @@ export default function Explore() {
       )}
 
       <div className="box soft" style={{ marginTop: 40 }}>
-        <h3 style={{ marginTop: 0 }}>Do you run a co-op, ISP or county office?</h3>
-        <p>You do not have to wait. The planning pipeline runs on any U.S. county from public data. See <Link href="/about#run">how to run it</Link>.</p>
+        <h3 style={{ marginTop: 0 }}>Run a co-op, a small provider or a county office?</h3>
+        <p>You can plan any county yourself with the open code. See <Link href="/about#run">how to run it</Link>.</p>
       </div>
     </main>
   );

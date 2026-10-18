@@ -147,7 +147,7 @@ export default function UsMap({ onPick, height = 420 }: { onPick?: (c: C, slug: 
         />
         {tip && <div style={{ position: "absolute", left: Math.min(tip.x + 12, 9999), top: tip.y + 12, background: "#fff", color: "#0f1b2d", padding: "4px 8px", fontSize: 13, fontWeight: 600, pointerEvents: "none", borderRadius: 2, whiteSpace: "nowrap" }}>{tip.text}</div>}
         <div style={{ position: "absolute", left: 14, top: 12, color: "#fff" }}>
-          <div style={{ fontSize: 30, fontWeight: 800, lineHeight: 1 }}>{planned.size.toLocaleString("en-US")} <span style={{ fontSize: 15, fontWeight: 600, color: "#aebad0" }}>of {counties?.length.toLocaleString("en-US") ?? "3,235"} counties planned</span></div>
+          <div style={{ fontSize: 30, fontWeight: 800, lineHeight: 1 }}>{planned.size.toLocaleString("en-US")} <span style={{ fontSize: 15, fontWeight: 600, color: "#aebad0" }}>of {counties?.length.toLocaleString("en-US") ?? "3,235"} counties</span></div>
         </div>
       </div>
     </div>

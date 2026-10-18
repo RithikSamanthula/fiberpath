@@ -92,7 +92,7 @@ export default function Planner() {
   }, [data, cost, progress, cum]);
 
   if (error) return <main className="wrap page"><p>{error}</p></main>;
-  if (!data || !cost || !eff) return <main className="wrap page"><p>Loading the county…</p></main>;
+  if (!data || !cost || !eff) return <main className="wrap page"><p>Loading the county</p></main>;
 
   const t = data.meta.totals;
   const perHome = shown.homes ? shown.total / shown.homes : 0;
@@ -106,7 +106,7 @@ export default function Planner() {
           <div className="stat"><div className="big">{progress === 0 ? "—" : dollars(perHome)}</div><span className="label">Cost per home</span></div>
           <div className="stat"><div className="big">{num(progress === 0 ? 0 : shown.homes)}</div><span className="label">Homes connected</span></div>
           <div className="stat"><div className="big">{progress === 0 ? "—" : money(shown.total)}</div><span className="label">Total cost</span></div>
-          <div className="stat"><div className="big">{num(unreachedNow)}</div><span className="label">Homes unreached</span></div>
+          <div className="stat"><div className="big">{num(unreachedNow)}</div><span className="label">Homes left</span></div>
         </div>
         {view3d ? <Terrain3D data={data} progress={progress} onPick={setSel} focus={sel ? { lon: sel.lon, lat: sel.lat, key: sel.i } : null} /> : (
         <MapView
@@ -135,21 +135,21 @@ export default function Planner() {
 
       <aside className="side">
         <CountySelect index={index} slug={slug} onChange={setSlug} />
-        <p className="small" style={{ marginTop: 8 }}>{num(t.homesAll)} homes · {num(t.unserved)} without real internet</p>
+        <p className="small" style={{ marginTop: 8 }}>{num(t.homesAll)} homes, {num(t.unserved)} without good internet</p>
         <div className="box soft" style={{ marginTop: 12 }}>
           <p className="label">How to read this</p>
           <p className="small" style={{ marginTop: 6 }}>
-            Each red dot is a home with no real internet. Press <strong>Plan network</strong> and watch the cheapest set of roads connect them. Blue lines are fiber on poles, amber lines are buried fiber, and green squares are wireless towers.
+            Each red dot is a home without good internet. Press Plan network to watch the cheapest roads connect them. Blue lines are fiber on poles, amber lines are buried fiber and green squares are towers.<strong>Plan network</strong> and watch the cheapest set of roads connect them. Blue lines are fiber on poles, amber lines are buried fiber, and green squares are wireless towers.
           </p>
         </div>
         <div className="row" style={{ marginTop: 12 }}>
           <button className="btn line" aria-pressed={view3d} onClick={() => setView3d((v) => !v)}>{view3d ? "Back to map" : "See in 3D"}</button>
-          <button className="btn" onClick={play} disabled={playing}>{progress === 0 ? "Plan network" : playing ? "Planning…" : "Replay"}</button>
+          <button className="btn" onClick={play} disabled={playing}>{progress === 0 ? "Plan network" : playing ? "Planning" : "Replay"}</button>
           {progress > 0 && !playing && <button className="btn line" onClick={() => setProgress(0)}>Before</button>}
         </div>
         <p className="small" style={{ marginTop: 10 }}>
           {num(t.fiberHomes)} homes by fiber, {num(t.wirelessHomes)} by wireless from {t.towers} towers
-          {t.unreached ? `, ${num(t.unreached)} cannot be reached by road` : ""}.
+          {t.unreached ? `, ${num(t.unreached)} are not on a connected road` : ""}.
         </p>
 
         <h3>Show on the map</h3>
@@ -169,21 +169,21 @@ export default function Planner() {
         <BudgetLens data={data} onMask={setBudgetMask} />
 
         <h3>Try a tower</h3>
-        <p className="small">Drop a wireless tower anywhere and see, instantly, which homes it can really see over the hills and trees.</p>
+        <p className="small">Drop a tower anywhere and see which homes can reach it past the hills and trees.</p>
         <div className="row" style={{ marginTop: 10 }}>
-          <button className="btn sm" aria-pressed={tool} onClick={() => setTool((v) => !v)}>{tool ? "Click the map…" : "Drop a tower"}</button>
+          <button className="btn sm" aria-pressed={tool} onClick={() => setTool((v) => !v)}>{tool ? "Click the map" : "Drop a tower"}</button>
           {ghost && <button className="btn sm line" onClick={() => { setGhost(null); setTool(false); }}>Clear</button>}
         </div>
         {vs && (
           <div className="box soft" style={{ marginTop: 10 }}>
             <p className="big sm">{num(vs.seen)}</p>
-            <p className="small">of {num(vs.total)} unserved homes within 7 km can see this tower.</p>
+            <p className="small">of {num(vs.total)} homes without service within 7 km can reach this tower</p>
             <p className="small" style={{ marginTop: 6 }}>
               {vs.seen > 0
-                ? `At ${num(Math.min(vs.seen, 250))} homes (one tower serves about 250), that is ${dollars((eff.towerEach) / Math.min(vs.seen, 250) + eff.wirelessCpe)} per home.`
-                : "No home is reachable from here. Try a higher spot."}
+                ? `Serving ${num(Math.min(vs.seen, 250))} homes (a tower serves about 250), that is ${dollars((eff.towerEach) / Math.min(vs.seen, 250) + eff.wirelessCpe)} a home`
+                : "No home can reach a tower here. Try a higher spot"}
             </p>
-            <p className="small" style={{ marginTop: 6 }}>Green dots can see it. Dim red dots are in range but blocked.</p>
+            <p className="small" style={{ marginTop: 6 }}>Green dots can reach it. Dim red dots are in range but blocked.</p>
           </div>
         )}
 
@@ -221,7 +221,7 @@ export default function Planner() {
         </p>
         <button className="btn line" style={{ marginTop: 10 }} onClick={() => setA(data.meta.assumptions)}>Reset assumptions</button>
 
-        <div className="row" style={{ marginTop: 20 }}><Link className="btn sm" href={`/report?county=${slug}`}>Grant report</Link><Link className="btn sm line" href={`/poles?county=${slug}`}>Poles</Link><Link className="btn sm line" href={`/sight?county=${slug}`}>Line of sight</Link></div>
+        <div className="row" style={{ marginTop: 20 }}><Link className="btn sm" href={`/report?county=${slug}`}>Grant report</Link><Link className="btn sm line" href={`/flyer?county=${slug}`}>Flyer</Link><Link className="btn sm line" href={`/poles?county=${slug}`}>Poles</Link><Link className="btn sm line" href={`/sight?county=${slug}`}>Line of sight</Link></div>
       </aside>
     </div>
   );

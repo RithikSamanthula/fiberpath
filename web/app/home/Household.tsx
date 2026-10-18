@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Glossary from "@/components/Glossary";
-import HomeContext from "@/components/HomeContext";
+import HomeContext, { Share } from "@/components/HomeContext";
 import Search from "@/components/Search";
 import { dollars, num } from "@/lib/cost";
 import type { Home } from "@/lib/data";
@@ -33,10 +33,10 @@ type Estimate = {
 };
 
 const WHY: Record<number, string> = {
-  1: "A ridge blocks the nearest tower, so wireless cannot reach this home.",
-  2: "Trees block the nearest tower, so wireless cannot reach this home.",
-  3: "No planned tower is within range.",
-  4: "A tower can see this home, but fiber is the cheaper way to reach it.",
+  1: "A ridge blocks the nearest tower, so wireless cannot reach this home",
+  2: "Trees block the nearest tower, so wireless cannot reach this home",
+  3: "No planned tower is close enough",
+  4: "A tower could reach this home, but fiber costs less",
 };
 
 const stateOffice = (st: string) =>
@@ -114,9 +114,9 @@ export default function Household() {
     <main className="wrap page">
       <Search initial={address} />
 
-      {busy && <p style={{ marginTop: 32 }}>Looking up your address…</p>}
+      {busy && <p style={{ marginTop: 32 }}>Looking up your address</p>}
       {err && <p className="box red" style={{ marginTop: 32 }} role="alert">{err}</p>}
-      {!address && !busy && <p style={{ marginTop: 32 }}>Enter any U.S. address above.</p>}
+      {!address && !busy && <p style={{ marginTop: 32 }}>Enter an address above.</p>}
 
       {res && (
         <section style={{ marginTop: 32 }}>
@@ -139,51 +139,53 @@ export default function Household() {
           {res.planned && h && (
             <>
               <div className={`box ${["green", "amber", "red"][h.status]}`} style={{ marginTop: 20 }}>
-                <p className="label">Your status</p>
+                <p className="label">Internet at this address</p>
                 <p className="big" style={{ marginTop: 8 }}>{["Served", "Underserved", "Unserved"][h.status]}</p>
                 <p style={{ marginTop: 10, fontSize: 18 }}>
-                  {h.status === 0 && "Internet of at least 100 Mbps is listed for this area."}
-                  {h.status === 1 && "Some service is listed here, but it is slower than 100 Mbps down and 20 Mbps up."}
-                  {h.status === 2 && "No internet of at least 25 Mbps down and 3 Mbps up is listed for this area."}
+                  {h.status === 0 && "This area has internet at 100 Mbps or faster."}
+                  {h.status === 1 && "This area has some service, but it is slower than 100 Mbps down and 20 Mbps up."}
+                  {h.status === 2 && "This area has no internet at 25 Mbps down and 3 Mbps up or faster."}
                 </p>
                 <p className="small" style={{ marginTop: 8 }}>
-                  Source: {res.coverageSource === "fcc" ? "FCC National Broadband Map" : "modeled estimate. Town centers and densely built areas count as served until FCC data is loaded"}.
+                  Source: {res.coverageSource === "fcc" ? "FCC National Broadband Map" : "an estimate. FCC data is not loaded yet, so town centers and dense neighborhoods count as served"}
                 </p>
               </div>
 
               <HomeContext slug={res.slug} home={h} lat={res.lat} lon={res.lon} />
-              <p className="row noprint" style={{ marginTop: 10 }}><Link className="btn sm" href={`/street?lat=${res.lat}&lon=${res.lon}`}>Walk your street in 3D</Link><Link className="btn sm line" href={`/county?county=${res.slug}&home=${h.i}&view=3d`}>See your home in 3D</Link></p>
+              <p className="row noprint" style={{ marginTop: 10 }}><Link className="btn sm" href={`/street?lat=${res.lat}&lon=${res.lon}`}>Walk your street in 3D</Link><Link className="btn sm line" href={`/county?county=${res.slug}&home=${h.i}&view=3d`}>See your home in 3D</Link><Link className="btn sm line" href={`/flyer?county=${res.slug}`}>Make a flyer for neighbors</Link></p>
 
               {h.status === 2 && h.tech !== 0 && (
                 <>
-                  <h2>Your path to a connection</h2>
+                  <h2>How you would be connected</h2>
                   <div className="row" style={{ alignItems: "flex-start", gap: 20 }}>
                     <span className={`chip ${["", "blue", "amber", "green"][h.tech]}`}>{["", "Fiber on poles", "Buried fiber", "Fixed wireless"][h.tech]}</span>
                   </div>
                   <p style={{ marginTop: 10, fontSize: 18 }}>
-                    {h.tech === 1 && `Poles run along your road (${h.poles} found near your route), so fiber can hang on them. That is the cheapest way to build.`}
-                    {h.tech === 2 && "No utility poles were found along the road your fiber would follow, so it would be buried."}
-                    {h.tech === 3 && "A planned tower has a clear line of sight to your home. Terrain and tree height were checked along the whole path."}
+                    {h.tech === 1 && "There are utility poles along your road, so fiber can hang on them. That is the cheapest way to build."}
+                    {h.tech === 2 && "No utility poles were found along your road, so the fiber would be buried."}
+                    {h.tech === 3 && "A planned tower has a clear path to your home. The ground and tree height were checked along the whole way."}
                     {(h.tech === 1 || h.tech === 2) && h.why > 0 && ` ${WHY[h.why]}`}
                   </p>
                   <p style={{ marginTop: 12 }}><Link href={`/sight?county=${res.slug}&home=${h.i}`}>See the line-of-sight picture</Link></p>
 
-                  <h2>What it would cost</h2>
+                  <h2>Cost to connect you</h2>
                   <p className="big">{dollars(h.cost)}</p>
                   <p style={{ marginTop: 10 }}>
                     {h.tech === 3
-                      ? "That is your share of the tower plus your own antenna."
-                      : `That is your share of the route plus a ${num(h.dropFt)} ft connection from the road to your home.`}
+                      ? "Your share of the tower plus your own antenna"
+                      : `Your share of the shared route plus ${num(h.dropFt)} feet of cable from the road to your home`}
                     {h.tech !== 3 && (h.neighbors > 0
-                      ? ` ${num(h.neighbors)} ${h.neighbors === 1 ? "neighbor shares" : "neighbors share"} the same route within 300 m, which keeps each home cheaper.`
-                      : " No neighbors are close, so you carry more of the route.")}
+                      ? `. ${num(h.neighbors)} ${h.neighbors === 1 ? "neighbor shares" : "neighbors share"} the same route, which keeps each home cheaper`
+                      : ". No neighbors are close, so your share of the route is larger")}
                   </p>
                 </>
               )}
 
               {h.status === 2 && h.tech === 0 && (
-                <p style={{ marginTop: 20 }}>The road next to this home is not connected to the rest of the mapped network, so it is not in the plan yet.</p>
+                <p style={{ marginTop: 20 }}>The road by this home does not connect to the rest of the map, so it is not in the plan yet.</p>
               )}
+
+              {res.slug && h.status === 2 && <Share slug={res.slug} home={h} />}
 
               {h.status !== 0 && <RaiseHand county={res.county?.name ?? ""} pledge={pledge} onRaise={raise} />}
               <Next office={office} served={h.status === 0} />
@@ -196,7 +198,7 @@ export default function Household() {
                 <p className="label">Your area</p>
                 <p className="big sm" style={{ marginTop: 8 }}>{countyName}</p>
                 <p style={{ marginTop: 10 }}>
-                  FiberPath has not built a full plan for this county yet, so there is no exact status or price for your home. Here is what can be checked for any address.
+                  There is no full plan for this county yet, so there is no exact status or price for your home. Here is what can be checked for any address.
                 </p>
                 {res.acs && (
                   <p style={{ marginTop: 10 }}>
@@ -208,8 +210,8 @@ export default function Household() {
               <HomeContext lat={res.lat} lon={res.lon} />
               <p className="row noprint" style={{ marginTop: 10 }}><Link className="btn sm" href={`/street?lat=${res.lat}&lon=${res.lon}`}>Walk your street in 3D</Link></p>
 
-              <h2>Around your address</h2>
-              {estBusy && <p>Checking nearby roads, poles and homes…</p>}
+              <h2>Near this address</h2>
+              {estBusy && <p>Checking nearby roads, poles and homes</p>}
               {est && (
                 <>
                   <div className="stats">
@@ -218,15 +220,15 @@ export default function Household() {
                     <div className="stat"><div className="big sm">{est.homesNearby ?? "—"}</div><span className="label">Homes within 300 m</span></div>
                   </div>
                   {est.partial && <p className="small" style={{ marginTop: 8 }}>Some map data did not respond, so these numbers may be incomplete.</p>}
-                  {est.polesOnRoad === 0 && <p className="small" style={{ marginTop: 8 }}>“None seen” means no pole detections in street-level photos. It does not prove there are no poles.</p>}
+                  {est.polesOnRoad === 0 && <p className="small" style={{ marginTop: 8 }}>“None seen” means no poles showed up in street photos. There may still be some.</p>}
                   <Calculator est={est} />
                 </>
               )}
 
               <RaiseHand county={res.county?.name ?? ""} pledge={pledge} onRaise={raise} />
 
-              <h2>Ask for a full plan for {res.county?.name ?? "this county"}</h2>
-              <p>A full plan finds every home, prices every route and tells you exactly where you stand. Counties with the most requests get planned first.</p>
+              <h2>Ask for a plan for {res.county?.name ?? "this county"}</h2>
+              <p>A full plan finds every home and prices every route. Counties with the most requests are planned first.</p>
               <div className="row" style={{ marginTop: 14 }}>
                 <button className="btn dark" onClick={requestPlan} disabled={reqState.state === "done"}>{reqState.state === "done" ? "Requested" : "Request a plan"}</button>
                 {reqState.state === "done" && <span>{num(reqState.n ?? 1)} {reqState.n === 1 ? "request" : "requests"} so far for this county.</span>}
@@ -238,7 +240,7 @@ export default function Household() {
             </>
           )}
 
-          <h2>What the words mean</h2>
+          <h2>Terms used here</h2>
           <Glossary items={["unserved", "aerial", "buried", "wireless"]} />
         </section>
       )}
@@ -250,15 +252,15 @@ function RaiseHand({ county, pledge, onRaise }: { county: string; pledge: { stat
   return (
     <div className="noprint">
       <h2>Raise your hand</h2>
-      <p>One tap adds your home to your community&apos;s demand count. Providers and counties use measured demand to make the case for funding.</p>
+      <p>One tap adds your home to your community&apos;s count. Providers and counties use these counts to ask for funding.</p>
       <div className="row" style={{ marginTop: 14 }}>
         <button className="btn" onClick={onRaise} disabled={pledge.state === "saving" || pledge.state === "done"}>
-          {pledge.state === "done" ? "You are counted" : pledge.state === "saving" ? "Saving…" : "Raise your hand"}
+          {pledge.state === "done" ? "You are counted" : pledge.state === "saving" ? "Saving" : "Raise your hand"}
         </button>
         {pledge.state === "done" && <span>{num(pledge.total ?? 0)} {pledge.total === 1 ? "home has" : "homes have"} raised a hand{county ? ` in ${county}` : ""}.</span>}
         {pledge.state === "error" && <span role="alert">{pledge.msg}</span>}
       </div>
-      <p className="small" style={{ marginTop: 10 }}>Privacy: demand is only shown in aggregate over areas of many homes. No individual address is ever displayed.</p>
+      <p className="small" style={{ marginTop: 10 }}>Privacy: counts are only shown for areas with many homes. No address is ever shown.</p>
     </div>
   );
 }
@@ -275,7 +277,7 @@ function Calculator({ est }: { est: Estimate }) {
   return (
     <div className="box" style={{ marginTop: 20 }}>
       <h3 style={{ marginTop: 0 }}>Rough cost to reach this address</h3>
-      <p className="small">A quick calculator, not a plan. Change the numbers to see how distance, poles and sharing move the price.</p>
+      <p className="small">A quick estimate, not a plan. Change the numbers to see how distance, poles and sharing change the price.</p>
       <div className="row" style={{ marginTop: 14, alignItems: "flex-end" }}>
         <label style={{ flex: "1 1 150px" }}><span className="label">Fiber to build (km)</span>
           <input className="field" style={{ minHeight: 46, fontSize: 16 }} inputMode="decimal" value={km} onChange={(e) => setKm(Math.max(0, Number(e.target.value) || 0))} /></label>
@@ -292,14 +294,14 @@ function Calculator({ est }: { est: Estimate }) {
 function Next({ office, served }: { office: { name: string; href: string }; served?: boolean }) {
   return (
     <div className="noprint">
-      <h2>What you can do now</h2>
+      <h2>What you can do</h2>
       <ul style={{ paddingLeft: 20, display: "grid", gap: 8 }}>
         <li>Contact <a href={office.href}>{office.name}</a> about funded projects near you.</li>
         <li>
           {served ? "If this listing is wrong, " : "If a provider is listed that does not actually serve you, "}
           <a href="https://www.fcc.gov/BroadbandData/consumers">file a challenge with the FCC</a>, and check <a href="https://broadbandmap.fcc.gov">the National Broadband Map</a>.
         </li>
-        <li>Tell neighbors. Demand counts only work when many households raise a hand.</li>
+        <li>Tell your neighbors. The counts only help when many homes are included.</li>
       </ul>
     </div>
   );

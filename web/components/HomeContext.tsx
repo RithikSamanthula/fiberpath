@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import MapView, { Layers } from "@/components/MapView";
 import Scanner from "@/components/cv/Scanner";
+import ShareCard from "@/components/ShareCard";
 import { County, Home, loadCountyLite } from "@/lib/data";
 
 const layers: Layers = { roads: true, plan: true, homes: true, towers: true, poles: true, wireless: false };
@@ -16,17 +17,30 @@ export default function HomeContext({ slug, home, lat, lon }: { slug?: string; h
     return { a: [t.lon, t.lat] as [number, number], b: [home.lon, home.lat] as [number, number] };
   }, [d, home]);
   const pt = home ?? { lat, lon };
+  const [noPhotos, setNoPhotos] = useState(false);
   return (
-    <div className={slug && home ? "hh-visuals" : ""} style={{ marginTop: 20 }}>
+    <div className={slug && home && !noPhotos ? "hh-visuals" : ""} style={{ marginTop: 20 }}>
       {slug && home && (
-        <div style={{ minHeight: 360, display: "flex", flexDirection: "column", borderRadius: 3, overflow: "hidden", position: "relative", background: "#0f1b2d" }}>
-          {d ? <MapView data={d} layers={layers} selected={home} link={link} progress={1} pulse focus={{ lon: home.lon, lat: home.lat, zoom: 22000, key: home.i }} /> : <span style={{ margin: "auto", color: "#aebad0" }}>Loading the plan…</span>}
+        <div style={{ minHeight: noPhotos ? 440 : 360, display: "flex", flexDirection: "column", borderRadius: 3, overflow: "hidden", position: "relative", background: "#0f1b2d" }}>
+          {d ? <MapView data={d} layers={layers} selected={home} link={link} progress={1} pulse focus={{ lon: home.lon, lat: home.lat, zoom: 22000, key: home.i }} /> : <span style={{ margin: "auto", color: "#aebad0" }}>Loading the plan</span>}
           <span className="label" style={{ position: "absolute", left: 10, top: 10, background: "#fff", padding: "4px 8px" }}>Your home on the plan</span>
         </div>
       )}
       <div>
-        <Scanner lat={pt.lat} lon={pt.lon} />
+        <Scanner lat={pt.lat} lon={pt.lon} onEmpty={setNoPhotos} />
       </div>
+    </div>
+  );
+}
+
+export function Share({ slug, home }: { slug: string; home: Home }) {
+  const [d, setD] = useState<County | null>(null);
+  useEffect(() => { loadCountyLite(slug).then(setD).catch(() => {}); }, [slug]);
+  if (!d) return null;
+  return (
+    <div className="noprint">
+      <h2>Share your result</h2>
+      <ShareCard data={d} home={home} />
     </div>
   );
 }

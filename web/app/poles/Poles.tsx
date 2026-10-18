@@ -19,7 +19,7 @@ export default function Poles() {
   const layers: Layers = { roads: true, plan: true, homes: true, towers: false, poles: true, wireless: false };
 
   if (error) return <main className="wrap page"><p>{error}</p></main>;
-  if (!data) return <main className="wrap page"><p>Loading the county…</p></main>;
+  if (!data) return <main className="wrap page"><p>Loading the county</p></main>;
 
   const { totals, poleSource, poleCount } = data.meta;
   let aerialM = 0, buriedM = 0;
@@ -49,8 +49,8 @@ export default function Poles() {
       <aside className="side">
         <CountySelect index={index} slug={slug} onChange={setSlug} />
         <h3>Pole inspector</h3>
-        <p className="small">Tap a home on the map. FiberPath pulls the street photos near it and a computer-vision model, running in your browser, looks for utility poles.</p>
-        {!sel && <p style={{ marginTop: 12 }}>No home selected.</p>}
+        <p className="small">Tap a home on the map to see the street photos near it, with utility poles marked.</p>
+        {!sel && <p style={{ marginTop: 12 }}>No home selected yet.</p>}
         {sel && (
           <>
             <p style={{ marginTop: 12 }}>{nearPoles} {nearPoles === 1 ? "pole" : "poles"} within 60 m. Route here: <strong>{sel.tech === 1 ? "on poles" : sel.tech === 2 ? "buried" : sel.tech === 3 ? "wireless, no route" : "not in plan"}</strong>.</p>

@@ -50,7 +50,7 @@ export function HomesPanel() {
   const [ref, vis] = useVisible<HTMLDivElement>();
   const d = useTowns(vis);
   return (
-    <Frame forwardRef={ref} title="Homes found" big={d ? num(d.meta.totals.homesAll) : "—"} note="Every building the right size to be a house, from satellite-derived outlines.">
+    <Frame forwardRef={ref} title="Homes found" big={d ? num(d.meta.totals.homesAll) : "—"} note="Building outlines from satellite images, with sheds and barns removed">
       {d && <MapView data={d} layers={L({ homes: true })} progress={0} still focus={{ lon: -83.86, lat: 34.97, zoom: 9000, key: 1 }} />}
     </Frame>
   );
@@ -60,7 +60,7 @@ export function PolesPanel() {
   const [ref, vis] = useVisible<HTMLDivElement>();
   const d = useTowns(vis);
   return (
-    <Frame forwardRef={ref} title="Utility poles mapped" big={d ? num(d.meta.poleCount) : "—"} note="Found by computer vision in street photos. Roads with poles are cheap to build on.">
+    <Frame forwardRef={ref} title="Utility poles found" big={d ? num(d.meta.poleCount) : "—"} note="Spotted in street photos. Roads with poles are cheaper to build on">
       {d && <MapView data={d} layers={L({ poles: true, plan: true })} progress={1} still focus={{ lon: -83.76, lat: 34.95, zoom: 9000, key: 2 }} />}
     </Frame>
   );
@@ -72,7 +72,7 @@ export function WirelessPanel() {
   const tower = useMemo(() => (d ? d.towers.filter((t) => t.used).sort((a, b) => b.homes - a.homes)[0] : null), [d]);
   const vs = useMemo(() => (d && tower?.id !== undefined ? viewshed(d, tower.lon, tower.lat, d.homes) : null), [d, tower]);
   return (
-    <Frame forwardRef={ref} title="Homes one tower can see" big={vs ? num(vs.seen) : "—"} note={vs ? `Green homes have a clear path over the hills and trees. ${num(vs.total - vs.seen)} in range are blocked.` : "Terrain and tree height decide what a signal can reach."}>
+    <Frame forwardRef={ref} title="Homes this tower can reach" big={vs ? num(vs.seen) : "—"} note={vs ? `Green homes have a clear path past the hills and trees, and ${num(vs.total - vs.seen)} nearby homes are blocked` : "Hills and trees decide what a signal can reach"}>
       {d && tower && vs && <MapView data={d} layers={L({ homes: false })} progress={0} still reach={vs.res} ghost={{ lon: tower.lon, lat: tower.lat }} focus={{ lon: tower.lon, lat: tower.lat, zoom: 5200, key: 3 }} />}
     </Frame>
   );
@@ -92,7 +92,7 @@ export function NetworkPanel() {
   const n = d ? Math.floor(p * d.plan.length) : 0;
   const spent = stat ? (p >= 1 ? stat.c.total : (n ? stat.run[n - 1] / stat.tot : 0) * (stat.c.total - stat.c.wireless)) : 0;
   return (
-    <Frame forwardRef={ref} title="Cheapest network, drawn live" big={stat ? (p >= 1 ? dollars(stat.c.perHome) + " / home" : dollars(spent)) : "—"} note="The routing algorithm picks the lowest-cost set of roads that reaches every home.">
+    <Frame forwardRef={ref} title="Cost to connect everyone" big={stat ? (p >= 1 ? dollars(stat.c.perHome) + " a home" : dollars(spent)) : "—"} note="The cheapest set of roads that reaches every home">
       {d && <MapView data={d} layers={L({ plan: true, homes: true, towers: true })} progress={p} still pulse />}
     </Frame>
   );
@@ -102,7 +102,7 @@ export function TerrainPanel() {
   const [ref, vis] = useVisible<HTMLDivElement>();
   const d = useTowns(vis, true);
   return (
-    <Frame forwardRef={ref} tall title="The real ground" big="3D" note="Terrain, forest and every route, rebuilt from elevation and tree-height data. Drag to turn it.">
+    <Frame forwardRef={ref} tall title="The county in 3D" big="3D" note="Hills, forest and every route. Drag to turn it">
       {d && <Terrain3D data={d} progress={1} spin compact />}
     </Frame>
   );

@@ -30,7 +30,7 @@ export default function Report() {
   }, [data]);
 
   if (error) return <main className="wrap page"><p>{error}</p></main>;
-  if (!data || !mix) return <main className="wrap page"><p>Loading the report…</p></main>;
+  if (!data || !mix) return <main className="wrap page"><p>Loading the report</p></main>;
 
   const { meta } = data;
   const t = meta.totals;
@@ -57,18 +57,20 @@ export default function Report() {
         <div className="row">
           <button className="btn sm line" onClick={() => download(`${meta.slug}-routes.geojson`, geojson(), "application/geo+json")}>Routes (GeoJSON)</button>
           <button className="btn sm line" onClick={() => download(`${meta.slug}-homes.csv`, csv(), "text/csv")}>Homes (CSV)</button>
+          <a className="btn sm line" href={`/flyer?county=${meta.slug}`}>Flyer</a>
           <button className="btn sm" onClick={() => window.print()}>Export PDF</button>
         </div>
       </div>
-      <p className="label" style={{ marginTop: 28 }}>Grant-ready report</p>
+      <p className="label" style={{ marginTop: 28 }}>Grant report</p>
       <h1 style={{ marginTop: 8 }}>{meta.name}, {meta.state}: buildout plan</h1>
-      <p className="lede">The lowest-cost network to connect {num(c.homes)} homes without real internet. Generated {meta.generated} from public data.</p>
+      <p className="lede">The cheapest network to connect {num(c.homes)} homes without good internet. Made {meta.generated} from public data.</p>
 
       <div className="stats" style={{ marginTop: 28 }}>
         <div className="stat"><div className="big">{num(c.homes)}</div><span className="label">Homes reached</span></div>
         <div className="stat"><div className="big">{dollars(c.perHome)}</div><span className="label">Cost per home</span></div>
         <div className="stat"><div className="big">{money(c.total)}</div><span className="label">Total cost</span></div>
         <div className="stat"><div className="big">{num(t.unserved)}</div><span className="label">Homes without service</span></div>
+        <div className="stat"><div className="big">{num(Math.round(t.unserved * 2.5))}</div><span className="label">People, about</span></div>
       </div>
 
       <h2>Technology mix</h2>
@@ -83,12 +85,12 @@ export default function Report() {
       </table>
       {t.unreached > 0 && <p className="small">{num(t.unreached)} further homes could not be linked to the hub by the mapped road network and are not counted above.</p>}
 
-      <h2>How cost per home is spread</h2>
-      <p className="small">Each bar counts homes at that price. A long tail on the right is the few hard-to-reach homes that drive the average up.</p>
+      <h2>Cost per home</h2>
+      <p className="small">Each bar counts homes at that price. The long tail on the right is a few homes that are very costly to reach.</p>
       <Histogram homes={data.homes} colors={colors} />
 
-      <h2>What would more poles save?</h2>
-      <p className="small">Fiber on poles costs about half as much per foot as buried fiber. This shows what happens to the average cost per home if more of the planned route could ride on poles.</p>
+      <h2>What more poles would save</h2>
+      <p className="small">Fiber on poles costs about half as much per foot as buried fiber. The line shows how the average cost per home changes as more of the route can use poles.</p>
       <PoleSavings t={t} a={a} />
 
       <h2>Cost breakdown</h2>
@@ -103,17 +105,16 @@ export default function Report() {
           <tr><th>Total</th><td /><td /><th className="r">{money(c.total)}</th></tr>
         </tbody>
       </table>
-      <p className="small">Unit costs are adjustable assumptions on the County plans screen. Routes and technology choices were planned at the values shown.</p>
+      <p className="small">The unit costs are prices you can change on the County plans screen. Routes and technology choices were planned at the prices shown.</p>
 
-      <h2>Measured demand</h2>
+      <h2>Homes asking for service</h2>
       <p>
-        {demand ? <><strong>{num(demand.total)}</strong> {demand.total === 1 ? "household has" : "households have"} raised a hand in {meta.name}.</> : "Demand counts are not available right now."}
-        {" "}Counts are shown only in aggregate. An area appears on the map once {demand?.minCell ?? 5} or more homes in one hexagon have raised a hand. No address is ever shown.
-      </p>
+        {demand ? <><strong>{num(demand.total)}</strong> {demand.total === 1 ? "home has" : "homes have"} asked for service in {meta.name}.</> : "Demand counts are not available right now."}
+        {" "}Counts only appear on the map where five or more homes in the same area have asked. No address is ever shown.</p>
 
       {b && (
         <>
-          <h2>Check against a real project</h2>
+          <h2>Compared with a real project</h2>
           <table>
             <thead><tr><th /><th className="r">Homes</th><th className="r">Total</th><th className="r">Per home</th></tr></thead>
             <tbody>
@@ -127,7 +128,7 @@ export default function Report() {
         </>
       )}
 
-      <h2>What has and has not been measured</h2>
+      <h2>What has been checked</h2>
       <table>
         <thead><tr><th>Check</th><th>Method</th><th>Result</th></tr></thead>
         <tbody>

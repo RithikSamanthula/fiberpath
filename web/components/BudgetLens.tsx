@@ -39,8 +39,8 @@ export default function BudgetLens({ data, onMask }: { data: County; onMask: (m:
 
   return (
     <>
-      <h3>What does a grant buy?</h3>
-      <p className="small">Slide to a budget. Homes are funded cheapest first, so you can see how far the money goes.</p>
+      <h3>What a grant would buy</h3>
+      <p className="small">Pick a budget. The cheapest homes get connected first.</p>
       <input type="range" min={0} max={100} value={pct} onChange={(e) => { setPct(Number(e.target.value)); setShow(true); }} style={{ width: "100%", marginTop: 10, accentColor: "#1b5fd1" }} aria-label="Grant size" />
       <div className="box soft" style={{ marginTop: 6 }}>
         <p className="big sm">{money(budget)}</p>
@@ -50,8 +50,8 @@ export default function BudgetLens({ data, onMask }: { data: County; onMask: (m:
           <line x1={mx} x2={mx} y1={0} y2={H} stroke="#1b5fd1" strokeWidth="1.5" strokeDasharray="4 3" />
           <circle cx={mx} cy={my} r="5" fill="#1b5fd1" />
         </svg>
-        <p className="small" style={{ marginTop: 4 }}>The curve flattens: the last homes cost the most.</p>
-        <button className="btn sm line" style={{ marginTop: 8 }} aria-pressed={show} onClick={() => setShow((v) => !v)}>{show ? "Hide on map" : "Show funded homes on map"}</button>
+        <p className="small" style={{ marginTop: 4 }}>The curve flattens because the last homes cost the most.</p>
+        <button className="btn sm line" style={{ marginTop: 8 }} aria-pressed={show} onClick={() => setShow((v) => !v)}>{show ? "Hide from the map" : "Show connected homes on the map"}</button>
       </div>
     </>
   );

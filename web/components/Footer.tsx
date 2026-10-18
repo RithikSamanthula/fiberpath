@@ -4,9 +4,9 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="wrap row" style={{ justifyContent: "space-between" }}>
-        <span>FiberPath. Every home connected. Every dollar counted.</span>
+        <span>FiberPath, a Congressional App Challenge entry</span>
         <span>
-          Data: <Link href="/about#credits">OpenStreetMap, Microsoft, USGS, Meta and WRI, Census, Mapillary, FCC</Link>
+          Data sources: <Link href="/about#credits">OpenStreetMap, Microsoft, USGS, Meta, Census, Mapillary</Link>
         </span>
       </div>
     </footer>

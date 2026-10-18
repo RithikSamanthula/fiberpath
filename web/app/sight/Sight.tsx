@@ -54,12 +54,12 @@ export default function Sight() {
   const p = useMemo(() => (data && home && tower ? profile(data, tower, home) : null), [data, home, tower]);
 
   if (error) return <main className="wrap page"><p>{error}</p></main>;
-  if (!data) return <main className="wrap page"><p>Loading the county…</p></main>;
+  if (!data) return <main className="wrap page"><p>Loading the county</p></main>;
 
   return (
     <main className="wrap page">
       <h1>Can a tower reach this home?</h1>
-      <p className="lede">A wireless signal needs a clear path from the tower to the home, with extra room around it. Hills and trees get in the way even when the map looks flat. This picture is a side view of the ground between the two.</p>
+      <p className="lede">A wireless signal needs a clear path from the tower to the home, with some room around it. Hills and trees block it even when the map looks flat. This is a side view of the ground between the two.</p>
       <div style={{ maxWidth: 360, marginTop: 20 }}><CountySelect index={index} slug={slug} onChange={setSlug} /></div>
 
       <div className="row" style={{ marginTop: 24, alignItems: "stretch" }}>
@@ -90,7 +90,7 @@ export default function Sight() {
             <p className="big sm">{p.visible ? "Clear path" : p.blockedByTerrain ? "Blocked by a ridge" : "Blocked by trees"}</p>
             <p style={{ marginTop: 8 }}>
               {p.dist > 7000
-                ? `The home is ${(p.dist / 1000).toFixed(1)} km from the tower, beyond the 7 km range planned for. `
+                ? `The home is ${(p.dist / 1000).toFixed(1)} km from the tower, past the 7 km we plan for. `
                 : ""}
               {p.visible
                 ? `The signal path clears terrain and trees by ${p.margin < 900 ? p.margin.toFixed(1) : "—"} m at its tightest point, ${(p.d[p.worst] / 1000).toFixed(1)} km from the tower. This home can be served by wireless.`
@@ -106,7 +106,7 @@ export default function Sight() {
           <div style={{ height: 380, marginTop: 24, border: "1px solid #d6d1c4", display: "flex", flexDirection: "column" }}>
             <MapView data={data} layers={layers} selected={home} onPick={(h) => h && choose(h)} link={{ a: [tower.lon, tower.lat], b: [home.lon, home.lat] }} focus={{ lon: (tower.lon + home.lon) / 2, lat: (tower.lat + home.lat) / 2, zoom: Math.min(160000, 5.2e6 / Math.max(p.dist, 800) * 0.9) , key: home.i * 100 + tower.id }} />
           </div>
-          <p className="small" style={{ marginTop: 8 }}>Tap any home on the map to check it against the selected tower.</p>
+          <p className="small" style={{ marginTop: 8 }}>Tap a home on the map to check it against the tower.</p>
         </>
       )}
     </main>

@@ -8,9 +8,9 @@ type Ex = { img: string; place: string; boxes: Box[]; candidates: Box[] };
 type Metrics = { trainImages: number; valImages: number; precision: number; recall: number; map50: number; perClass?: Record<string, { precision: number; recall: number }> };
 
 const STEPS = [
-  { stage: "photo" as const, ms: 1500, t: "1  Look", d: "A street photo goes in." },
-  { stage: "candidates" as const, ms: 2600, t: "2  Propose", d: "The network proposes hundreds of possible poles." },
-  { stage: "final" as const, ms: 4200, t: "3  Decide", d: "Overlaps merge. Utility poles are kept. Street lights are set aside." },
+  { stage: "photo" as const, ms: 1500, t: "1  Photo", d: "A street photo goes in" },
+  { stage: "candidates" as const, ms: 2600, t: "2  Guesses", d: "The model marks every place a pole might be" },
+  { stage: "final" as const, ms: 4200, t: "3  Result", d: "Overlapping guesses merge and street lights are dropped" },
 ];
 
 // The pole detector working on real photos, on a loop: photo, proposals, decision.
@@ -52,10 +52,10 @@ export default function DetectionDemo() {
       </div>
       <div style={{ display: "grid", gap: 12, alignContent: "start" }}>
         <Tile big={String(util)} label="Utility poles in this photo" color="#4d8dff" />
-        <Tile big={String(other)} label="Street lights and other poles, ignored" color="#ffffff" />
-        {m && <Tile big={`${Math.round(m.precision * 100)}%`} label={`Precision on ${m.valImages} photos from streets it never trained on`} color="#38c47c" />}
-        {m && <Tile big={`${Math.round(m.recall * 100)}%`} label="Recall on the same photos" color="#ffb81c" />}
-        <p className="small" style={{ color: "#8fa3c4" }}>{cur.place}. Photos: Mapillary contributors, CC BY-SA.</p>
+        <Tile big={String(other)} label="Street lights and other poles, left out" color="#ffffff" />
+        {m && <Tile big={`${Math.round(m.precision * 100)}%`} label={`Of the poles it marks, how many are real (tested on ${m.valImages} new photos)`} color="#38c47c" />}
+        {m && <Tile big={`${Math.round(m.recall * 100)}%`} label="Of the labeled poles, how many it finds" color="#ffb81c" />}
+        <p className="small" style={{ color: "#8fa3c4" }}>{cur.place}. Photos from Mapillary contributors</p>
       </div>
     </div>
   );

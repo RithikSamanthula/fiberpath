@@ -6,10 +6,10 @@ const links = [
   ["/home", "Check an address"],
   ["/county", "County plans"],
   ["/street", "Street view"],
-  ["/explore", "Explore the U.S."],
+  ["/explore", "Explore"],
   ["/compare", "Compare"],
   ["/report", "Grant report"],
-  ["/about", "How it works"],
+  ["/about", "About"],
 ];
 
 export default function Header() {

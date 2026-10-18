@@ -21,17 +21,17 @@ export default function LiveFeed({ count = 6 }: { count?: number }) {
   return (
     <div className="box soft" aria-live="polite">
       <div className="row" style={{ justifyContent: "space-between" }}>
-        <p className="label"><span style={{ display: "inline-block", width: 9, height: 9, background: "var(--green)", borderRadius: "50%", marginRight: 8 }} />Live from the pipeline</p>
-        <p className="small">{num(idx.length)} counties planned · {num(lastHour)} in the last hour</p>
+        <p className="label"><span style={{ display: "inline-block", width: 9, height: 9, background: "var(--green)", borderRadius: "50%", marginRight: 8 }} />Just finished</p>
+        <p className="small">{num(idx.length)} counties planned, {num(lastHour)} in the last hour</p>
       </div>
       <div className="list" style={{ marginTop: 8, borderTop: 0 }}>
         {latest.map((c) => (
           <div className="item" key={c.geoid} style={{ padding: "8px 0" }}>
             <Link href={`/county?county=${c.slug}`}><strong>{c.name}, {c.state}</strong></Link>
-            <span className="small">{num(c.unserved)} unserved homes · {ago(c.plannedAt, now)}</span>
+            <span className="small">{num(c.unserved)} homes without service, {ago(c.plannedAt, now)}</span>
           </div>
         ))}
-        {!latest.length && <p className="small" style={{ paddingTop: 8 }}>Waiting for the next county to finish.</p>}
+        {!latest.length && <p className="small" style={{ paddingTop: 8 }}>Waiting for the next county</p>}
       </div>
     </div>
   );

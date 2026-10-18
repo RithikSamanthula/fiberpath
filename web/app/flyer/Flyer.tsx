@@ -1,0 +1,40 @@
+"use client";
+import QRCode from "qrcode";
+import { useEffect, useState } from "react";
+import { CountySelect, useCountyParam } from "@/lib/useCounty";
+import { dollars, money, num, totalCost } from "@/lib/cost";
+
+// A one-page flyer a neighbor can put up: the numbers for the county and a code that opens the address check
+export default function Flyer() {
+  const { slug, setSlug, index, data } = useCountyParam();
+  const [qr, setQr] = useState("");
+  useEffect(() => {
+    if (!slug) return;
+    QRCode.toString(`${location.origin}/home`, { type: "svg", margin: 0, color: { dark: "#0f1b2d", light: "#ffffff" } }).then(setQr).catch(() => {});
+  }, [slug]);
+  const c = data ? totalCost(data.meta.totals, data.meta.assumptions) : null;
+  const t = data?.meta.totals;
+  return (
+    <main className="wrap page" style={{ maxWidth: 860 }}>
+      <div className="row noprint" style={{ justifyContent: "space-between", marginBottom: 20 }}>
+        <div style={{ minWidth: 260 }}><CountySelect index={index} slug={slug} onChange={setSlug} /></div>
+        <button className="btn" onClick={() => window.print()}>Print the flyer</button>
+      </div>
+      {data && c && t && (
+        <div style={{ border: "4px solid #0f1b2d", padding: 36 }}>
+          <h1 style={{ fontSize: 52, lineHeight: 1.05 }}>{num(t.unserved)} homes in {data.meta.name} do not have good internet</h1>
+          <p style={{ fontSize: 22, marginTop: 14 }}>A plan exists to connect all of them. It would cost about {money(c.total)}, or {dollars(c.perHome)} a home.</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 32, alignItems: "center", marginTop: 28 }}>
+            <div>
+              <p style={{ fontSize: 28, fontWeight: 800 }}>Check your address and add your home to the count</p>
+              <p style={{ fontSize: 20, marginTop: 10 }}>Providers and the county use these counts to ask for funding. It takes a minute and no address is shown to anyone.</p>
+              <p style={{ fontSize: 20, marginTop: 16, fontWeight: 700 }}>fiberpath.vercel.app/home</p>
+            </div>
+            <div style={{ width: 220, height: 220 }} dangerouslySetInnerHTML={{ __html: qr }} />
+          </div>
+          <p className="small" style={{ marginTop: 24 }}>About {num(Math.round(t.unserved * 2.5))} people live in these homes, using the national average of 2.5 people per household. Plan made by FiberPath from public data.</p>
+        </div>
+      )}
+    </main>
+  );
+}

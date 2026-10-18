@@ -19,12 +19,12 @@ export default function Search({ initial = "", autoFocus = false }: { initial?: 
         name="address"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Enter any address in America"
+        placeholder="Street address, city and state"
         aria-label="Street address"
         autoComplete="street-address"
         autoFocus={autoFocus}
       />
-      <button className="btn" type="submit">Look up</button>
+      <button className="btn" type="submit">Check</button>
     </form>
   );
 }

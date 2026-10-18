@@ -79,7 +79,7 @@ export default function PhotoDetect({ src, boxes, reference, candidates, stage =
         ctx.fillStyle = util ? "rgba(77,141,255,0.16)" : "rgba(255,255,255,0.10)";
         ctx.fillRect(x, y, w, h);
         bracket(x, y, w, h, util ? BLUE : WHITE, util ? 3 : 2);
-        const label = util ? `Utility pole ${Math.round((b.score ?? 0) * 100)}%` : "Street light, ignored";
+        const label = util ? `Utility pole ${Math.round((b.score ?? 0) * 100)}%` : "Street light, left out";
         ctx.font = "600 12px -apple-system, Helvetica, Arial, sans-serif";
         const tw = ctx.measureText(label).width + 12;
         const ly = y - 20 < 2 ? y + h + 2 : y - 20;

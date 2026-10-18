@@ -29,7 +29,7 @@ export default function StreetPage() {
   // a random street in a random planned county, somewhere poles have been mapped (so photos exist)
   async function surprise() {
     if (!index?.length) return;
-    setBusy(true); setMsg("Looking for a street with photos…");
+    setBusy(true); setMsg("Looking for a street with photos");
     for (let i = 0; i < 6; i++) {
       const c = index[Math.floor(Math.random() * index.length)];
       try {
@@ -48,12 +48,11 @@ export default function StreetPage() {
 
   return (
     <main className="wrap" style={{ maxWidth: 1280, padding: "28px 20px 80px" }}>
-      <p className="label">Street view</p>
-      <h1 style={{ fontSize: 34, margin: "6px 0 10px" }}>Walk the street. Watch the poles get found and placed.</h1>
-      <p className="small" style={{ maxWidth: "70ch" }}>Each photo is read by the pole detector. Every detection is a bearing from the camera; where bearings from different photos cross, a pole is placed. A pole is shown when at least two photos agree, and counted as firm at three or more.</p>
+      <h1 style={{ fontSize: 34, margin: "0 0 10px" }}>Walk a street and see its poles</h1>
+      <p className="small" style={{ maxWidth: "70ch" }}>The detector looks for utility poles in every photo. Each detection gives a direction from the camera, and where directions from different photos cross, the pole is placed on the map. A pole needs at least two photos to agree.</p>
 
       <form onSubmit={search} className="row" style={{ marginTop: 18, gap: 8 }} role="search">
-        <input className="field" style={{ flex: "1 1 320px", minHeight: 48, fontSize: 16 }} value={addr} onChange={(e) => setAddr(e.target.value)} placeholder="Go to any address, for example 1 Main St, Hiawassee, GA" aria-label="Address" />
+        <input className="field" style={{ flex: "1 1 320px", minHeight: 48, fontSize: 16 }} value={addr} onChange={(e) => setAddr(e.target.value)} placeholder="Address, for example 1 Main St, Hiawassee, GA" aria-label="Address" />
         <button className="btn" type="submit" disabled={busy}>Go</button>
         <button className="btn line" type="button" onClick={surprise} disabled={busy || !index?.length}>Random street</button>
         <button className="btn line" type="button" onClick={here} disabled={busy}>Near me</button>

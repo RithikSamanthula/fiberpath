@@ -27,9 +27,9 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
     setFrames(null); setDets({}); setErr(null); setSel(0); setPlaying(false);
     fetch(`/api/sequence?lat=${lat}&lon=${lon}&n=24`).then((r) => r.json()).then(async (j) => {
       if (!live) return;
-      if (!j.configured) { setErr("Street photos are not connected on this server."); return; }
+      if (!j.configured) { setErr("Street photos are not set up on this server"); return; }
       if (j.error) { setErr(j.error); return; }
-      if (!j.frames?.length) { setErr("No street photos along a road near this spot."); return; }
+      if (!j.frames?.length) { setErr("No street photos along a road near this spot"); return; }
       const fr: Frame[] = j.frames;
       setFrames(fr);
       setSel(Math.floor(fr.length / 2));
@@ -48,7 +48,7 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
         } catch (e: any) { setErr(e?.message ?? "Detector error"); break; }
       }
       if (run.current === my) setBusy(false);
-    }).catch(() => live && setErr("Could not load street photos."));
+    }).catch(() => live && setErr("Could not load street photos"));
     return () => { live = false; };
   }, [lat, lon]);
 
@@ -74,7 +74,7 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
   }, [playing, frames]);
 
   if (err && !frames) return <p className="box red wrap" role="alert" style={{ margin: "32px auto" }}>{err}</p>;
-  if (!frames) return <p className="wrap" style={{ padding: "40px 20px" }}>Finding street photos along this road…</p>;
+  if (!frames) return <p className="wrap" style={{ padding: "40px 20px" }}>Finding street photos along this road</p>;
   const cur = frames[Math.min(sel, frames.length - 1)];
   const curDets = dets[sel];
   const seenSoFar = result.poles.filter((p) => p.firstFrame <= sel).length;
@@ -90,7 +90,7 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
           <div className="row" style={{ gap: 8 }}>
             {onMove && <button className="btn sm line" onClick={() => onMove(frames[0].lat, frames[0].lon)}>‹ Back along the road</button>}
             {onMove && <button className="btn sm line" onClick={() => onMove(frames[frames.length - 1].lat, frames[frames.length - 1].lon)}>Ahead along the road ›</button>}
-            <span className="small">{done}/{frames.length} photos read{busy ? "…" : ""}</span>
+            <span className="small">{done} of {frames.length} photos checked</span>
           </div>
         </div>
 
@@ -115,7 +115,7 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
               <button key={f.id} className={i === sel ? "on" : ""} onClick={() => { setSel(i); setPlaying(false); }} aria-label={`Photo ${i + 1}`}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={px(f.url)} alt="" loading="lazy" />
-                <b>{n === null ? "…" : n}</b>
+                <b>{n === null ? "·" : n}</b>
               </button>
             );
           })}
@@ -129,18 +129,18 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
           <PoleScene3D frames={frames} obs={result.obs} poles={result.poles} ref={ref} current={sel} camH={camH} />
         </div>
         <div className="stats" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
-          <div className="stat" style={{ padding: 14 }}><div className="big sm">{result.poles.length}</div><span className="label">Poles located</span></div>
+          <div className="stat" style={{ padding: 14 }}><div className="big sm">{result.poles.length}</div><span className="label">Poles placed</span></div>
           <div className="stat" style={{ padding: 14 }}><div className="big sm">{result.poles.length ? (result.poles.reduce((s, p) => s + p.views, 0) / result.poles.length).toFixed(1) : "—"}</div><span className="label">Photos per pole</span></div>
-          <div className="stat" style={{ padding: 14 }}><div className="big sm">{cmp?.median != null ? `${cmp.median.toFixed(1)} m` : "—"}</div><span className="label">Median error</span></div>
+          <div className="stat" style={{ padding: 14 }}><div className="big sm">{cmp?.median != null ? `${cmp.median.toFixed(1)} m` : "—"}</div><span className="label">Typical miss</span></div>
         </div>
         <p className="small">
-          {cmp ? `${cmp.matched} of ${cmp.of} located poles fall within 15 m of a pole Mapillary had already mapped; the median miss is ${cmp.median?.toFixed(1)} m.` : "Error is measured against poles already mapped by others, when there are any nearby."}
+          {cmp ? `${cmp.matched} of ${cmp.of} placed poles are within 15 m of a pole Mapillary had already mapped. The typical miss is ${cmp.median?.toFixed(1)} m` : "The miss is measured against poles others already mapped nearby"}
         </p>
         {finished && (
           <div className={`box ${aerial ? "blue" : "inv"}`}>
-            <p className="label">Verdict for this {Math.round(pathM)} m of road</p>
+            <p className="label">This {Math.round(pathM)} m of road</p>
             <p className="big sm" style={{ marginTop: 6 }}>{aerial ? "Fiber on poles" : "Buried fiber"}</p>
-            <p className="small" style={{ marginTop: 6 }}>Utility poles were seen in {withPole} of {frames.length} photos ({Math.round(share * 100)}%) and {per100.toFixed(1)} poles were located per 100 m. Half the photos, or 0.8 poles per 100 m, prices the road as aerial fiber; less than that as buried.</p>
+            <p className="small" style={{ marginTop: 6 }}>Poles show up in {withPole} of {frames.length} photos ({Math.round(share * 100)}%), about {per100.toFixed(1)} per 100 m. If poles show in half the photos or there are 0.8 per 100 m, the road is priced as fiber on poles. Otherwise it is priced as buried.</p>
           </div>
         )}
       </div>
@@ -191,7 +191,7 @@ function Viewer({ frames, dets, sel, onSel }: { frames: Frame[]; dets: Record<nu
         const util = (b.cls ?? 0) === 0;
         return new m.OutlineTag(`d${sel}-${k}`, new m.RectGeometry([b.x, b.y, b.x + b.w, b.y + b.h]), {
           lineColor: util ? 0x4d8dff : 0xffffff, lineWidth: util ? 3 : 2, fillColor: util ? 0x4d8dff : 0xffffff, fillOpacity: util ? 0.18 : 0.08,
-          text: util ? `Utility pole ${Math.round(b.score * 100)}%` : "Street light, ignored", textColor: 0xffffff,
+          text: util ? `Utility pole ${Math.round(b.score * 100)}%` : "Street light, left out", textColor: 0xffffff,
         });
       }));
     } catch {}
