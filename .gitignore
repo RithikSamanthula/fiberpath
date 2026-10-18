@@ -1,0 +1,17 @@
+.venv/
+node_modules/
+.next/
+.data/
+.env*
+!.env.example
+pipeline/cache/
+pipeline/cv/data/
+pipeline/cv/runs/
+pipeline/*.pt
+*.pt
+.DS_Store
+web/public/data/*/
+!web/public/data/towns-ga/
+web/tsconfig.tsbuildinfo
+*.pdf
+web/public/data/index.json

@@ -1,0 +1,25 @@
+{
+  "name": "fiberpath",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.3.1",
+    "@mapbox/vector-tile": "^3.0.0",
+    "h3-js": "^4.5.0",
+    "next": "^16.4.2",
+    "pbf": "^5.1.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@types/mapbox__vector-tile": "^1.3.4",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "typescript": "^7.0.2"
+  }
+}
