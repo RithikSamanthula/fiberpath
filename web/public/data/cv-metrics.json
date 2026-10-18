@@ -1,33 +1,33 @@
 {
  "model": "YOLOv8 fine-tuned to find utility poles (and to tell them from street lights)",
- "trainImages": 3052,
- "valImages": 535,
- "imgsz": 800,
- "precision": 0.635,
- "recall": 0.454,
- "precisionLoose": 0.707,
- "recallLoose": 0.505,
+ "trainImages": 4002,
+ "valImages": 676,
+ "imgsz": 1024,
+ "precision": 0.659,
+ "recall": 0.459,
+ "precisionLoose": 0.737,
+ "recallLoose": 0.513,
  "photo": {
-  "accuracy": 0.854,
-  "precision": 0.934,
-  "recall": 0.893
+  "accuracy": 0.848,
+  "precision": 0.928,
+  "recall": 0.883
  },
  "recallByDistance": {
   "very far": {
-   "labels": 117,
-   "recall": 0.162
+   "labels": 152,
+   "recall": 0.237
   },
   "far": {
-   "labels": 494,
-   "recall": 0.277
+   "labels": 651,
+   "recall": 0.307
   },
   "medium": {
-   "labels": 518,
-   "recall": 0.552
+   "labels": 690,
+   "recall": 0.543
   },
   "near": {
-   "labels": 500,
-   "recall": 0.76
+   "labels": 652,
+   "recall": 0.752
   }
  },
  "labels": "Boxes drawn by Mapillary's detector on street photos. Validation photos come from streets held out of training."
