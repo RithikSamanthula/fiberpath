@@ -12,7 +12,9 @@ and the counts are summed in each H3 hexagon (resolution 8). Output: data/state-
 h3_res8_id, served, underserved, unserved. plan.py labels each home with the majority tier of its hexagon.
 """
 import csv
+import gzip
 import io
+import json
 import os
 import sys
 import zipfile
@@ -49,6 +51,9 @@ def fetch_csv(file_id):
                 yield from csv.DictReader(io.TextIOWrapper(raw, encoding="utf-8", newline=""))
 
 
+TECH = {"10": "Copper", "40": "Cable", "50": "Fiber", "70": "Fixed wireless", "71": "Fixed wireless", "72": "Fixed wireless"}
+
+
 def tier(down, up):
     return 2 if (down >= 100 and up >= 20) else (1 if (down >= 25 and up >= 3) else 0)
 
@@ -63,6 +68,7 @@ def main(fips):
     if not universe or not offers:
         sys.exit("Expected files were not found. Listing: " + ", ".join(sorted({str(f.get('subcategory')) for f in files})))
     best = {}  # location id -> best tier offered
+    prov = {}  # hex -> {(brand, technology): [fastest down, fastest up, locations]}
     for f in offers:
         print("  reading", f["technology_code_desc"], flush=True)
         for row in fetch_csv(f["file_id"]):
@@ -72,6 +78,12 @@ def main(fips):
             lid = row["location_id"]
             if t > best.get(lid, -1):
                 best[lid] = t
+            hx = row.get("h3_res8_id")
+            if hx:
+                e = prov.setdefault(hx, {}).setdefault((row["brand_name"], TECH.get(row["technology"], "Other")), [0, 0, 0])
+                e[0] = max(e[0], float(row["max_advertised_download_speed"] or 0))
+                e[1] = max(e[1], float(row["max_advertised_upload_speed"] or 0))
+                e[2] += 1
     print("  reading every location", flush=True)
     hexes = {}
     for row in fetch_csv(universe["file_id"]):
@@ -85,6 +97,12 @@ def main(fips):
         w.writerow(["h3_res8_id", "unserved", "underserved", "served"])
         for h, (u, m, s) in hexes.items():
             w.writerow([h, u, m, s])
+    # who offers service where: for every hexagon, each provider with its technology and fastest speeds
+    pdir = os.path.join(HERE, "data", "fcc-providers")
+    os.makedirs(pdir, exist_ok=True)
+    js = {h: sorted(([b, t, int(v[0]), int(v[1]), v[2]] for (b, t), v in d.items()), key=lambda r: -r[2]) for h, d in prov.items()}
+    with gzip.open(os.path.join(pdir, f"{fips}.json.gz"), "wt") as fh:
+        json.dump(js, fh, separators=(",", ":"))
     tot = [sum(c[i] for c in hexes.values()) for i in range(3)]
     print(f"wrote {out}: {len(hexes)} hexagons; locations unserved {tot[0]:,}, underserved {tot[1]:,}, served {tot[2]:,}")
 

@@ -13,6 +13,7 @@
     "mapillary-js": "^4.1.2",
     "next": "^16.4.2",
     "onnxruntime-node": "^1.30.0",
+    "onnxruntime-web": "^1.30.0",
     "pbf": "^5.1.2",
     "qrcode": "^1.5.4",
     "react": "^19.3.1",

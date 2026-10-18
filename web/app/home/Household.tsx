@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Glossary from "@/components/Glossary";
+import Providers from "@/components/Providers";
 import HomeContext from "@/components/HomeContext";
 import Search from "@/components/Search";
 import { dollars, num } from "@/lib/cost";
@@ -151,6 +152,9 @@ export default function Household() {
                 </p>
               </div>
 
+              <h2>Who offers service near you</h2>
+              {res.county && <Providers lat={res.lat} lon={res.lon} state={res.county.geoid.slice(0, 2)} />}
+
               <HomeContext slug={res.slug} home={h} lat={res.lat} lon={res.lon} />
               <p className="row noprint" style={{ marginTop: 10 }}><Link className="btn sm" href={`/street?lat=${res.lat}&lon=${res.lon}`}>Walk your street in 3D</Link><Link className="btn sm line" href={`/county?county=${res.slug}&home=${h.i}&view=3d`}>See your home in 3D</Link><Link className="btn sm line" href={`/flyer?county=${res.slug}`}>Make a flyer for neighbors</Link></p>
 
@@ -204,6 +208,9 @@ export default function Household() {
                   </p>
                 )}
               </div>
+
+              <h2>Who offers service near you</h2>
+              {res.county && <Providers lat={res.lat} lon={res.lon} state={res.county.geoid.slice(0, 2)} />}
 
               <HomeContext lat={res.lat} lon={res.lon} />
               <p className="row noprint" style={{ marginTop: 10 }}><Link className="btn sm" href={`/street?lat=${res.lat}&lon=${res.lon}`}>Walk your street in 3D</Link></p>

@@ -6,6 +6,7 @@ const links = [
   ["/home", "Check an address"],
   ["/county", "See a county plan"],
   ["/street", "Street view"],
+  ["/live", "Live"],
 ];
 
 export default function Header() {

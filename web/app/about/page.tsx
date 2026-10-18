@@ -32,6 +32,7 @@ export default function About() {
 
       <h2>How well the pole finder works</h2>
       <Accuracy />
+      <p style={{ marginTop: 14 }}><a className="btn sm line" href="/label">Help check the detector</a></p>
 
       <h2>Terms</h2>
       <Glossary items={["unserved", "underserved", "aerial", "buried", "wireless", "sight"]} />

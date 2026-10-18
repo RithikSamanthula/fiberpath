@@ -9,7 +9,9 @@ const pct = (v: number) => `${Math.round(v * 100)}%`;
 // The detector's measured results, shown as bars instead of a paragraph
 export default function Accuracy() {
   const [m, setM] = useState<M | null>(null);
+  const [hc, setHc] = useState<{ photos: number; marked: number; precision: number; recall: number } | null>(null);
   useEffect(() => { fetch(`${DATA_BASE}/cv-metrics.json`).then((r) => (r.ok ? r.json() : null)).then(setM).catch(() => {}); }, []);
+  useEffect(() => { fetch(`${DATA_BASE}/cv-handcheck.json`).then((r) => (r.ok ? r.json() : null)).then(setHc).catch(() => {}); }, []);
   if (!m) return <p className="small">Loading</p>;
   const bars: [string, number, string][] = [
     ["Does a photo have a utility pole? Right answer", m.photo.accuracy, "#1b5fd1"],
@@ -26,7 +28,13 @@ export default function Accuracy() {
             <div className="bar" style={{ height: 18 }}><i style={{ width: pct(v), background: c }} /></div>
           </div>
         ))}
-        <p className="small">Tested on {m.valImages} photos from streets the model was not trained on. The labels come from Mapillary, so these numbers show agreement with Mapillary and not with a hand-checked answer key.</p>
+        {hc && hc.photos >= 20 && (
+          <div className="box soft" style={{ marginBottom: 16 }}>
+            <p style={{ fontWeight: 700 }}>Checked by hand</p>
+            <p style={{ marginTop: 4 }}>The team looked at {hc.photos} new photos and judged {hc.marked} marks. <b>{pct(hc.precision)}</b> of the marks were real utility poles, and the detector found <b>{pct(hc.recall)}</b> of the poles that were there.</p>
+          </div>
+        )}
+        <p className="small">Tested on {m.valImages} photos from streets the model was not trained on. These labels come from Mapillary, so these three numbers show agreement with Mapillary.</p>
       </div>
       <div>
         <p style={{ fontWeight: 700, marginBottom: 8 }}>Poles found by distance</p>
