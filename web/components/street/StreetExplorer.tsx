@@ -9,7 +9,7 @@ type Mode = "explore" | "ride";
 const TOKEN = process.env.NEXT_PUBLIC_MAPILLARY_TOKEN;
 const px = (u: string) => `/api/img?u=${encodeURIComponent(u)}`;
 
-export default function StreetExplorer({ lat, lon }: { lat: number; lon: number }) {
+export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon: number; onMove?: (lat: number, lon: number) => void }) {
   const [frames, setFrames] = useState<Frame[] | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [dets, setDets] = useState<Record<number, Det[]>>({});
@@ -87,7 +87,11 @@ export default function StreetExplorer({ lat, lon }: { lat: number; lon: number 
             <button className="btn sm line" aria-pressed={mode === "explore"} onClick={() => { setMode("explore"); setPlaying(false); }}>Look around</button>
             <button className="btn sm line" aria-pressed={mode === "ride"} onClick={() => { setMode("ride"); setSel(0); setPlaying(true); }}>Ride along</button>
           </div>
-          <span className="small">{done}/{frames.length} photos read{busy ? "…" : ""}</span>
+          <div className="row" style={{ gap: 8 }}>
+            {onMove && <button className="btn sm line" onClick={() => onMove(frames[0].lat, frames[0].lon)}>‹ Back along the road</button>}
+            {onMove && <button className="btn sm line" onClick={() => onMove(frames[frames.length - 1].lat, frames[frames.length - 1].lon)}>Ahead along the road ›</button>}
+            <span className="small">{done}/{frames.length} photos read{busy ? "…" : ""}</span>
+          </div>
         </div>
 
         {mode === "explore" ? (
