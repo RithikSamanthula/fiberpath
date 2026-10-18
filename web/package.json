@@ -10,6 +10,7 @@
   "dependencies": {
     "@mapbox/vector-tile": "^3.0.0",
     "h3-js": "^4.5.0",
+    "mapillary-js": "^4.1.2",
     "next": "^16.4.2",
     "onnxruntime-node": "^1.30.0",
     "pbf": "^5.1.2",

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 const links = [
   ["/home", "Check an address"],
   ["/county", "County plans"],
+  ["/street", "Street view"],
   ["/explore", "Explore the U.S."],
   ["/compare", "Compare"],
   ["/report", "Grant report"],

@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import MapView, { Layers } from "@/components/MapView";
 import Terrain3D from "@/components/Terrain3D";
@@ -24,6 +25,7 @@ const TECH = ["Not in plan", "Fiber on poles", "Buried fiber", "Fixed wireless"]
 
 export default function Planner() {
   const { data, error, index, slug, setSlug } = useCountyParam();
+  const q = useSearchParams();
   const [progress, setProgress] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [layers, setLayers] = useState<Layers>({ roads: true, plan: true, homes: true, towers: true, poles: false, wireless: true });
@@ -41,6 +43,13 @@ export default function Planner() {
   const vs = useMemo(() => (data && ghost ? viewshed(data, ghost.lon, ghost.lat, data.homes) : null), [data, ghost]);
 
   useEffect(() => { if (data && !a) setA(data.meta.assumptions); }, [data, a]);
+  // links like /county?county=towns-ga&home=123&view=3d open straight to a home in 3D
+  useEffect(() => {
+    if (!data) return;
+    const h = q.get("home");
+    if (h != null && data.homes[Number(h)]) { setSel(data.homes[Number(h)]); if (q.get("view") === "3d") { setView3d(true); setProgress(1); } }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data]);
   useEffect(() => { if (slug) fetch(`/api/demand?county=${slug}`).then((r) => r.json()).then(setDemand).catch(() => {}); }, [slug]);
   useEffect(() => { setProgress(0); setSel(null); setA(null); setGhost(null); setTool(false); }, [slug]);
 
@@ -99,7 +108,7 @@ export default function Planner() {
           <div className="stat"><div className="big">{progress === 0 ? "—" : money(shown.total)}</div><span className="label">Total cost</span></div>
           <div className="stat"><div className="big">{num(unreachedNow)}</div><span className="label">Homes unreached</span></div>
         </div>
-        {view3d ? <Terrain3D data={data} progress={progress} /> : (
+        {view3d ? <Terrain3D data={data} progress={progress} onPick={setSel} focus={sel ? { lon: sel.lon, lat: sel.lat, key: sel.i } : null} /> : (
         <MapView
           data={data}
           layers={layers}
@@ -190,7 +199,7 @@ export default function Planner() {
               </tbody>
             </table>
             <div style={{ marginTop: 10 }}><Scanner lat={sel.lat} lon={sel.lon} ratio={0.62} /></div>
-            {sel.tech > 0 && <p style={{ marginTop: 10 }}><Link href={`/sight?county=${slug}&home=${sel.i}`}>Line-of-sight picture</Link></p>}
+            {sel.tech > 0 && <p style={{ marginTop: 10, display: "grid", gap: 4 }}><Link href={`/street?lat=${sel.lat}&lon=${sel.lon}`}>Walk this street in 3D</Link><Link href={`/sight?county=${slug}&home=${sel.i}`}>Line-of-sight picture</Link></p>}
           </>
         )}
 

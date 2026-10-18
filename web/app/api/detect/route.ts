@@ -8,7 +8,13 @@ export const maxDuration = 60;
 // found no poles at all on real street photos, and a silent "no poles" is worse than saying the model is not ready.
 
 export async function GET(req: NextRequest) {
-  const u = req.nextUrl.searchParams.get("u") ?? "";
+  let u = req.nextUrl.searchParams.get("u") ?? "";
+  // a Mapillary image id works too (the street viewer knows ids, not URLs)
+  const id = req.nextUrl.searchParams.get("id");
+  if (id && /^\d{6,20}$/.test(id) && process.env.MAPILLARY_TOKEN) {
+    const g = await fetch(`https://graph.mapillary.com/${id}?access_token=${process.env.MAPILLARY_TOKEN}&fields=thumb_1024_url`, { cache: "no-store" }).then((r) => r.json()).catch(() => null);
+    if (g?.thumb_1024_url) u = g.thumb_1024_url;
+  }
   const threshold = Number(req.nextUrl.searchParams.get("t") ?? 0.12);
   let url: URL;
   try { url = new URL(u); } catch { return NextResponse.json({ error: "Bad request" }, { status: 400 }); }

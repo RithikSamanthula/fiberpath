@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { County } from "@/lib/data";
 import { metersPerDeg } from "@/lib/geo";
 
@@ -16,15 +16,22 @@ function shade(hex: string, k: number) {
   return `rgb(${f((n >> 16) & 255)},${f((n >> 8) & 255)},${f(n & 255)})`;
 }
 
-type Props = { data: County; progress: number; spin?: boolean; compact?: boolean };
+type Props = { data: County; progress: number; spin?: boolean; compact?: boolean; focus?: { lon: number; lat: number; key: number } | null; onPick?: (h: import("@/lib/data").Home | null) => void };
 
-export default function Terrain3D({ data, progress, spin, compact }: Props) {
+export default function Terrain3D({ data, progress, spin, compact, focus, onPick }: Props) {
   const cv = useRef<HTMLCanvasElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const st = useRef({ yaw: 0.6, pitch: 0.95, zoom: 1, w: 0, h: 0, dpr: 1 });
   const grid = useRef<{ z: Float32Array; c: Float32Array; nx: number; ny: number; step: number; zmin: number; zmax: number } | null>(null);
   const prog = useRef(progress);
   prog.current = progress;
+  const [opts, setOpts] = useState({ houses: true, poles: true, wires: true, pulse: true });
+  const optsRef = useRef(opts);
+  optsRef.current = opts;
+  const hit = useRef<number[]>([]); // screen x, y and index of every home drawn last frame, for picking
+  const pickRef = useRef(onPick);
+  pickRef.current = onPick;
+  const cen = useRef<{ lon: number; lat: number } | null>(null); // what the view is centered on; null = the whole county
   const raf = useRef(0);
 
   // downsample once per county
@@ -63,17 +70,26 @@ export default function Terrain3D({ data, progress, spin, compact }: Props) {
     const span = Math.max(g.nx * g.dlon * kx, g.ny * g.dlat * ky);
     const sc = (Math.min(w, h * 1.25) / span) * 1.05 * zoom;
     const ex = 2.2; // vertical exaggeration
-    const zc = (G.zmin + G.zmax) / 2;
+    const { nx, ny, z, c } = G;
+    const zAt = (r: number, q: number) => z[r * (nx + 1) + q];
+    // ground height at a lon/lat for draping overlays
+    const ground = (lon: number, lat: number) => {
+      const fq = ((lon - g.w) / g.dlon) / G.step, fr = ((g.n - lat) / g.dlat) / G.step;
+      const q = Math.max(0, Math.min(nx - 1, Math.floor(fq))), r = Math.max(0, Math.min(ny - 1, Math.floor(fr)));
+      return zAt(r, q);
+    };
+    // vertical origin: the whole county's middle height, or the ground under the home we flew to
+    const zc = cen.current ? ground(cen.current.lon, cen.current.lat) : (G.zmin + G.zmax) / 2;
     // world (meters east, north, up) -> screen
+    const offx = cen.current ? (cen.current.lon - lon0) * kx : 0, offy = cen.current ? (cen.current.lat - lat0) * ky : 0;
     const P = (x: number, y: number, z: number): [number, number, number] => {
+      x -= offx; y -= offy;
       const rx = x * cs + y * sn, ry = -x * sn + y * cs;
       const rz = (z - zc) * ex;
       return [w / 2 + rx * sc, h * 0.56 - (ry * sp + rz * cp) * sc, ry * cp - rz * sp];
     };
     const gx = (q: number) => (g.w + q * G.step * g.dlon - lon0) * kx;
     const gy = (r: number) => (g.n - r * G.step * g.dlat - lat0) * ky;
-    const { nx, ny, z, c } = G;
-    const zAt = (r: number, q: number) => z[r * (nx + 1) + q];
     const bandH = (G.zmax - G.zmin) / BANDS.length || 1;
 
     // painter's order: far tiles first
@@ -108,12 +124,6 @@ export default function Terrain3D({ data, progress, spin, compact }: Props) {
       }
     }
 
-    // ground height at a lon/lat for draping overlays
-    const ground = (lon: number, lat: number) => {
-      const fq = ((lon - g.w) / g.dlon) / G.step, fr = ((g.n - lat) / g.dlat) / G.step;
-      const q = Math.max(0, Math.min(nx - 1, Math.floor(fq))), r = Math.max(0, Math.min(ny - 1, Math.floor(fr)));
-      return zAt(r, q);
-    };
     const W = (lon: number, lat: number, lift = 4): [number, number, number] =>
       P((lon - lon0) * kx, (lat - lat0) * ky, ground(lon, lat) + lift);
 
@@ -131,17 +141,76 @@ export default function Terrain3D({ data, progress, spin, compact }: Props) {
       }
       ctx.stroke();
     }
-    // homes
-    ctx.fillStyle = "#ff5a4a";
-    const depth = n > 0 ? data.plan[Math.min(n, data.plan.length) - 1][5] : -1;
-    ctx.beginPath();
-    for (const hm of data.homes) {
-      if (hm.status === 0) continue;
-      if (hm.tech !== 0 && prog.current > 0 && hm.depth <= depth) continue;
-      const p = W(hm.lon, hm.lat, 2);
-      ctx.moveTo(p[0] + 1.6, p[1]); ctx.arc(p[0], p[1], 1.6, 0, 7);
+    const o = optsRef.current;
+    const nowT = performance.now() / 1000;
+    // poles and wires along the routes that ride on poles (blue lines)
+    if (o.poles || o.wires) {
+      const seen = new Set<string>();
+      const post: [number, number, number][] = [];
+      for (let i = 0; i < n; i++) {
+        const e = data.plan[i];
+        if (e[4] !== 1) continue;
+        const a = W(e[0], e[1], 0), tA = W(e[0], e[1], 9), tB = W(e[2], e[3], 9);
+        if (o.wires) {
+          const mid = W((e[0] + e[2]) / 2, (e[1] + e[3]) / 2, 7.6);
+          ctx.strokeStyle = "#dfe8fb"; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(tA[0], tA[1]); ctx.quadraticCurveTo(mid[0], mid[1], tB[0], tB[1]); ctx.stroke();
+        }
+        const k = `${e[0]},${e[1]}`;
+        if (o.poles && !seen.has(k)) { seen.add(k); post.push([a[0], a[1], tA[1]]); }
+      }
+      if (o.poles) {
+        ctx.strokeStyle = "#6aa0ff"; ctx.lineWidth = Math.max(1, sc * 0.9);
+        ctx.beginPath();
+        for (const q of post) { ctx.moveTo(q[0], q[1]); ctx.lineTo(q[0], q[2]); }
+        ctx.stroke();
+      }
     }
-    ctx.fill();
+    // homes: a small block that lights up in the color of the technology that reaches it
+    const depth = n > 0 ? data.plan[Math.min(n, data.plan.length) - 1][5] : -1;
+    const big = sc * 7 > 2.6;
+    const col = ["#7d90b3", "#4d8dff", "#ffb81c", "#38c47c"];
+    hit.current = [];
+    for (const hm of data.homes) {
+      if (hm.status === 0 && !big) continue;
+      const up = hm.tech !== 0 && prog.current > 0 && hm.depth <= depth;
+      const base = W(hm.lon, hm.lat, 0);
+      if (base[0] < -20 || base[1] < -20 || base[0] > w + 20 || base[1] > h + 20) continue;
+      const roof = W(hm.lon, hm.lat, o.houses ? 6 : 1);
+      hit.current.push(roof[0], roof[1], hm.i);
+      const color = hm.status === 0 ? "#51658a" : up ? col[hm.tech] : "#ff5a4a";
+      if (big && o.houses) {
+        const a = W(hm.lon - 0.00004, hm.lat - 0.00003, 0), b = W(hm.lon + 0.00004, hm.lat - 0.00003, 0);
+        const a2 = W(hm.lon - 0.00004, hm.lat - 0.00003, 5), b2 = W(hm.lon + 0.00004, hm.lat - 0.00003, 5), c2 = W(hm.lon + 0.00004, hm.lat + 0.00003, 5), d2 = W(hm.lon - 0.00004, hm.lat + 0.00003, 5);
+        ctx.fillStyle = "#1d2c47"; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(b2[0], b2[1]); ctx.lineTo(a2[0], a2[1]); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(a2[0], a2[1]); ctx.lineTo(b2[0], b2[1]); ctx.lineTo(c2[0], c2[1]); ctx.lineTo(d2[0], d2[1]); ctx.closePath(); ctx.fill();
+      } else {
+        ctx.fillStyle = color; ctx.fillRect(roof[0] - 1.4, roof[1] - 1.4, 2.8, 2.8);
+      }
+    }
+    // data pulses riding the fibre outward from the hub
+    if (o.pulse && prog.current >= 1) {
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      for (let i = 0; i < data.plan.length; i += 7) {
+        const e = data.plan[i];
+        const f = (nowT * 0.45 + (e[5] / (data.plan[data.plan.length - 1][5] || 1)) * 2.5 + i * 0.0131) % 1;
+        const p = W(e[0] + (e[2] - e[0]) * f, e[1] + (e[3] - e[1]) * f, e[4] === 1 ? 9 : 1);
+        ctx.moveTo(p[0] + 2, p[1]); ctx.arc(p[0], p[1], 2, 0, 7);
+      }
+      ctx.fill();
+    }
+    // a beacon on the home you flew to
+    if (cen.current) {
+      const a = W(cen.current.lon, cen.current.lat, 0), b = W(cen.current.lon, cen.current.lat, 40);
+      ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+      const pulse = 8 + ((nowT * 14) % 18);
+      ctx.globalAlpha = 1 - (pulse - 8) / 18;
+      ctx.beginPath(); ctx.arc(a[0], a[1], pulse, 0, 7); ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(b[0], b[1], 4, 0, 7); ctx.fill();
+    }
     // towers as masts
     for (const t of data.towers) {
       if (!t.used) continue;
@@ -176,6 +245,22 @@ export default function Terrain3D({ data, progress, spin, compact }: Props) {
   // slow turntable for decorative uses, until someone grabs it
   const grabbed = useRef(false);
   useEffect(() => {
+    if (!((opts.pulse && progress >= 1) || focus)) return;
+    let id = 0;
+    const loop = () => { if (!document.hidden) draw(); id = requestAnimationFrame(loop); };
+    id = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(id);
+  }, [opts.pulse, progress, draw, focus]);
+
+  // fly to a chosen home
+  useEffect(() => {
+    if (!focus) { cen.current = null; st.current.zoom = 1; schedule(); return; }
+    cen.current = { lon: focus.lon, lat: focus.lat };
+    st.current.zoom = 80;
+    schedule();
+  }, [focus, schedule]);
+
+  useEffect(() => {
     if (!spin) return;
     let id = 0;
     const loop = () => { if (!grabbed.current) { st.current.yaw += 0.0035; draw(); } id = requestAnimationFrame(loop); };
@@ -186,25 +271,45 @@ export default function Terrain3D({ data, progress, spin, compact }: Props) {
   useEffect(() => {
     const c = cv.current!;
     let down: { x: number; y: number } | null = null;
-    const pd = (e: PointerEvent) => { grabbed.current = true; c.setPointerCapture(e.pointerId); down = { x: e.clientX, y: e.clientY }; };
+    let moved = 0;
+    const pd = (e: PointerEvent) => { moved = 0; grabbed.current = true; c.setPointerCapture(e.pointerId); down = { x: e.clientX, y: e.clientY }; };
     const pm = (e: PointerEvent) => {
       if (!down) return;
+      moved += Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y);
       st.current.yaw += (e.clientX - down.x) * 0.006;
       st.current.pitch = Math.max(0.25, Math.min(1.45, st.current.pitch + (e.clientY - down.y) * 0.005));
       down = { x: e.clientX, y: e.clientY };
       schedule();
     };
-    const pu = () => { down = null; };
-    const wh = (e: WheelEvent) => { if (spin) return; e.preventDefault(); st.current.zoom = Math.max(0.6, Math.min(4, st.current.zoom * Math.exp(-e.deltaY * 0.0015))); schedule(); };
+    const pu = (e: PointerEvent) => {
+      down = null;
+      if (moved < 6 && pickRef.current) {
+        const r = c.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+        let best = -1, bd = 14;
+        const a = hit.current;
+        for (let i = 0; i < a.length; i += 3) { const d = Math.hypot(a[i] - x, a[i + 1] - y); if (d < bd) { bd = d; best = a[i + 2]; } }
+        pickRef.current(best >= 0 ? data.homes[best] : null);
+      }
+    };
+    const wh = (e: WheelEvent) => { if (spin) return; e.preventDefault(); st.current.zoom = Math.max(0.6, Math.min(60, st.current.zoom * Math.exp(-e.deltaY * 0.0015))); schedule(); };
     c.addEventListener("pointerdown", pd); c.addEventListener("pointermove", pm); c.addEventListener("pointerup", pu); c.addEventListener("pointercancel", pu);
     c.addEventListener("wheel", wh, { passive: false });
     return () => { c.removeEventListener("pointerdown", pd); c.removeEventListener("pointermove", pm); c.removeEventListener("pointerup", pu); c.removeEventListener("pointercancel", pu); c.removeEventListener("wheel", wh); };
-  }, [schedule]);
+  }, [schedule, data, spin]);
 
   return (
     <div className="canvaswrap" ref={wrap}>
       <canvas ref={cv} className="map" role="img" aria-label={`3D terrain of ${data.meta.name}. Drag to rotate, scroll to zoom.`} />
-      {!compact && <div className="noprint" style={{ position: "absolute", left: 12, top: 12, background: "#fff", padding: "6px 10px", fontSize: 13, borderRadius: 3 }}>Drag to rotate · scroll to zoom · green tiles are forest</div>}
+      {!compact && (
+        <div className="noprint" style={{ position: "absolute", left: 12, top: 12, display: "grid", gap: 6 }}>
+          <div style={{ background: "#fff", padding: "6px 10px", fontSize: 13, borderRadius: 3 }}>Drag to rotate · scroll to zoom · select a home to fly to it</div>
+          <div className="toggles">
+            {(["houses", "poles", "wires", "pulse"] as const).map((k) => (
+              <button key={k} className="btn sm" aria-pressed={opts[k]} style={{ background: opts[k] ? "#0f1b2d" : "#fff", color: opts[k] ? "#fff" : "#1b5fd1", borderColor: opts[k] ? "#0f1b2d" : "#1b5fd1" }} onClick={() => setOpts((v) => ({ ...v, [k]: !v[k] }))}>{k === "pulse" ? "Data pulses" : k[0].toUpperCase() + k.slice(1)}</button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
