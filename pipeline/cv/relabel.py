@@ -27,7 +27,7 @@ def labels(img_id):
                 c = CLS.get(v, 1 if v.startswith("object--traffic-light") else None)
                 if c is None:
                     continue
-                t = mapbox_vector_tile.decode(base64.b64decode(d["geometry"]))
+                t = mapbox_vector_tile.decode(base64.b64decode(d["geometry"]), y_coord_down=True)
                 layer = next(iter(t.values()))
                 ext = layer.get("extent", 4096)
                 for f in layer["features"]:

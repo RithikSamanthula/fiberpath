@@ -43,7 +43,7 @@ def boxes_for(img_id):
         if det["value"] != "object--support--utility-pole":
             continue
         try:
-            t = mapbox_vector_tile.decode(base64.b64decode(det["geometry"]))
+            t = mapbox_vector_tile.decode(base64.b64decode(det["geometry"]), y_coord_down=True)
             layer = next(iter(t.values()))
             ext = layer.get("extent", 4096)
             for f in layer["features"]:

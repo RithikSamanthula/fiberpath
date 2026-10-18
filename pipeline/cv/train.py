@@ -17,32 +17,37 @@ epochs = int(sys.argv[1]) if len(sys.argv) > 1 else 40
 if len(sys.argv) > 2:
     data = os.path.join(HERE, "data", sys.argv[2])
 name = sys.argv[3] if len(sys.argv) > 3 else "pole"
+imgsz = int(sys.argv[4]) if len(sys.argv) > 4 else 640
+init = sys.argv[5] if len(sys.argv) > 5 else "yolov8n.pt"  # start from earlier weights to fine-tune
+batch = int(sys.argv[6]) if len(sys.argv) > 6 else 16
 
-model = YOLO("yolov8n.pt")
-model.train(data=data, epochs=epochs, imgsz=640, batch=16, device="mps", workers=4, project=os.path.join(HERE, "runs"),
+model = YOLO(init)
+model.train(data=data, epochs=epochs, imgsz=imgsz, batch=batch, device="mps", workers=4, project=os.path.join(HERE, "runs"),
             name=name, exist_ok=True, patience=12, verbose=False, plots=False)
 best = YOLO(os.path.join(HERE, "runs", name, "weights", "best.pt"))
-m = best.val(data=data, imgsz=640, device="mps", plots=False, conf=0.25, iou=0.5)
-onnx = best.export(format="onnx", imgsz=640, opset=12, simplify=True)
+m = best.val(data=data, imgsz=imgsz, device="mps", plots=False, conf=0.25, iou=0.5)
+onnx = best.export(format="onnx", imgsz=imgsz, opset=12, simplify=True)
+
 
 ntrain = len(os.listdir(os.path.join(HERE, "data", "images", "train")))
 nval = len(os.listdir(os.path.join(HERE, "data", "images", "val")))
-names = best.names
-per = {}
-try:
-    for i, c in enumerate(m.box.ap_class_index):
-        per[names[int(c)]] = {"precision": round(float(m.box.p[i]), 3), "recall": round(float(m.box.r[i]), 3), "map50": round(float(m.box.ap50[i]), 3)}
-except Exception:
-    pass
+from analyze import evaluate
+
+ev = evaluate(os.path.join(HERE, "runs", name, "weights", "best.pt"), imgsz, "mps")
+ntrain = len(os.listdir(os.path.join(HERE, "data", "images", "train")))
+nval = len(os.listdir(os.path.join(HERE, "data", "images", "val")))
 metrics = {
-    "model": "YOLOv8n fine-tuned to tell utility poles from street lights and other poles",
-    "classes": list(names.values()),
-    "perClass": per,
+    "model": "YOLOv8 fine-tuned to find utility poles (and to tell them from street lights)",
     "trainImages": ntrain,
     "valImages": nval,
-    "precision": round(float(m.box.mp), 3),
-    "recall": round(float(m.box.mr), 3),
-    "map50": round(float(m.box.map50), 3),
+    "imgsz": imgsz,
+    # headline numbers are for the utility-pole class only; the street-light class is a decoy, not a goal
+    "precision": ev["iou0.5"]["precision"],
+    "recall": ev["iou0.5"]["recall"],
+    "precisionLoose": ev["iou0.3"]["precision"],
+    "recallLoose": ev["iou0.3"]["recall"],
+    "photo": ev["photo"],
+    "recallByDistance": ev["recallByDistance"],
     "labels": "Boxes drawn by Mapillary's detector on street photos. Validation photos come from streets held out of training.",
 }
 os.makedirs(os.path.join(ROOT, "web", "models"), exist_ok=True)

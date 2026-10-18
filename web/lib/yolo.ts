@@ -8,6 +8,10 @@ export type Det = { x: number; y: number; w: number; h: number; score: number; c
 
 let sessionP: Promise<any> | null = null;
 const modelPath = () => path.join(process.cwd(), "models", "pole.onnx");
+// input size the model was trained and exported at (models/pole.json), 640 if the file is absent
+async function inputSize() {
+  try { return Number(JSON.parse(await fs.readFile(path.join(process.cwd(), "models", "pole.json"), "utf8")).imgsz) || 640; } catch { return 640; }
+}
 
 export async function haveModel() {
   try { await fs.access(modelPath()); return true; } catch { return false; }
@@ -26,7 +30,7 @@ async function session() {
 export async function detectPoles(image: Buffer, conf = 0.25, iouThr = 0.5): Promise<{ boxes: Det[]; candidates: Det[] }> {
   const [ort, sharpMod, sess] = await Promise.all([import("onnxruntime-node"), import("sharp"), session()]);
   const sharp = sharpMod.default;
-  const S = 640;
+  const S = await inputSize();
   const meta = await sharp(image).metadata();
   const W = meta.width ?? S, H = meta.height ?? S;
   const scale = Math.min(S / W, S / H);
