@@ -6,6 +6,9 @@ name: Plan counties
 # if it ever stops. Needs the repository secret MAPILLARY_TOKEN.
 
 on:
+  push:
+    branches: [main]
+    paths: [".github/trigger"]   # touch this file and push to start a run
   schedule:
     - cron: "23 */6 * * *"
   workflow_dispatch:
