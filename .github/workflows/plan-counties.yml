@@ -38,6 +38,9 @@ jobs:
       - id: r
         run: |
           python pipeline/national.py list
+          # anything already published counts as done, even if an earlier cycle was cut off before recording it
+          (cd pipeline && python published.py | sort -u > "$RUNNER_TEMP/published.txt")
+          .github/scripts/progress.sh published "$RUNNER_TEMP/published.txt"
           .github/scripts/progress.sh pull "$RUNNER_TEMP/p"
           total=$(python -c "import json;print(len(json.load(open('pipeline/cache/counties.json'))))")
           done_n=$(wc -l < "$RUNNER_TEMP/p/done.txt" | tr -d ' ')

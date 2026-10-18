@@ -103,33 +103,70 @@ def upload(rid, name, data, ctype="application/octet-stream"):
     a[name] = r.json()["id"]
 
 
-def publish(geoid, slug):
-    if not enabled():
-        return False
+_idx = {}  # state -> {geoid: item}; this process is the only writer for its states, so it is the source of truth
+
+
+def download(asset_id):
+    """Read an asset through the API. The public download URL can serve a stale copy right after an upload."""
     repo = os.environ["GITHUB_REPOSITORY"]
-    d = os.path.join(OUT, slug)
-    st = geoid[:2]
-    tag = f"data-{st}"
-    meta = json.load(open(os.path.join(d, "county.json")))
+    r = _retry(lambda: requests.get(f"{API}/repos/{repo}/releases/assets/{asset_id}", headers={**_h(), "Accept": "application/octet-stream"}, timeout=300))
+    r.raise_for_status()
+    return r.content
+
+
+def item_from_meta(meta, geoid):
     t = meta["totals"]
-    item = {"slug": meta["slug"], "name": meta["name"], "state": meta["state"], "geoid": geoid, "bbox": meta["bbox"],
+    return {"slug": meta["slug"], "name": meta["name"], "state": meta["state"], "geoid": geoid, "bbox": meta["bbox"],
             "homes": t["homesAll"], "unserved": t["unserved"], "reached": t["fiberHomes"] + t["wirelessHomes"],
             "fiberHomes": t["fiberHomes"], "wirelessHomes": t["wirelessHomes"], "towers": t["towers"],
             "aerialFt": t["aerialFt"], "buriedFt": t["buriedFt"], "dropFt": t["dropFt"], "assumptions": meta["assumptions"],
             "coverageSource": meta["coverageSource"], "plannedAt": meta.get("generatedAt"), "remote": True}
+
+
+def load_index(rid, st):
+    """Index for one state, rebuilt from what is really in the release: the saved index plus any county
+    that has files but is missing from it (an earlier write may have been lost)."""
+    if st in _idx:
+        return _idx[st]
+    a = assets(rid)
+    cur = {}
+    if f"index-{st}.json" in a:
+        try:
+            cur = {c["geoid"]: c for c in json.loads(download(a[f"index-{st}.json"]))}
+        except Exception:
+            cur = {}
+    for name, aid in list(a.items()):
+        if name.endswith("-pack.fpk") and name.split("-")[0] not in cur:
+            try:
+                raw = gzip.decompress(download(aid))
+                hl = struct.unpack("<I", raw[:4])[0]
+                head = json.loads(raw[4:4 + hl])
+                off = 4 + hl
+                for h in head:
+                    if h["n"] == "county.json":
+                        cur[name.split("-")[0]] = item_from_meta(json.loads(raw[off:off + h["len"]]), name.split("-")[0])
+                        break
+                    off += h["len"]
+            except Exception:
+                pass
+    _idx[st] = cur
+    return cur
+
+
+def publish(geoid, slug):
+    if not enabled():
+        return False
+    d = os.path.join(OUT, slug)
+    st = geoid[:2]
+    tag = f"data-{st}"
+    meta = json.load(open(os.path.join(d, "county.json")))
+    item = item_from_meta(meta, geoid)
     pack, grid = build(d, PACK), build(d, GRID)
     with _lock:
         rid = release_id(tag)
+        idx = load_index(rid, st)
         upload(rid, f"{geoid}-pack.fpk", pack)
         upload(rid, f"{geoid}-grid.fpk", grid)
-        name = f"index-{st}.json"
-        cur = []
-        try:
-            r = requests.get(f"https://github.com/{repo}/releases/download/{tag}/{name}", timeout=60)
-            if r.status_code == 200:
-                cur = r.json()
-        except Exception:
-            pass
-        cur = [c for c in cur if c["geoid"] != geoid] + [item]
-        upload(rid, name, json.dumps(cur, separators=(",", ":")).encode(), "application/json")
+        idx[geoid] = item
+        upload(rid, f"index-{st}.json", json.dumps(list(idx.values()), separators=(",", ":")).encode(), "application/json")
     return True

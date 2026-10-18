@@ -24,9 +24,20 @@ case "$1" in
   pull)
     clone
     mkdir -p "$2"
-    cat "$work"/shard-*.txt 2>/dev/null | sort -u > "$2/done.txt" || true
+    cat "$work"/shard-*.txt "$work"/published.txt 2>/dev/null | sort -u > "$2/done.txt" || true
     touch "$2/done.txt"
     cp "$work/cycle.txt" "$2/cycle.txt"
+    ;;
+  published)
+    # $2 = file of GEOIDs that already have release files; merge into the progress branch
+    for i in 1 2 3; do
+      rm -rf "$work"; work="$(mktemp -d)"; clone
+      cp "$2" "$work/published.txt"
+      git -C "$work" add -A
+      git -C "$work" -c user.name=fiberpath-bot -c user.email=bot@users.noreply.github.com commit --quiet -m "published: $(wc -l < "$2") counties" || exit 0
+      git -C "$work" push --quiet origin progress && exit 0
+      sleep 5
+    done
     ;;
   push)
     for i in 1 2 3 4 5 6; do
