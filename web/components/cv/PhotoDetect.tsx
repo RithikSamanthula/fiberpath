@@ -11,8 +11,7 @@ type Props = {
   boxes?: Box[] | null;
   reference?: Box[] | null;
   candidates?: Box[] | null; // every box the model proposed before suppression
-  stage?: "photo" | "candidates" | "final" | "fiber";
-  split?: number; // fiber preview: how much of the photo (0 to 1) still shows the street as it is
+  stage?: "photo" | "candidates" | "final";
   scanning?: boolean;
   animate?: boolean;
   ratio?: number; // height / width
@@ -21,19 +20,19 @@ type Props = {
 
 const BLUE = "#4d8dff", WHITE = "#ffffff", AMBER = "#ffb81c";
 
-export default function PhotoDetect({ src, boxes, reference, candidates, stage = "final", scanning, animate = true, ratio = 0.5625, rounded = true, split = 0.5 }: Props) {
+export default function PhotoDetect({ src, boxes, reference, candidates, stage = "final", scanning, animate = true, ratio = 0.5625, rounded = true }: Props) {
   const cv = useRef<HTMLCanvasElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const img = useRef<HTMLImageElement | null>(null);
   const raf = useRef(0);
   const t0 = useRef(0);
-  const props = useRef({ boxes, reference, candidates, stage, scanning, animate, split });
-  props.current = { boxes, reference, candidates, stage, scanning, animate, split };
+  const props = useRef({ boxes, reference, candidates, stage, scanning, animate });
+  props.current = { boxes, reference, candidates, stage, scanning, animate };
 
   const draw = (now: number) => {
     const c = cv.current, im = img.current;
     if (!c || !im || !im.complete || !im.naturalWidth) return;
-    const { boxes, reference, candidates, stage, scanning, animate, split } = props.current;
+    const { boxes, reference, candidates, stage, scanning, animate } = props.current;
     const W = c.clientWidth, H = c.clientHeight, dpr = window.devicePixelRatio || 1;
     if (c.width !== Math.round(W * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
     const ctx = c.getContext("2d")!;
@@ -42,7 +41,7 @@ export default function PhotoDetect({ src, boxes, reference, candidates, stage =
     const s = Math.max(W / im.naturalWidth, H / im.naturalHeight);
     const dw = im.naturalWidth * s, dh = im.naturalHeight * s, ox = (W - dw) / 2, oy = (H - dh) / 2;
     ctx.drawImage(im, ox, oy, dw, dh);
-    if (stage !== "photo" && stage !== "fiber") { ctx.fillStyle = "rgba(10,20,36,0.32)"; ctx.fillRect(0, 0, W, H); }
+    if (stage !== "photo") { ctx.fillStyle = "rgba(10,20,36,0.32)"; ctx.fillRect(0, 0, W, H); }
     const X = (v: number) => ox + v * dw, Y = (v: number) => oy + v * dh;
     // sweep: boxes whose left edge the line has passed are shown
     const el = (now - t0.current) / 1000;
@@ -91,40 +90,7 @@ export default function PhotoDetect({ src, boxes, reference, candidates, stage =
         ctx.globalAlpha = 1;
       }
     }
-    if (stage === "fiber") {
-      // what the street would look like with fiber hung on its utility poles; left of the handle is the street as it is
-      const all = (boxes ?? []).filter((b) => (b.cls ?? 0) === 0 && b.h > 0.06);
-      // a line of poles runs along one side of the road, so cables only join poles on the same side
-      const groups = [all.filter((b) => b.x + b.w / 2 < 0.5), all.filter((b) => b.x + b.w / 2 >= 0.5)].map((g) => g.sort((a, b) => b.h - a.h));
-      const sx = ox + dw * 0 + split * W;
-      ctx.save();
-      ctx.beginPath(); ctx.rect(sx, 0, W - sx, H); ctx.clip();
-      ctx.fillStyle = "rgba(10,20,36,0.12)"; ctx.fillRect(sx, 0, W - sx, H);
-      const rows = groups.map((g) => g.map((p) => ({ x: X(p.x + p.w / 2), y: Y(p.y + Math.min(0.12, p.h * 0.12)), base: Y(p.y + p.h), w: p.w * dw })));
-      const top = rows.flat();
-      ctx.lineCap = "round";
-      for (const p of top) { ctx.strokeStyle = BLUE; ctx.lineWidth = Math.max(2, p.w * 0.5); ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x, p.base); ctx.stroke(); }
-      for (let pass = 0; pass < 2; pass++) {
-        ctx.strokeStyle = pass === 0 ? "rgba(10,20,36,0.85)" : "#7fb0ff"; ctx.lineWidth = pass === 0 ? 7 : 3.5;
-        ctx.beginPath();
-        for (const row of rows) for (let i = 0; i + 1 < row.length; i++) {
-          const a = row[i], b = row[i + 1];
-          const sag = Math.min(28, Math.abs(a.x - b.x) * 0.1 + Math.abs(a.y - b.y) * 0.2 + 5);
-          ctx.moveTo(a.x, a.y); ctx.quadraticCurveTo((a.x + b.x) / 2, Math.max(a.y, b.y) + sag, b.x, b.y);
-        }
-        ctx.stroke();
-      }
-      ctx.restore();
-      // the handle
-      ctx.fillStyle = "#ffffff"; ctx.fillRect(sx - 2, 0, 4, H);
-      ctx.beginPath(); ctx.arc(sx, H / 2, 18, 0, 7); ctx.fill();
-      ctx.fillStyle = "#0f1b2d"; ctx.font = "700 16px sans-serif"; ctx.textAlign = "center"; ctx.fillText("↔", sx, H / 2 + 6); ctx.textAlign = "start";
-      ctx.font = "700 13px -apple-system, Helvetica, Arial, sans-serif";
-      for (const [label, x, color] of [["Today", 12, "rgba(15,27,45,0.88)"], ["With fiber", Math.min(W - 100, sx + 12), "#1b5fd1"]] as [string, number, string][]) {
-        const tw = ctx.measureText(label).width + 14; ctx.fillStyle = color; ctx.fillRect(x, 12, tw, 24); ctx.fillStyle = "#fff"; ctx.fillText(label, x + 7, 29);
-      }
-    }
-    if (scanning || (animate && sweep < 1 && stage !== "photo" && stage !== "fiber")) {
+    if (scanning || (animate && sweep < 1 && stage !== "photo")) {
       const x = scanning ? ((now / 1100) % 1) * W : ox + sweep * dw;
       ctx.fillStyle = BLUE;
       ctx.fillRect(x - 1.5, 0, 3, H);
@@ -160,7 +126,7 @@ export default function PhotoDetect({ src, boxes, reference, candidates, stage =
     loop();
     return () => cancelAnimationFrame(raf.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [boxes, reference, candidates, stage, scanning, split]);
+  }, [boxes, reference, candidates, stage, scanning]);
 
   return (
     <div ref={wrap} style={{ position: "relative", width: "100%", paddingTop: `${ratio * 100}%`, background: "#0a1424", borderRadius: rounded ? 3 : 0, overflow: "hidden" }}>

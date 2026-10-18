@@ -2,7 +2,6 @@
 import { useEffect, useMemo, useState } from "react";
 import MapView, { Layers } from "@/components/MapView";
 import Scanner from "@/components/cv/Scanner";
-import ShareCard from "@/components/ShareCard";
 import { County, Home, loadCountyLite } from "@/lib/data";
 
 const layers: Layers = { roads: true, plan: true, homes: true, towers: true, poles: true, wireless: false };
@@ -29,18 +28,6 @@ export default function HomeContext({ slug, home, lat, lon }: { slug?: string; h
       <div>
         <Scanner lat={pt.lat} lon={pt.lon} onEmpty={setNoPhotos} />
       </div>
-    </div>
-  );
-}
-
-export function Share({ slug, home }: { slug: string; home: Home }) {
-  const [d, setD] = useState<County | null>(null);
-  useEffect(() => { loadCountyLite(slug).then(setD).catch(() => {}); }, [slug]);
-  if (!d) return null;
-  return (
-    <div className="noprint">
-      <h2>Share your result</h2>
-      <ShareCard data={d} home={home} />
     </div>
   );
 }

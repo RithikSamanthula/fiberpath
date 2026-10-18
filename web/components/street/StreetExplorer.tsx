@@ -5,7 +5,7 @@ import PhotoDetect from "@/components/cv/PhotoDetect";
 import PoleScene3D from "./PoleScene3D";
 import { compare, Det, Frame, locate } from "@/lib/poleLocate";
 
-type Mode = "explore" | "ride" | "fiber";
+type Mode = "explore" | "ride";
 const TOKEN = process.env.NEXT_PUBLIC_MAPILLARY_TOKEN;
 const px = (u: string) => `/api/img?u=${encodeURIComponent(u)}`;
 
@@ -19,7 +19,6 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
   const camH = 1.6;
   const [ref, setRef] = useState<[number, number][]>([]);
   const [playing, setPlaying] = useState(false);
-  const [split, setSplit] = useState(0.45);
   const run = useRef(0);
 
   useEffect(() => {
@@ -36,18 +35,23 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
       setSel(Math.floor(fr.length / 2));
       fetch(`/api/refpoles?lat=${fr[0].lat}&lon=${fr[0].lon}`).then((r) => r.json()).then((x) => live && setRef(x.poles ?? [])).catch(() => {});
       setBusy(true);
-      // detect outward from the middle so the part you are looking at is ready first
+      // read the photos four at a time, starting from the middle so the part you are looking at is ready first
       const order = fr.map((_, i) => i).sort((a, b) => Math.abs(a - fr.length / 2) - Math.abs(b - fr.length / 2));
-      for (const i of order) {
-        if (run.current !== my) return;
-        try {
-          const r = await fetch(`/api/detect?u=${encodeURIComponent(fr[i].url)}&t=0.3`);
-          const d = await r.json();
-          if (!r.ok) throw new Error(d.error || "Detector error");
-          if (run.current !== my) return;
-          setDets((p) => ({ ...p, [i]: d.boxes }));
-        } catch (e: any) { setErr(e?.message ?? "Detector error"); break; }
-      }
+      let next = 0, failed = false;
+      const worker = async () => {
+        while (!failed && run.current === my) {
+          const i = order[next++];
+          if (i === undefined) return;
+          try {
+            const r = await fetch(`/api/detect?u=${encodeURIComponent(fr[i].url)}&t=0.3`);
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.error || "Detector error");
+            if (run.current !== my) return;
+            setDets((p) => ({ ...p, [i]: d.boxes }));
+          } catch (e: any) { failed = true; setErr(e?.message ?? "Detector error"); return; }
+        }
+      };
+      await Promise.all([worker(), worker(), worker(), worker()]);
       if (run.current === my) setBusy(false);
     }).catch(() => live && setErr("Could not load street photos"));
     return () => { live = false; };
@@ -87,7 +91,6 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
           <div className="row" style={{ gap: 0 }}>
             <button className="btn sm line" aria-pressed={mode === "explore"} onClick={() => { setMode("explore"); setPlaying(false); }}>Look around</button>
             <button className="btn sm line" aria-pressed={mode === "ride"} onClick={() => { setMode("ride"); setSel(0); setPlaying(true); }}>Ride along</button>
-            <button className="btn sm line" aria-pressed={mode === "fiber"} onClick={() => { setMode("fiber"); setPlaying(false); }}>See it with fiber</button>
           </div>
           <div className="row" style={{ gap: 8 }}>
             {onMove && <button className="btn sm line" onClick={() => onMove(frames[0].lat, frames[0].lon)}>‹ Back along the road</button>}
@@ -98,12 +101,6 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
 
         {mode === "explore" ? (
           <Viewer frames={frames} dets={dets} sel={sel} onSel={setSel} />
-        ) : mode === "fiber" ? (
-          <div>
-            <PhotoDetect key={cur.id} src={px(cur.url)} boxes={curDets} stage={curDets ? "fiber" : "photo"} split={split} animate={false} ratio={0.62} />
-            <input type="range" min={0.02} max={0.98} step={0.01} value={split} onChange={(e) => setSplit(Number(e.target.value))} style={{ width: "100%", marginTop: 6, accentColor: "#1b5fd1" }} aria-label="Slide to compare the street today with fiber on its poles" />
-            <p className="small">Drag the handle. The right side shows fiber hung on the utility poles the detector found. Fiber on poles costs about $9 a foot, and burying it costs about $19.</p>
-          </div>
         ) : (
           <div style={{ position: "relative" }}>
             <PhotoDetect key={cur.id} src={px(cur.url)} boxes={curDets} stage={curDets ? "final" : "photo"} animate={false} ratio={0.62} />

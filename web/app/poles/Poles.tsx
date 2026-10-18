@@ -15,6 +15,8 @@ export default function Poles() {
   useEffect(() => {
     const h = q.get("home");
     if (data && h != null && data.homes[Number(h)]) setSel(data.homes[Number(h)]);
+    else if (data && !sel) setSel(data.homes.find((x) => x.status === 2 && x.poles > 0) ?? data.homes.find((x) => x.status === 2) ?? null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, q]);
   const layers: Layers = { roads: true, plan: true, homes: true, towers: false, poles: true, wireless: false };
 

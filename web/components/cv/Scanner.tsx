@@ -31,19 +31,21 @@ export default function Scanner({ lat, lon, ratio = 0.5625, onEmpty }: { lat: nu
       const images: Img[] = j.images;
       setState({ kind: "ready", images });
       setBusy(true);
-      for (const im of images) {
-        if (run.current !== my) return;
-        try {
-          const r = await fetch(`/api/detect?u=${encodeURIComponent(im.url)}&t=0.3&debug=1`);
-          const d = await r.json();
-          if (!r.ok) throw new Error(d.error || "Detector error");
-          if (run.current !== my) return;
-          setOut((p) => ({ ...p, [im.id]: { boxes: d.boxes, candidates: d.candidates ?? [], ms: d.ms } }));
-        } catch (e: any) {
-          setErr(e?.message ?? "The detector could not run.");
-          break;
+      let next = 0, failed = false;
+      const worker = async () => {
+        while (!failed && run.current === my) {
+          const im = images[next++];
+          if (!im) return;
+          try {
+            const r = await fetch(`/api/detect?u=${encodeURIComponent(im.url)}&t=0.3&debug=1`);
+            const d = await r.json();
+            if (!r.ok) throw new Error(d.error || "Detector error");
+            if (run.current !== my) return;
+            setOut((p) => ({ ...p, [im.id]: { boxes: d.boxes, candidates: d.candidates ?? [], ms: d.ms } }));
+          } catch (e: any) { failed = true; setErr(e?.message ?? "The detector could not run."); return; }
         }
-      }
+      };
+      await Promise.all([worker(), worker(), worker()]);
       if (run.current === my) setBusy(false);
     }).catch(() => live && setState({ kind: "error", msg: "Could not load street photos." }));
     return () => { live = false; };

@@ -1,13 +1,15 @@
-"""Real FCC coverage for a state, from the National Broadband Map's public data (Broadband Data Collection).
+"""Real FCC coverage for a state, from the National Broadband Map's Broadband Data Collection (free account needed).
 
-The data is free but the download needs a free FCC BDC account:
-  1. Register at https://bdc.fcc.gov  (Manage API Access -> generate a token)
-  2. FCC_USERNAME=<your email> FCC_TOKEN=<the token> python fcc_bdc.py 13
-     (13 is the state FIPS code; add county GEOIDs after it to keep only those counties)
+  1. Register at https://bdc.fcc.gov and generate a token under Manage API Access
+  2. FCC_USERNAME=<your email> FCC_TOKEN=<token> python fcc_bdc.py 13        (13 = Georgia's FIPS code)
 
-It writes data/state-<fips>-fcc-h3.csv with the fastest advertised download and upload speed in every H3
-hexagon (resolution 8). plan.py picks that file up automatically and labels the result "FCC".
-Satellite service is left out, as the BEAD program does. Business-only service is left out.
+Every broadband serviceable location in the state is put into one of the federal tiers, using the best
+non-satellite service advertised there (satellite is left out, as the BEAD program does):
+    served       100 Mbps down and 20 up or better
+    underserved  25/3 up to that
+    unserved     less than 25/3, or no service
+and the counts are summed in each H3 hexagon (resolution 8). Output: data/state-<fips>-fcc-h3.csv with columns
+h3_res8_id, served, underserved, unserved. plan.py labels each home with the majority tier of its hexagon.
 """
 import csv
 import io
@@ -19,6 +21,7 @@ import requests
 
 BASE = "https://bdc.fcc.gov/api/public/map"
 HERE = os.path.dirname(os.path.abspath(__file__))
+TERRESTRIAL = {"Copper", "Cable", "Fiber to the Premises", "Unlicensed Fixed Wireless", "Licensed Fixed Wireless", "LBR Fixed Wireless"}
 
 
 def headers():
@@ -28,74 +31,65 @@ def headers():
     return {"username": u, "hash_value": t}
 
 
-def get(path, **params):
-    r = requests.get(BASE + path, headers=headers(), params=params, timeout=120)
+def get(path):
+    r = requests.get(BASE + path, headers=headers(), timeout=180)
     if r.status_code != 200:
         sys.exit(f"FCC API error {r.status_code} on {path}: {r.text[:300]}")
     return r.json()
 
 
-def main(fips, counties):
-    dates = get("/listAsOfDates").get("data", [])
-    avail = sorted({d["as_of_date"] for d in dates if str(d.get("data_type", "")).lower().startswith("avail")})
-    if not avail:
-        sys.exit(f"No availability release found: {dates[:3]}")
-    asof = avail[-1]
-    print("release", asof, flush=True)
-    files = get(f"/downloads/listAvailabilityData/{asof}").get("data", [])
-    pick = [
-        f for f in files
-        if str(f.get("category", "")).lower() == "state"
-        and "fixed" in str(f.get("technology_type", "")).lower()
-        and str(f.get("state_fips", "")).zfill(2) == fips
-        and str(f.get("file_type", "")).lower() == "csv"
-    ]
-    if not pick:
-        print("No matching file. A few of the files on offer:")
-        for f in files[:8]:
-            print(" ", f)
-        sys.exit(1)
-    f = pick[0]
-    print("downloading", f.get("file_name"), flush=True)
-    r = requests.get(f"{BASE}/downloads/downloadFile/availability/{f['file_id']}/1", headers=headers(), stream=True, timeout=600)
+def fetch_csv(file_id):
+    """Download one zipped CSV and yield its rows as dicts."""
+    r = requests.get(f"{BASE}/downloads/downloadFile/availability/{file_id}/1", headers=headers(), timeout=900)
     r.raise_for_status()
-    tmp = os.path.join(HERE, "cache", f"bdc-{fips}.zip")
-    os.makedirs(os.path.dirname(tmp), exist_ok=True)
-    with open(tmp, "wb") as out:
-        for chunk in r.iter_content(1 << 20):
-            out.write(chunk)
-    best = {}
-    with zipfile.ZipFile(tmp) as z:
-        for name in z.namelist():
-            if not name.lower().endswith(".csv"):
-                continue
+    z = zipfile.ZipFile(io.BytesIO(r.content))
+    for name in z.namelist():
+        if name.lower().endswith(".csv"):
             with z.open(name) as raw:
-                rd = csv.DictReader(io.TextIOWrapper(raw, encoding="utf-8", newline=""))
-                for row in rd:
-                    if counties and not str(row.get("block_geoid", "")).startswith(tuple(counties)):
-                        continue
-                    if str(row.get("business_residential_code", "R")) not in ("R", "X"):
-                        continue
-                    if str(row.get("technology")) in ("60", "61"):  # satellite
-                        continue
-                    h = row.get("h3_res8_id")
-                    if not h:
-                        continue
-                    d, u = float(row.get("max_advertised_download_speed") or 0), float(row.get("max_advertised_upload_speed") or 0)
-                    cur = best.get(h)
-                    if cur is None or d > cur[0]:
-                        best[h] = (d, max(u, cur[1]) if cur else u)
-    os.remove(tmp)
+                yield from csv.DictReader(io.TextIOWrapper(raw, encoding="utf-8", newline=""))
+
+
+def tier(down, up):
+    return 2 if (down >= 100 and up >= 20) else (1 if (down >= 25 and up >= 3) else 0)
+
+
+def main(fips):
+    dates = get("/listAsOfDates")["data"]
+    asof = sorted({d["as_of_date"] for d in dates if d.get("data_type") == "availability"})[-1]
+    print("release", asof, flush=True)
+    files = [f for f in get(f"/downloads/listAvailabilityData/{asof}")["data"] if str(f.get("state_fips")) == fips and f.get("category") == "State" and f.get("file_type") == "csv"]
+    universe = next((f for f in files if f.get("subcategory") == "Served-Unserved"), None)
+    offers = [f for f in files if f.get("subcategory") == "Location Coverage" and f.get("technology_code_desc") in TERRESTRIAL]
+    if not universe or not offers:
+        sys.exit("Expected files were not found. Listing: " + ", ".join(sorted({str(f.get('subcategory')) for f in files})))
+    best = {}  # location id -> best tier offered
+    for f in offers:
+        print("  reading", f["technology_code_desc"], flush=True)
+        for row in fetch_csv(f["file_id"]):
+            if row.get("business_residential_code") not in ("R", "X"):
+                continue
+            t = tier(float(row["max_advertised_download_speed"] or 0), float(row["max_advertised_upload_speed"] or 0))
+            lid = row["location_id"]
+            if t > best.get(lid, -1):
+                best[lid] = t
+    print("  reading every location", flush=True)
+    hexes = {}
+    for row in fetch_csv(universe["file_id"]):
+        h = row["h3_res8_id"]
+        c = hexes.setdefault(h, [0, 0, 0])
+        c[best.get(row["location_id"], 0)] += 1
     out = os.path.join(HERE, "data", f"state-{fips}-fcc-h3.csv")
+    os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w", newline="") as fh:
         w = csv.writer(fh)
-        w.writerow(["h3_res8_id", "max_advertised_download_speed", "max_advertised_upload_speed"])
-        for h, (d, u) in best.items():
-            w.writerow([h, d, u])
-    print("wrote", out, len(best), "hexagons")
+        w.writerow(["h3_res8_id", "unserved", "underserved", "served"])
+        for h, (u, m, s) in hexes.items():
+            w.writerow([h, u, m, s])
+    tot = [sum(c[i] for c in hexes.values()) for i in range(3)]
+    print(f"wrote {out}: {len(hexes)} hexagons; locations unserved {tot[0]:,}, underserved {tot[1]:,}, served {tot[2]:,}")
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         sys.exit(__doc__)
-    main(sys.argv[1].zfill(2), sys.argv[2:])
+    main(sys.argv[1].zfill(2))

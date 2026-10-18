@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import DetectionDemo from "@/components/cv/DetectionDemo";
-import FiberDemo from "@/components/cv/FiberDemo";
 import UsMap from "@/components/UsMap";
 import { HomesPanel, NetworkPanel, TerrainPanel, WirelessPanel } from "@/components/visuals/Panels";
 
@@ -10,7 +9,6 @@ const SCENES = [
   { title: "A county with thousands of homes", text: "Towns County, Georgia has about 10,000 homes. FiberPath starts by finding every one of them from satellite building outlines.", vis: <HomesPanel /> },
   { title: "Some of them have no good internet", text: "Many homes sit far from town. They have no internet at the federal minimum speed, and nobody has a plan to reach them.", vis: <TerrainPanel /> },
   { title: "The app reads street photos to find utility poles", text: "Fiber is much cheaper to hang on poles than to bury. A pole detector looks at real street photos and marks the poles it finds.", vis: <DetectionDemo /> },
-  { title: "This is what fiber on those poles would look like", text: "Drag the handle to compare the street today with fiber on its poles. Roads with poles cost about half as much to build on.", vis: <FiberDemo /> },
   { title: "Hills and trees decide where wireless works", text: "A tower only reaches a home if nothing blocks the path. The app checks the ground and tree height along every path.", vis: <WirelessPanel /> },
   { title: "Then it picks the cheapest way to reach everyone", text: "A routing algorithm chooses the lowest-cost set of roads, and prices every home along the way.", vis: <NetworkPanel /> },
   { title: "And it does this for every county in the country", text: "Plans are being built for all 3,235 counties. Families check an address, and counties and co-ops get the numbers they need to ask for funding.", vis: <UsMap height={420} /> },

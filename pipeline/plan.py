@@ -144,7 +144,7 @@ def main(arg):
     hub_node = int(ntree.query(proj.fwd(c["hub"][1], c["hub"][0]))[1])
 
     # ---- stage 3: wireless line of sight ---------------------------------------
-    unserved = np.where(status == 2)[0]
+    unserved = np.where(status >= 1)[0]  # homes below 100/20: the unserved and the underserved, which BEAD both counts
     towers, tower_cover = pick_towers(c, osm, proj, grid, nlon, nlat, nx_, ny_, hx, hy, lon_c, lat_c, unserved)
     print("towers", len(towers), "covering", len({h for t in tower_cover for h in tower_cover[t]}), "unserved homes")
 
@@ -208,25 +208,29 @@ def coverage(c, proj, lon, lat, hx, hy):
     to a clearly-labeled proxy: homes outside the town cores count as unserved.
     """
     d = os.path.join(os.path.dirname(__file__), "data")
-    cands = [os.path.join(d, f"{c['slug']}-fcc-h3.csv"), os.path.join(d, f"state-{c['geoid'][:2]}-fcc-h3.csv")]
-    p = next((x for x in cands if os.path.exists(x)), None)
+    p = next((x for x in (os.path.join(d, f"state-{c['geoid'][:2]}-fcc-h3.csv.gz"), os.path.join(d, f"state-{c['geoid'][:2]}-fcc-h3.csv")) if os.path.exists(x)), None)
     if p:
         import csv
+        import gzip
 
         import h3
 
-        down, up = {}, {}
-        with open(p) as f:
+        cnt = {}
+        with (gzip.open(p, "rt") if p.endswith(".gz") else open(p)) as f:
             for r in csv.DictReader(f):
-                k = r["h3_res8_id"]
-                down[k] = max(down.get(k, 0), float(r["max_advertised_download_speed"]))
-                up[k] = max(up.get(k, 0), float(r.get("max_advertised_upload_speed") or 0))
-        st = np.zeros(len(lon), dtype=int)
+                cnt[r["h3_res8_id"]] = (int(r["unserved"]), int(r["underserved"]), int(r["served"]))
+        st = np.zeros(len(lon), dtype=int)  # app codes: 0 served, 1 underserved, 2 unserved
         for i, (lo, la) in enumerate(zip(lon, lat)):
-            k = h3.latlng_to_cell(la, lo, 8)
-            dn, u = down.get(k, 0), up.get(k, 0)
-            # the federal lines: served is 100/20 or better, underserved is 25/3 up to that, unserved is less
-            st[i] = 0 if (dn >= 100 and u >= 20) else (1 if (dn >= 25 and u >= 3) else 2)
+            cell = h3.latlng_to_cell(la, lo, 8)
+            tot = [0, 0, 0]  # unserved, underserved, served
+            for k in ([cell] if cell in cnt else h3.grid_disk(cell, 1)):  # a home outside every mapped hexagon borrows its neighbors
+                for j, v in enumerate(cnt.get(k, (0, 0, 0))):
+                    tot[j] += v
+            if sum(tot) == 0:
+                st[i] = 2
+            else:
+                m = max(tot)  # the tier most of the locations around the home are in; a tie goes to the worse one
+                st[i] = 2 if tot[0] == m else (1 if tot[1] == m else 0)
         return st, "fcc"
     served = np.zeros(len(lon), dtype=bool)
     for la, lo, r in c["cores"]:
@@ -474,7 +478,7 @@ def emit(c, slug, proj, grid, gmeta, elev_q, can_q, ways, way_names, g, tree, te
     for h in range(len(hx)):
         st = int(status[h])
         tech, cost, nb, tw, btw, npole, hdepth = 0, 0, 0, -1, -1, 0, 0
-        if st == 2:
+        if st >= 1:
             if h in wireless_set:
                 tech = 3
                 t = assign[h][0]

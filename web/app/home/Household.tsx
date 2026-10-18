@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Glossary from "@/components/Glossary";
-import HomeContext, { Share } from "@/components/HomeContext";
+import HomeContext from "@/components/HomeContext";
 import Search from "@/components/Search";
 import { dollars, num } from "@/lib/cost";
 import type { Home } from "@/lib/data";
@@ -154,7 +154,7 @@ export default function Household() {
               <HomeContext slug={res.slug} home={h} lat={res.lat} lon={res.lon} />
               <p className="row noprint" style={{ marginTop: 10 }}><Link className="btn sm" href={`/street?lat=${res.lat}&lon=${res.lon}`}>Walk your street in 3D</Link><Link className="btn sm line" href={`/county?county=${res.slug}&home=${h.i}&view=3d`}>See your home in 3D</Link><Link className="btn sm line" href={`/flyer?county=${res.slug}`}>Make a flyer for neighbors</Link></p>
 
-              {h.status === 2 && h.tech !== 0 && (
+              {h.status >= 1 && h.tech !== 0 && (
                 <>
                   <h2>How you would be connected</h2>
                   <div className="row" style={{ alignItems: "flex-start", gap: 20 }}>
@@ -181,11 +181,9 @@ export default function Household() {
                 </>
               )}
 
-              {h.status === 2 && h.tech === 0 && (
+              {h.status >= 1 && h.tech === 0 && (
                 <p style={{ marginTop: 20 }}>The road by this home does not connect to the rest of the map, so it is not in the plan yet.</p>
               )}
-
-              {res.slug && h.status === 2 && <Share slug={res.slug} home={h} />}
 
               {h.status !== 0 && <RaiseHand county={res.county?.name ?? ""} pledge={pledge} onRaise={raise} />}
               <Next office={office} served={h.status === 0} />
