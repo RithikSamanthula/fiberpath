@@ -48,10 +48,13 @@ def evaluate(W, SZ, device="cpu", conf=0.25):
     model = YOLO(W)
     imgs = sorted(glob.glob(os.path.join(HERE, "data", "images", "val", "*.jpg")))
     rows = []
-    for p, r in zip(imgs, model.predict(imgs, imgsz=SZ, conf=0.2, iou=0.5, device=device, verbose=False, stream=True)):
-        G = [g[1:] for g in gt(p) if g[0] == 0]
-        P = [(*b, float(s)) for b, c, s in zip(r.boxes.xywhn.numpy(), r.boxes.cls.numpy(), r.boxes.conf.numpy()) if int(c) == 0 and s >= conf]
-        rows.append((G, P))
+    # small chunks keep memory flat: one big call was killed by the OS on a busy laptop
+    for k in range(0, len(imgs), 16):
+        chunk = imgs[k:k + 16]
+        for p, r in zip(chunk, model.predict(chunk, imgsz=SZ, conf=0.2, iou=0.5, device=device, verbose=False, batch=4)):
+            G = [g[1:] for g in gt(p) if g[0] == 0]
+            P = [(*b, float(s)) for b, c, s in zip(r.boxes.xywhn.numpy(), r.boxes.cls.numpy(), r.boxes.conf.numpy()) if int(c) == 0 and s >= conf]
+            rows.append((G, P))
     ngt = sum(len(g) for g, _ in rows)
     npred = sum(len(P) for _, P in rows)
     out = {"photos": len(rows), "labels": ngt}

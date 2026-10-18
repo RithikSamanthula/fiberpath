@@ -15,3 +15,5 @@ web/public/data/*/
 web/tsconfig.tsbuildinfo
 *.pdf
 web/public/data/index.json
+__pycache__/
+*.pyc
