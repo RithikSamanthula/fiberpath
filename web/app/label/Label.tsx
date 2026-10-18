@@ -19,6 +19,11 @@ export default function Label() {
   const [extra, setExtra] = useState<Box[]>([]);
   const [saved, setSaved] = useState<Saved[]>([]);
   const [ratio, setRatio] = useState(0.5625);
+  const [hist, setHist] = useState<{ state: Record<number, boolean | null>; extra: Box[] }[]>([]);
+  const cur = useRef({ state, extra });
+  cur.current = { state, extra };
+  const snap = () => setHist((h) => [...h.slice(-30), cur.current]);
+  const undo = () => setHist((h) => { const l = h[h.length - 1]; if (!l) return h; setState(l.state); setExtra(l.extra); return h.slice(0, -1); });
   const wrap = useRef<HTMLDivElement>(null);
   const cv = useRef<HTMLCanvasElement>(null);
   const img = useRef<HTMLImageElement | null>(null);
@@ -43,7 +48,7 @@ export default function Label() {
         if (!d.boxes) continue;
         const boxes: Box[] = d.boxes.filter((b: { cls?: number }) => (b.cls ?? 0) === 0);
         setItem({ id: String(im.id), url: im.url, lat: im.lat, lon: im.lon, county: `${c.name}, ${c.state}`, boxes });
-        setState({}); setExtra([]); setMsg("");
+        setState({}); setExtra([]); setHist([]); setMsg("");
         return;
       } catch {}
     }
@@ -62,17 +67,22 @@ export default function Label() {
     item.boxes.forEach((b, i) => {
       const s = state[i] ?? null;
       const col = s === true ? "#38c47c" : s === false ? "#ff5a4a" : "#4d8dff";
-      ctx.strokeStyle = col; ctx.lineWidth = 3;
+      ctx.strokeStyle = col; ctx.lineWidth = 2;
+      ctx.globalAlpha = 0.16; ctx.fillStyle = col; ctx.fillRect(b.x * W, b.y * H, b.w * W, b.h * H); ctx.globalAlpha = 1;
       ctx.strokeRect(b.x * W, b.y * H, b.w * W, b.h * H);
       ctx.fillStyle = col; ctx.fillRect(b.x * W - 1.5, Math.max(0, b.y * H - 22), 24, 22);
       ctx.fillStyle = "#fff"; ctx.font = "700 13px sans-serif"; ctx.fillText(String(i + 1), b.x * W + 6, Math.max(15, b.y * H - 6));
       if (s === false) { ctx.beginPath(); ctx.moveTo(b.x * W, b.y * H); ctx.lineTo((b.x + b.w) * W, (b.y + b.h) * H); ctx.moveTo((b.x + b.w) * W, b.y * H); ctx.lineTo(b.x * W, (b.y + b.h) * H); ctx.stroke(); }
     });
-    ctx.strokeStyle = "#ffb81c"; ctx.setLineDash([6, 4]); ctx.lineWidth = 3;
-    for (const b of extra) ctx.strokeRect(b.x * W, b.y * H, b.w * W, b.h * H);
+    ctx.strokeStyle = "#ffb81c"; ctx.lineWidth = 2;
+    const added = (b: Box, i: number | null) => {
+      ctx.globalAlpha = 0.16; ctx.fillStyle = "#ffb81c"; ctx.fillRect(b.x * W, b.y * H, b.w * W, b.h * H); ctx.globalAlpha = 1;
+      ctx.strokeRect(b.x * W, b.y * H, b.w * W, b.h * H);
+      if (i !== null) { ctx.fillRect(b.x * W - 1, Math.max(0, b.y * H - 22), 24, 22); ctx.fillStyle = "#1b1b1b"; ctx.font = "700 13px sans-serif"; ctx.fillText("+", b.x * W + 8, Math.max(15, b.y * H - 6)); }
+    };
+    extra.forEach((b, i) => added(b, i));
     const d = drag.current;
-    if (d) ctx.strokeRect(Math.min(d.x, d.x2) * W, Math.min(d.y, d.y2) * H, Math.abs(d.x2 - d.x) * W, Math.abs(d.y2 - d.y) * H);
-    ctx.setLineDash([]);
+    if (d) added({ x: Math.min(d.x, d.x2), y: Math.min(d.y, d.y2), w: Math.abs(d.x2 - d.x), h: Math.abs(d.y2 - d.y) }, null);
   }, [item, state, extra]);
 
   useEffect(() => {
@@ -101,12 +111,12 @@ export default function Label() {
       const p = pos(e);
       if (moved && start) {
         const b = { x: Math.min(start[0], p[0]), y: Math.min(start[1], p[1]), w: Math.abs(p[0] - start[0]), h: Math.abs(p[1] - start[1]) };
-        if (b.w > 0.004 && b.h > 0.03) setExtra((x) => [...x, b]);
+        if (b.w > 0.004 && b.h > 0.03) { snap(); setExtra((x) => [...x, b]); }
       } else if (start) {
         const hit = item.boxes.findIndex((b) => p[0] >= b.x && p[0] <= b.x + b.w && p[1] >= b.y && p[1] <= b.y + b.h);
         const ex = extra.findIndex((b) => p[0] >= b.x && p[0] <= b.x + b.w && p[1] >= b.y && p[1] <= b.y + b.h);
-        if (hit >= 0) setState((s) => ({ ...s, [hit]: s[hit] === true ? false : s[hit] === false ? null : true }));
-        else if (ex >= 0) setExtra((x) => x.filter((_, i) => i !== ex));
+        if (hit >= 0) { snap(); setState((s) => ({ ...s, [hit]: s[hit] === true ? false : s[hit] === false ? null : true })); }
+        else if (ex >= 0) { snap(); setExtra((x) => x.filter((_, i) => i !== ex)); }
       }
       start = null; drag.current = null; draw();
     };
@@ -126,6 +136,18 @@ export default function Label() {
     next();
   };
 
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey ? e.key.toLowerCase() === "z" : false) { e.preventDefault(); undo(); }
+      else if (e.key === "Enter") done(false);
+      else if (e.key.toLowerCase() === "s" && !e.metaKey && !e.ctrlKey) done(true);
+      else if (e.key.toLowerCase() === "u") undo();
+      else if (e.key.toLowerCase() === "r" && item) { snap(); setState({}); setExtra([]); }
+    };
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  });
+
   const stats = (() => {
     let real = 0, fake = 0, missed = 0;
     for (const s of saved) { for (const b of s.boxes) b.ok ? real++ : fake++; missed += s.missed.length; }
@@ -138,7 +160,8 @@ export default function Label() {
       <p className="lede">Each photo shows what the detector marked as a utility pole. Tell us what it got right.</p>
       <ul className="small" style={{ margin: "12px 0 0 20px", display: "grid", gap: 4 }}>
         <li><b>Click a box</b> once if it is a real utility pole (green), twice if it is not (red). Boxes you leave blue count as real.</li>
-        <li><b>Drag on the photo</b> to draw a box around a utility pole the detector missed. Click a dashed box to remove it.</li>
+        <li><b>Drag on the photo</b> to draw a box around a utility pole the detector missed. Click a yellow box to remove it.</li>
+        <li><b>Keys:</b> Enter saves, S skips, U or Ctrl+Z undoes, R resets this photo.</li>
         <li>A utility pole carries power or phone wires. Street lights, signs and trees do not count. If you cannot tell, press Skip.</li>
       </ul>
 
@@ -154,6 +177,8 @@ export default function Label() {
           <div className="row" style={{ marginTop: 10 }}>
             <button className="btn" disabled={!item} onClick={() => done(false)}>Save and next</button>
             <button className="btn line" disabled={!item} onClick={() => done(true)}>Skip</button>
+            <button className="btn line" disabled={!hist.length} onClick={undo}>Undo</button>
+            <button className="btn line" disabled={!item || (!extra.length && !Object.keys(state).length)} onClick={() => { snap(); setState({}); setExtra([]); }}>Reset</button>
             {item && <span className="small">{item.boxes.length} marked, {extra.length} added by you</span>}
           </div>
         </div>
