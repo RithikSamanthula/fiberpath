@@ -1,17 +1,16 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
-import { IndexItem, loadIndex } from "@/lib/data";
+import { useMemo, useState } from "react";
+import { useIndex } from "@/lib/useIndex";
 import { dollars, money, num, totalCost } from "@/lib/cost";
 
 type Key = "perHome" | "unserved" | "homesPerM";
 
 export default function Compare() {
-  const [idx, setIdx] = useState<IndexItem[] | null>(null);
+  const idx = useIndex();
   const [by, setBy] = useState<Key>("perHome");
   const [st, setSt] = useState("");
   const [shown, setShown] = useState(25);
-  useEffect(() => { loadIndex().then(setIdx); }, []);
 
   const rows = useMemo(() => {
     if (!idx) return [];

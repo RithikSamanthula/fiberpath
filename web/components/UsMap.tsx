@@ -1,7 +1,8 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DATA_BASE, IndexItem, loadIndex } from "@/lib/data";
+import { DATA_BASE } from "@/lib/data";
+import { useIndex } from "@/lib/useIndex";
 
 type C = [string, string, string, number, number];
 
@@ -47,7 +48,10 @@ function projectAll(cs: C[]): [number, number][] {
 export default function UsMap({ onPick, height = 420 }: { onPick?: (c: C, slug: string | null) => void; height?: number }) {
   const router = useRouter();
   const [counties, setCounties] = useState<C[] | null>(null);
-  const [idx, setIdx] = useState<IndexItem[]>([]);
+  const idx = useIndex() ?? [];
+  const born = useRef(new Map<string, number>());
+  const seen = useRef<Set<string> | null>(null);
+  const redraw = useRef<() => void>(() => {});
   const [tip, setTip] = useState<{ x: number; y: number; text: string } | null>(null);
   const cv = useRef<HTMLCanvasElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
@@ -55,8 +59,19 @@ export default function UsMap({ onPick, height = 420 }: { onPick?: (c: C, slug: 
 
   useEffect(() => {
     fetch(`${DATA_BASE}/counties.json`).then((r) => r.json()).then(setCounties).catch(() => {});
-    loadIndex().then(setIdx);
   }, []);
+
+  useEffect(() => {
+    const now = performance.now();
+    if (seen.current) for (const i of idx) if (!seen.current.has(i.geoid)) born.current.set(i.geoid, now);
+    seen.current = new Set(idx.map((i) => i.geoid));
+    if (born.current.size) {
+      let id = 0;
+      const loop = () => { redraw.current(); if ([...born.current.values()].some((t) => performance.now() - t < 6000)) id = requestAnimationFrame(loop); };
+      id = requestAnimationFrame(loop);
+      return () => cancelAnimationFrame(id);
+    }
+  }, [idx]);
 
   const planned = useMemo(() => new Map(idx.map((i) => [i.geoid, i.slug])), [idx]);
   const proj = useMemo(() => (counties ? projectAll(counties) : []), [counties]);
@@ -90,8 +105,19 @@ export default function UsMap({ onPick, height = 420 }: { onPick?: (c: C, slug: 
         if (!planned.has(cc[0])) return;
         ctx.beginPath(); ctx.arc(P[i].x, P[i].y, r + 2.2, 0, 7); ctx.fill(); ctx.stroke();
       });
+      // counties that just finished planning flash a growing ring
+      const nowT = performance.now();
+      counties.forEach((cc, i) => {
+        const t = born.current.get(cc[0]);
+        if (t === undefined || nowT - t > 6000) return;
+        const k = (nowT - t) / 6000;
+        ctx.strokeStyle = "#ffb81c";
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(P[i].x, P[i].y, r + 4 + k * 26, 0, 7); ctx.globalAlpha = 1 - k; ctx.stroke(); ctx.globalAlpha = 1;
+      });
       pts.current = P;
     };
+    redraw.current = draw;
     draw();
     const ro = new ResizeObserver(draw);
     ro.observe(el);

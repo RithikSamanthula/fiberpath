@@ -1,4 +1,5 @@
 import Link from "next/link";
+import LiveFeed from "@/components/LiveFeed";
 import UsMap from "@/components/UsMap";
 import HeroMap from "@/components/HeroMap";
 import Glossary from "@/components/Glossary";
@@ -57,6 +58,7 @@ export default function Home() {
         <h2>Full county plans</h2>
         <p>Any address in the country can be checked. Full plans, with every route and every home priced, exist for these counties and more are on the way.</p>
         <div style={{ marginTop: 20 }}><UsMap /></div>
+        <div style={{ marginTop: 16 }}><LiveFeed /></div>
         <PlannedList />
         <div className="row" style={{ marginTop: 24 }}>
           <Link href="/explore" className="btn">Explore every county</Link>

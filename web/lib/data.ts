@@ -98,6 +98,14 @@ export function loadCountyLite(slug: string): Promise<County> {
 
 export async function ensureGrids(d: County): Promise<County> {
   if (d.hasGrids) return d;
+  const item = (await loadIndex()).find((i) => i.slug === d.meta.slug);
+  if (item?.remote) {
+    const f = await unpack(await fetch(`/api/data/${item.geoid}/grid`));
+    d.elev = new Int16Array(f["elev.bin"].buffer);
+    d.canopy = new Uint8Array(f["canopy.bin"]);
+    d.hasGrids = true;
+    return d;
+  }
   const b = async (f: string) => {
     const r = await fetch(`${DATA_BASE}/${d.meta.slug}/${f}`);
     if (!r.ok) throw new Error(`Could not load ${f}`);
@@ -114,7 +122,39 @@ export function loadCounty(slug: string): Promise<County> {
   return loadCountyLite(slug).then(ensureGrids);
 }
 
+async function gunzip(buf: ArrayBuffer): Promise<Uint8Array> {
+  const stream = new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+// .fpk = gzip( 4-byte header length | JSON header [{n, len}] | file bytes )
+async function unpack(res: Response): Promise<Record<string, Uint8Array>> {
+  if (!res.ok) throw new Error("Could not load this county yet");
+  const u = await gunzip(await res.arrayBuffer());
+  const hl = new DataView(u.buffer, u.byteOffset).getUint32(0, true);
+  const head: { n: string; len: number }[] = JSON.parse(new TextDecoder().decode(u.subarray(4, 4 + hl)));
+  const out: Record<string, Uint8Array> = {};
+  let off = 4 + hl;
+  for (const h of head) { out[h.n] = u.slice(off, off + h.len); off += h.len; }
+  return out;
+}
+
+const json = (u: Uint8Array) => JSON.parse(new TextDecoder().decode(u));
+
+function build(meta: Meta, rawHomes: number[][], roads: County["roads"], plan: number[][], towers: Tower[], poles: County["poles"]): County {
+  const homes: Home[] = rawHomes.map((r, i) => ({
+    i, lon: r[0], lat: r[1], status: r[2], tech: r[3], cost: r[4], neighbors: r[5], tower: r[6],
+    blockedTower: r[7], poles: r[8], dropFt: r[9], why: r[10], depth: r[11],
+  }));
+  return { meta, homes, roads, plan, towers, poles, elev: new Int16Array(0), canopy: new Uint8Array(0), hasGrids: false };
+}
+
 async function fetchCounty(slug: string): Promise<County> {
+  const item = (await loadIndex()).find((i) => i.slug === slug);
+  if (item?.remote) {
+    const f = await unpack(await fetch(`/api/data/${item.geoid}/pack`));
+    return build(json(f["county.json"]), json(f["homes.json"]), json(f["roads.json"]), json(f["plan.json"]), json(f["towers.json"]), json(f["poles.json"]));
+  }
   const base = `${DATA_BASE}/${slug}`;
   const j = async (f: string) => {
     const r = await fetch(`${base}/${f}`);
@@ -124,11 +164,7 @@ async function fetchCounty(slug: string): Promise<County> {
   const [meta, rawHomes, roads, plan, towers, poles] = await Promise.all([
     j("county.json"), j("homes.json"), j("roads.json"), j("plan.json"), j("towers.json"), j("poles.json"),
   ]);
-  const homes: Home[] = (rawHomes as number[][]).map((r, i) => ({
-    i, lon: r[0], lat: r[1], status: r[2], tech: r[3], cost: r[4], neighbors: r[5], tower: r[6],
-    blockedTower: r[7], poles: r[8], dropFt: r[9], why: r[10], depth: r[11],
-  }));
-  return { meta, homes, roads, plan, towers, poles, elev: new Int16Array(0), canopy: new Uint8Array(0), hasGrids: false };
+  return build(meta, rawHomes, roads, plan, towers, poles);
 }
 
 export const homeId = (h: { lat: number; lon: number }) => `${Math.round(h.lat * 1e5)}_${Math.round(h.lon * 1e5)}`;
@@ -137,10 +173,49 @@ export type IndexItem = {
   slug: string; name: string; state: string; geoid: string; bbox: [number, number, number, number];
   homes: number; unserved: number; reached: number; fiberHomes: number; wirelessHomes: number; towers: number;
   aerialFt: number; buriedFt: number; dropFt: number; assumptions: Assumptions; coverageSource: "fcc" | "proxy";
+  plannedAt?: string; // when the pipeline finished it
+  remote?: boolean; // published by the cloud pipeline; loaded through /api/data
 };
 
-let indexP: Promise<IndexItem[]> | null = null;
-export function loadIndex() {
-  if (!indexP) indexP = fetch(`${DATA_BASE}/index.json`).then((r) => (r.ok ? r.json() : [])).catch(() => []);
-  return indexP;
+// ---- the county index, live ------------------------------------------------------------------
+// Static counties ship with the site. Counties the cloud pipeline finishes appear through /api/index,
+// which is polled every 20 seconds, so new results show up in an open browser without a reload.
+let staticIdx: Promise<IndexItem[]> | null = null;
+let merged: IndexItem[] | null = null;
+let timer: ReturnType<typeof setInterval> | null = null;
+const listeners = new Set<(i: IndexItem[]) => void>();
+
+function mergeIdx(a: IndexItem[], b: IndexItem[]) {
+  const m = new Map<string, IndexItem>();
+  for (const i of a) m.set(i.geoid, i);
+  for (const i of b) m.set(i.geoid, i); // the cloud copy is the newer one
+  return [...m.values()];
+}
+
+async function refresh() {
+  staticIdx ??= fetch(`${DATA_BASE}/index.json`).then((r) => (r.ok ? r.json() : [])).catch(() => []);
+  const [st, live] = await Promise.all([staticIdx, fetch("/api/index").then((r) => (r.ok ? r.json() : [])).catch(() => [])]);
+  const next = mergeIdx(st as IndexItem[], live as IndexItem[]);
+  if (!merged || next.length !== merged.length || next.some((n, k) => n.plannedAt !== merged![k]?.plannedAt || n.geoid !== merged![k]?.geoid)) {
+    merged = next;
+    listeners.forEach((f) => f(next));
+  }
+  return merged;
+}
+
+export function subscribeIndex(f: (i: IndexItem[]) => void) {
+  listeners.add(f);
+  if (merged) f(merged);
+  if (!timer) {
+    refresh();
+    timer = setInterval(refresh, 20_000);
+  }
+  return () => {
+    listeners.delete(f);
+    if (!listeners.size && timer) { clearInterval(timer); timer = null; }
+  };
+}
+
+export function loadIndex(): Promise<IndexItem[]> {
+  return merged ? Promise.resolve(merged) : refresh();
 }

@@ -1,18 +1,18 @@
 "use client";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { County, IndexItem, loadCounty, loadIndex } from "./data";
+import { County, IndexItem, loadCounty } from "./data";
+import { useIndex } from "./useIndex";
 
 // The county shown on a screen comes from ?county=<slug>, so every view can be linked.
 export function useCountyParam() {
   const q = useSearchParams();
   const router = useRouter();
   const path = usePathname();
-  const [index, setIndex] = useState<IndexItem[] | null>(null);
+  const index = useIndex();
   const [data, setData] = useState<County | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => { loadIndex().then(setIndex); }, []);
   const slug = q.get("county") ?? index?.find((i) => i.slug === "towns-ga")?.slug ?? index?.[0]?.slug ?? null;
 
   useEffect(() => {

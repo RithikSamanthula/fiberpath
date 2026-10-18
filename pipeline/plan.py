@@ -540,6 +540,7 @@ def emit(c, slug, proj, grid, gmeta, elev_q, can_q, ways, way_names, g, tree, te
                 "k": los.K_EARTH, "maxM": los.MAX_M, "n": los.N, "endSkip": los.END_SKIP},
         "homeFields": ["lon", "lat", "status", "tech", "cost", "neighbors", "tower", "blockedTower", "poles", "dropFt", "why", "depth"],
         "generated": __import__("datetime").date.today().isoformat(),
+        "generatedAt": __import__("datetime").datetime.now(__import__("datetime").timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     }
     dump = lambda name, obj: open(os.path.join(out, name), "w").write(json.dumps(obj, separators=(",", ":")))
     dump("county.json", meta)
@@ -569,7 +570,7 @@ def write_index():
                           "homes": t["homesAll"], "unserved": t["unserved"], "reached": homes,
                           "fiberHomes": t["fiberHomes"], "wirelessHomes": t["wirelessHomes"], "towers": t["towers"],
                           "aerialFt": t["aerialFt"], "buriedFt": t["buriedFt"], "dropFt": t["dropFt"],
-                          "assumptions": m["assumptions"], "coverageSource": m["coverageSource"]})
+                          "assumptions": m["assumptions"], "coverageSource": m["coverageSource"], "plannedAt": m.get("generatedAt")})
     tmp = os.path.join(OUT, f"index.{os.getpid()}.tmp")
     json.dump(items, open(tmp, "w"), separators=(",", ":"))
     os.replace(tmp, os.path.join(OUT, "index.json"))

@@ -1,7 +1,7 @@
 name: Plan counties
 
-# Plans every U.S. county, forever. Each cycle runs up to six parallel shards for about 5.5 hours, saves the
-# finished counties as a release, records progress on the "progress" branch, then starts the next cycle.
+# Plans every U.S. county, forever. Each cycle runs up to six parallel shards (split by state) for about 5.5 hours.
+# Every county is published to a GitHub release the moment it finishes, so the website shows it live. Progress is recorded on the "progress" branch, then starts the next cycle.
 # When every county is done it waits 30 days and starts over with fresh data. A cron entry restarts the loop
 # if it ever stops. Needs the repository secret MAPILLARY_TOKEN.
 
@@ -79,20 +79,14 @@ jobs:
         env:
           MAPILLARY_TOKEN: ${{ secrets.MAPILLARY_TOKEN }}
           FIBERPATH_DATA: ${{ github.workspace }}/out
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           [ -n "$MAPILLARY_TOKEN" ] || echo "::warning::MAPILLARY_TOKEN is not set; poles will come from OpenStreetMap only"
           python national.py list
           python -u national.py run --workers 2 --shard ${{ matrix.shard }}/6 \
             --budget-min ${{ needs.prepare.outputs.budget }} \
             --done-file "$RUNNER_TEMP/p/done.txt" --completed-out "$GITHUB_WORKSPACE/completed.txt"
-      - name: Save results as a release
-        if: always()
-        run: |
-          [ -s completed.txt ] || exit 0
-          tag="data-${{ github.run_id }}-${{ matrix.shard }}"
-          tar czf "counties-${{ github.run_id }}-${{ matrix.shard }}.tgz" -C out .
-          gh release create "$tag" "counties-${{ github.run_id }}-${{ matrix.shard }}.tgz" completed.txt \
-            --title "Counties $tag" --notes "$(wc -l < completed.txt) counties planned. Unpack into web/public/data." || true
       - name: Record progress
         if: always()
         run: |

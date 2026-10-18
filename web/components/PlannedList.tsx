@@ -1,12 +1,11 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { IndexItem, loadIndex } from "@/lib/data";
+import { useIndex } from "@/lib/useIndex";
 import { dollars, num, totalCost } from "@/lib/cost";
 
 export default function PlannedList() {
-  const [idx, setIdx] = useState<IndexItem[] | null>(null);
-  useEffect(() => { loadIndex().then(setIdx); }, []);
+  const all = useIndex();
+  const idx = all && [...all].sort((a, b) => (b.plannedAt ?? "").localeCompare(a.plannedAt ?? "")).slice(0, 8);
   if (!idx) return <p className="small">Loading…</p>;
   return (
     <div className="list" style={{ marginTop: 16 }}>

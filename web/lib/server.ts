@@ -4,34 +4,47 @@ import path from "path";
 import { latLngToCell, cellToLatLng } from "h3-js";
 import type { Home, Meta } from "./data";
 import { homeId } from "./data";
+import { remoteAsset, remoteIndex, unpack } from "./remote";
 
 let plansCache: { at: number; map: Record<string, string> } | null = null;
+// geoid -> slug for every planned county, local files plus everything the cloud pipeline has published
 export async function plans(): Promise<Record<string, string>> {
-  if (plansCache && Date.now() - plansCache.at < 60_000) return plansCache.map;
+  if (plansCache && Date.now() - plansCache.at < 30_000) return plansCache.map;
+  const map: Record<string, string> = {};
   try {
     const idx: { geoid: string; slug: string }[] = JSON.parse(await fs.readFile(path.join(process.cwd(), "public", "data", "index.json"), "utf8"));
-    plansCache = { at: Date.now(), map: Object.fromEntries(idx.map((i) => [i.geoid, i.slug])) };
-    return plansCache.map;
-  } catch {
-    return {};
-  }
+    for (const i of idx) map[i.geoid] = i.slug;
+  } catch {}
+  for (const i of await remoteIndex().catch(() => [])) map[i.geoid] = i.slug;
+  plansCache = { at: Date.now(), map };
+  return map;
 }
 
 const dir = (slug: string) => path.join(process.cwd(), "public", "data", slug);
 const mem = new Map<string, { meta: Meta; homes: Home[] }>();
 
+const toHomes = (raw: number[][]): Home[] => raw.map((r, i) => ({
+  i, lon: r[0], lat: r[1], status: r[2], tech: r[3], cost: r[4], neighbors: r[5], tower: r[6],
+  blockedTower: r[7], poles: r[8], dropFt: r[9], why: r[10], depth: r[11],
+}));
+
 export async function getPlan(slug: string) {
   let c = mem.get(slug);
-  if (!c) {
+  if (c) return c;
+  try {
     const meta: Meta = JSON.parse(await fs.readFile(path.join(dir(slug), "county.json"), "utf8"));
     const raw: number[][] = JSON.parse(await fs.readFile(path.join(dir(slug), "homes.json"), "utf8"));
-    const homes: Home[] = raw.map((r, i) => ({
-      i, lon: r[0], lat: r[1], status: r[2], tech: r[3], cost: r[4], neighbors: r[5], tower: r[6],
-      blockedTower: r[7], poles: r[8], dropFt: r[9], why: r[10], depth: r[11],
-    }));
-    c = { meta, homes };
-    mem.set(slug, c);
+    c = { meta, homes: toHomes(raw) };
+  } catch {
+    // not on disk: it was published by the cloud pipeline
+    const geoid = Object.entries(await plans()).find(([, s]) => s === slug)?.[0];
+    const pack = geoid ? await remoteAsset(geoid, "pack") : null;
+    if (!pack) throw new Error("unknown county");
+    const f = unpack(pack);
+    c = { meta: JSON.parse(f["county.json"].toString()), homes: toHomes(JSON.parse(f["homes.json"].toString())) };
   }
+  if (mem.size > 6) mem.delete(mem.keys().next().value as string);
+  mem.set(slug, c);
   return c;
 }
 

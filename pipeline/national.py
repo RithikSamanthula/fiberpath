@@ -92,6 +92,15 @@ def work(c, st, lock_path):
     st[g] = {"status": "done" if ok else "failed", "name": c["NAME"], "seconds": round(time.time() - t0)}
     save_status(st)
     print(("done  " if ok else "FAIL  ") + g, c["NAME"], st[g]["seconds"], "s", flush=True)
+    if ok:
+        try:
+            import publish
+            from common import county_config
+
+            if publish.enabled() and publish.publish(g, county_config(g)["slug"]):
+                print("published", g, flush=True)
+        except Exception as e:  # a failed upload must not lose the county; it stays on disk and is retried next cycle
+            print("publish failed", g, e, flush=True)
     return ok
 
 
@@ -124,8 +133,9 @@ if __name__ == "__main__":
                 st.setdefault(g, {"status": "done", "name": "", "seconds": 0})
         q = queue(a, st)
         if a.shard:
+            # shard by state so exactly one process ever writes a state's index
             k, N = (int(x) for x in a.shard.split("/"))
-            q = q[k::N]
+            q = [c for c in q if int(c["STATE"]) % N == k]
         print(len(q), "counties queued", flush=True)
         t_start = time.time()
 
