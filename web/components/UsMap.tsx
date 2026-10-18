@@ -108,18 +108,17 @@ export default function UsMap({ onPick, height = 420, highlight }: { onPick?: (c
         ctx.beginPath(); ctx.arc(P[i].x, P[i].y, r + 2.2, 0, 7); ctx.fill(); ctx.stroke();
       });
       if (highlight?.size) {
-        ctx.fillStyle = "#ffb81c"; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 1.5;
-        counties.forEach((cc, i) => { if (!highlight.has(cc[0])) return; ctx.beginPath(); ctx.arc(P[i].x, P[i].y, r + 3.6, 0, 7); ctx.fill(); ctx.stroke(); });
+        // the chosen counties stand out as solid amber dots; everything else stays quiet
+        ctx.fillStyle = "#ffb81c";
+        counties.forEach((cc, i) => { if (!highlight.has(cc[0])) return; ctx.beginPath(); ctx.arc(P[i].x, P[i].y, r + 1.6, 0, 7); ctx.fill(); });
       }
-      // counties that just finished planning flash a growing ring
+      // a county that just finished planning shows as a brighter white dot for a few seconds
       const nowT = performance.now();
+      ctx.fillStyle = "#ffffff";
       counties.forEach((cc, i) => {
         const t = born.current.get(cc[0]);
         if (t === undefined || nowT - t > 6000) return;
-        const k = (nowT - t) / 6000;
-        ctx.strokeStyle = "#ffb81c";
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(P[i].x, P[i].y, r + 4 + k * 26, 0, 7); ctx.globalAlpha = 1 - k; ctx.stroke(); ctx.globalAlpha = 1;
+        ctx.beginPath(); ctx.arc(P[i].x, P[i].y, r + 4, 0, 7); ctx.fill();
       });
       pts.current = P;
     };
