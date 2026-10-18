@@ -135,7 +135,16 @@ if __name__ == "__main__":
         if a.shard:
             # shard by state so exactly one process ever writes a state's index
             k, N = (int(x) for x in a.shard.split("/"))
-            q = [c for c in q if int(c["STATE"]) % N == k]
+            # balance the shards: biggest states first, each into the lightest shard so far
+            counts = {}
+            for c in json.load(open(LIST)):
+                counts[c["STATE"]] = counts.get(c["STATE"], 0) + 1
+            load, owner = [0] * N, {}
+            for s, cnt in sorted(counts.items(), key=lambda kv: -kv[1]):
+                j = load.index(min(load))
+                owner[s] = j
+                load[j] += cnt
+            q = [c for c in q if owner[c["STATE"]] == k]
         print(len(q), "counties queued", flush=True)
         t_start = time.time()
 

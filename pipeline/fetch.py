@@ -218,7 +218,7 @@ def terrain(c, bb, z=13):
 
 
 def canopy(c, bb, shape_hint=None):
-    """Meta + WRI 1 m canopy height, read at 15 m cells (mean height within each cell)."""
+    """Meta + WRI 1 m canopy height, read at 30 m cells (mean height within each cell)."""
     import rasterio
     from rasterio.enums import Resampling
     from rasterio.windows import from_bounds
@@ -232,7 +232,7 @@ def canopy(c, bb, shape_hint=None):
 
     mx0, my0 = merc(w, s)
     mx1, my1 = merc(e, n)
-    res = 15.0
+    res = 30.0
     W = int((mx1 - mx0) / res)
     H = int((my1 - my0) / res)
     p = cache_path(c["slug"], "canopy.npy")

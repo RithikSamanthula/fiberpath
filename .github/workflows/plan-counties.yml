@@ -2,20 +2,18 @@ name: Plan counties
 
 # Plans every U.S. county, forever. Each cycle runs up to six parallel shards (split by state) for about 5.5 hours.
 # Every county is published to a GitHub release the moment it finishes, so the website shows it live. Progress is recorded on the "progress" branch, then starts the next cycle.
-# When every county is done it waits 30 days and starts over with fresh data. A cron entry restarts the loop
+# When every county is done it waits 30 days and starts over with fresh data. The watchdog workflow restarts the loop
 # if it ever stops. Needs the repository secret MAPILLARY_TOKEN.
 
 on:
   push:
     branches: [main]
     paths: [".github/trigger"]   # touch this file and push to start a run
-  schedule:
-    - cron: "23 */6 * * *"
   workflow_dispatch:
 
 concurrency:
   group: plan-counties
-  cancel-in-progress: false
+  cancel-in-progress: true   # a new run (for example after a push) replaces the one in flight
 
 permissions:
   contents: write
@@ -53,7 +51,7 @@ jobs:
           if [ "$(gh repo view "$GITHUB_REPOSITORY" --json isPrivate -q .isPrivate)" = "true" ]; then
             echo 'shards=[0]' >> "$GITHUB_OUTPUT"; echo 'budget=40' >> "$GITHUB_OUTPUT"
           else
-            echo 'shards=[0,1,2,3,4,5]' >> "$GITHUB_OUTPUT"; echo 'budget=320' >> "$GITHUB_OUTPUT"
+            echo 'shards=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]' >> "$GITHUB_OUTPUT"; echo 'budget=320' >> "$GITHUB_OUTPUT"
           fi
           echo "remaining=$remaining" >> "$GITHUB_OUTPUT"
           echo "$remaining counties remaining"
@@ -87,7 +85,7 @@ jobs:
         run: |
           [ -n "$MAPILLARY_TOKEN" ] || echo "::warning::MAPILLARY_TOKEN is not set; poles will come from OpenStreetMap only"
           python national.py list
-          python -u national.py run --workers 2 --shard ${{ matrix.shard }}/6 \
+          python -u national.py run --workers 3 --shard ${{ matrix.shard }}/20 \
             --budget-min ${{ needs.prepare.outputs.budget }} \
             --done-file "$RUNNER_TEMP/p/done.txt" --completed-out "$GITHUB_WORKSPACE/completed.txt"
       - name: Record progress
