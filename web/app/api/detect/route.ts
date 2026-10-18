@@ -40,8 +40,8 @@ export async function GET(req: NextRequest) {
     if (await haveModel()) {
       const t0 = Date.now();
       const r = await fetch(url, { cache: "no-store" });
-      const boxes = await detectPoles(Buffer.from(await r.arrayBuffer()), Math.max(0.05, Number(req.nextUrl.searchParams.get("t") ?? 0.25)));
-      return NextResponse.json({ boxes, ms: Date.now() - t0, model: "FiberPath pole detector (YOLOv8n)" });
+      const { boxes, candidates } = await detectPoles(Buffer.from(await r.arrayBuffer()), Math.max(0.05, Number(req.nextUrl.searchParams.get("t") ?? 0.25)));
+      return NextResponse.json({ boxes, candidates: req.nextUrl.searchParams.get("debug") ? candidates : undefined, ms: Date.now() - t0, model: "FiberPath pole detector (YOLOv8n)" });
     }
     const t0 = Date.now();
     const [{ RawImage }, d] = await Promise.all([import("@huggingface/transformers"), detector()]);

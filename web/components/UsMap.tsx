@@ -58,7 +58,8 @@ export default function UsMap({ onPick, height = 420 }: { onPick?: (c: C, slug: 
   const pts = useRef<{ x: number; y: number; i: number }[]>([]);
 
   useEffect(() => {
-    fetch(`${DATA_BASE}/counties.json`).then((r) => r.json()).then(setCounties).catch(() => {});
+    // states, DC and Puerto Rico only: the Pacific territories would stretch the map across the globe
+    fetch(`${DATA_BASE}/counties.json`).then((r) => r.json()).then((c: C[]) => setCounties(c.filter((x) => Number(x[2]) <= 56 || x[2] === "72"))).catch(() => {});
   }, []);
 
   useEffect(() => {

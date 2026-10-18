@@ -1,4 +1,4 @@
-export type Box = { x: number; y: number; w: number; h: number; score?: number };
+export type Box = { x: number; y: number; w: number; h: number; score?: number; cls?: number };
 
 export function iou(a: Box, b: Box) {
   const x1 = Math.max(a.x, b.x), y1 = Math.max(a.y, b.y), x2 = Math.min(a.x + a.w, b.x + b.w), y2 = Math.min(a.y + a.h, b.y + b.h);

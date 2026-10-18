@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import MapView, { Layers } from "@/components/MapView";
 import Terrain3D from "@/components/Terrain3D";
 import BudgetLens from "@/components/BudgetLens";
+import Scanner from "@/components/cv/Scanner";
 import { dollars, edgeCosts, money, num, totalCost } from "@/lib/cost";
 import { contours } from "@/lib/contours";
 import { viewshed } from "@/lib/geo";
@@ -188,7 +189,8 @@ export default function Planner() {
                 {(sel.tech === 1 || sel.tech === 2) && <tr><th>Neighbors on route</th><td>{sel.neighbors}</td></tr>}
               </tbody>
             </table>
-            {sel.tech > 0 && <Link href={`/sight?county=${slug}&home=${sel.i}`}>Line-of-sight picture</Link>}
+            <div style={{ marginTop: 10 }}><Scanner lat={sel.lat} lon={sel.lon} ratio={0.62} /></div>
+            {sel.tech > 0 && <p style={{ marginTop: 10 }}><Link href={`/sight?county=${slug}&home=${sel.i}`}>Line-of-sight picture</Link></p>}
           </>
         )}
 

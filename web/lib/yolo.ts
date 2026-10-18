@@ -4,7 +4,7 @@ import path from "path";
 // FiberPath's trained utility-pole detector (YOLOv8n, exported to ONNX), run on the server with ONNX Runtime.
 // Output rows are [cx, cy, w, h, confidence] for 8400 candidate boxes at 640x640.
 
-export type Det = { x: number; y: number; w: number; h: number; score: number };
+export type Det = { x: number; y: number; w: number; h: number; score: number; cls: number }; // cls 0 utility pole, 1 other pole (street light, sign post)
 
 let sessionP: Promise<any> | null = null;
 const modelPath = () => path.join(process.cwd(), "models", "pole.onnx");
@@ -23,7 +23,7 @@ async function session() {
   return sessionP;
 }
 
-export async function detectPoles(image: Buffer, conf = 0.25, iouThr = 0.5): Promise<Det[]> {
+export async function detectPoles(image: Buffer, conf = 0.25, iouThr = 0.5): Promise<{ boxes: Det[]; candidates: Det[] }> {
   const [ort, sharpMod, sess] = await Promise.all([import("onnxruntime-node"), import("sharp"), session()]);
   const sharp = sharpMod.default;
   const S = 640;
@@ -40,23 +40,29 @@ export async function detectPoles(image: Buffer, conf = 0.25, iouThr = 0.5): Pro
   }
   const out = await sess.run({ [sess.inputNames[0]]: new ort.Tensor("float32", input, [1, 3, S, S]) });
   const t = out[sess.outputNames[0]];
-  const n = t.dims[2], data = t.data as Float32Array;
+  const nch = t.dims[1], n = t.dims[2], data = t.data as Float32Array;
+  const nc = nch - 4;
   const cand: Det[] = [];
   for (let i = 0; i < n; i++) {
-    const score = data[4 * n + i];
-    if (score < conf) continue;
+    let cls = 0, score = 0;
+    for (let k = 0; k < nc; k++) { const v = data[(4 + k) * n + i]; if (v > score) { score = v; cls = k; } }
+    if (score < Math.min(conf, 0.1)) continue;
     const cx = data[i], cy = data[n + i], w = data[2 * n + i], h = data[3 * n + i];
     // undo the letterbox, then normalize to 0..1 of the original image
     const x = (cx - w / 2 - padX) / scale / W, y = (cy - h / 2 - padY) / scale / H;
-    cand.push({ x: Math.max(0, x), y: Math.max(0, y), w: Math.min(1, w / scale / W), h: Math.min(1, h / scale / H), score });
+    cand.push({ x: Math.max(0, x), y: Math.max(0, y), w: Math.min(1, w / scale / W), h: Math.min(1, h / scale / H), score, cls });
   }
   cand.sort((a, b) => b.score - a.score);
-  const keep: Det[] = [];
   const iou = (a: Det, b: Det) => {
     const x1 = Math.max(a.x, b.x), y1 = Math.max(a.y, b.y), x2 = Math.min(a.x + a.w, b.x + b.w), y2 = Math.min(a.y + a.h, b.y + b.h);
     const i = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
     return i / (a.w * a.h + b.w * b.h - i || 1);
   };
-  for (const c of cand) if (!keep.some((k) => iou(k, c) > iouThr)) keep.push(c);
-  return keep;
+  const keep: Det[] = [];
+  for (const c of cand) {
+    if (c.score < conf) continue;
+    // a box that overlaps a stronger one of ANY class is suppressed, so one pole is never both a utility pole and a light pole
+    if (!keep.some((k) => iou(k, c) > iouThr)) keep.push(c);
+  }
+  return { boxes: keep, candidates: cand.slice(0, 90) };
 }

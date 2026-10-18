@@ -14,18 +14,30 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 data = os.path.join(HERE, "data", "pole.yaml")
 epochs = int(sys.argv[1]) if len(sys.argv) > 1 else 40
+if len(sys.argv) > 2:
+    data = os.path.join(HERE, "data", sys.argv[2])
+name = sys.argv[3] if len(sys.argv) > 3 else "pole"
 
 model = YOLO("yolov8n.pt")
 model.train(data=data, epochs=epochs, imgsz=640, batch=16, device="mps", workers=4, project=os.path.join(HERE, "runs"),
-            name="pole", exist_ok=True, patience=12, verbose=False, plots=False)
-best = YOLO(os.path.join(HERE, "runs", "pole", "weights", "best.pt"))
+            name=name, exist_ok=True, patience=12, verbose=False, plots=False)
+best = YOLO(os.path.join(HERE, "runs", name, "weights", "best.pt"))
 m = best.val(data=data, imgsz=640, device="mps", plots=False, conf=0.25, iou=0.5)
 onnx = best.export(format="onnx", imgsz=640, opset=12, simplify=True)
 
 ntrain = len(os.listdir(os.path.join(HERE, "data", "images", "train")))
 nval = len(os.listdir(os.path.join(HERE, "data", "images", "val")))
+names = best.names
+per = {}
+try:
+    for i, c in enumerate(m.box.ap_class_index):
+        per[names[int(c)]] = {"precision": round(float(m.box.p[i]), 3), "recall": round(float(m.box.r[i]), 3), "map50": round(float(m.box.ap50[i]), 3)}
+except Exception:
+    pass
 metrics = {
-    "model": "YOLOv8n fine-tuned for utility poles",
+    "model": "YOLOv8n fine-tuned to tell utility poles from street lights and other poles",
+    "classes": list(names.values()),
+    "perClass": per,
     "trainImages": ntrain,
     "valImages": nval,
     "precision": round(float(m.box.mp), 3),

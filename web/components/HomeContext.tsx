@@ -17,19 +17,16 @@ export default function HomeContext({ slug, home, lat, lon }: { slug?: string; h
   }, [d, home]);
   const pt = home ?? { lat, lon };
   return (
-    <div>
-      {slug && d && home && (
-        <>
-          <h2>Your home on the plan</h2>
-          <div style={{ height: 340, display: "flex", flexDirection: "column", borderRadius: 3, overflow: "hidden" }}>
-            <MapView data={d} layers={layers} selected={home} link={link} progress={1} pulse focus={{ lon: home.lon, lat: home.lat, zoom: 70000, key: home.i }} />
-          </div>
-          <p className="small" style={{ marginTop: 6 }}>Blue and amber lines are the planned routes. The white ring is your home. Drag to look around.</p>
-        </>
+    <div className={slug && home ? "hh-visuals" : ""} style={{ marginTop: 20 }}>
+      {slug && home && (
+        <div style={{ minHeight: 360, display: "flex", flexDirection: "column", borderRadius: 3, overflow: "hidden", position: "relative", background: "#0f1b2d" }}>
+          {d ? <MapView data={d} layers={layers} selected={home} link={link} progress={1} pulse focus={{ lon: home.lon, lat: home.lat, zoom: 22000, key: home.i }} /> : <span style={{ margin: "auto", color: "#aebad0" }}>Loading the plan…</span>}
+          <span className="label" style={{ position: "absolute", left: 10, top: 10, background: "#fff", padding: "4px 8px" }}>Your home on the plan</span>
+        </div>
       )}
-      <h2>Your street, as a camera saw it</h2>
-      <p className="small" style={{ marginBottom: 4 }}>Real street-level photos near this address. Press the button and FiberPath&apos;s pole detector looks for utility poles in each one.</p>
-      <Scanner lat={pt.lat} lon={pt.lon} />
+      <div>
+        <Scanner lat={pt.lat} lon={pt.lon} />
+      </div>
     </div>
   );
 }

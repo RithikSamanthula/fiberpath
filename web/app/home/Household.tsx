@@ -151,6 +151,8 @@ export default function Household() {
                 </p>
               </div>
 
+              <HomeContext slug={res.slug} home={h} lat={res.lat} lon={res.lon} />
+
               {h.status === 2 && h.tech !== 0 && (
                 <>
                   <h2>Your path to a connection</h2>
@@ -202,6 +204,8 @@ export default function Household() {
                 )}
               </div>
 
+              <HomeContext lat={res.lat} lon={res.lon} />
+
               <h2>Around your address</h2>
               {estBusy && <p>Checking nearby roads, poles and homes…</p>}
               {est && (
@@ -231,8 +235,6 @@ export default function Household() {
               <Next office={office} />
             </>
           )}
-
-          <HomeContext slug={res.slug} home={h} lat={res.lat} lon={res.lon} />
 
           <h2>What the words mean</h2>
           <Glossary items={["unserved", "aerial", "buried", "wireless"]} />

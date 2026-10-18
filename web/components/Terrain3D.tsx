@@ -16,9 +16,9 @@ function shade(hex: string, k: number) {
   return `rgb(${f((n >> 16) & 255)},${f((n >> 8) & 255)},${f(n & 255)})`;
 }
 
-type Props = { data: County; progress: number };
+type Props = { data: County; progress: number; spin?: boolean; compact?: boolean };
 
-export default function Terrain3D({ data, progress }: Props) {
+export default function Terrain3D({ data, progress, spin, compact }: Props) {
   const cv = useRef<HTMLCanvasElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
   const st = useRef({ yaw: 0.6, pitch: 0.95, zoom: 1, w: 0, h: 0, dpr: 1 });
@@ -173,10 +173,20 @@ export default function Terrain3D({ data, progress }: Props) {
 
   useEffect(schedule, [progress, schedule]);
 
+  // slow turntable for decorative uses, until someone grabs it
+  const grabbed = useRef(false);
+  useEffect(() => {
+    if (!spin) return;
+    let id = 0;
+    const loop = () => { if (!grabbed.current) { st.current.yaw += 0.0035; draw(); } id = requestAnimationFrame(loop); };
+    id = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(id);
+  }, [spin, draw]);
+
   useEffect(() => {
     const c = cv.current!;
     let down: { x: number; y: number } | null = null;
-    const pd = (e: PointerEvent) => { c.setPointerCapture(e.pointerId); down = { x: e.clientX, y: e.clientY }; };
+    const pd = (e: PointerEvent) => { grabbed.current = true; c.setPointerCapture(e.pointerId); down = { x: e.clientX, y: e.clientY }; };
     const pm = (e: PointerEvent) => {
       if (!down) return;
       st.current.yaw += (e.clientX - down.x) * 0.006;
@@ -185,7 +195,7 @@ export default function Terrain3D({ data, progress }: Props) {
       schedule();
     };
     const pu = () => { down = null; };
-    const wh = (e: WheelEvent) => { e.preventDefault(); st.current.zoom = Math.max(0.6, Math.min(4, st.current.zoom * Math.exp(-e.deltaY * 0.0015))); schedule(); };
+    const wh = (e: WheelEvent) => { if (spin) return; e.preventDefault(); st.current.zoom = Math.max(0.6, Math.min(4, st.current.zoom * Math.exp(-e.deltaY * 0.0015))); schedule(); };
     c.addEventListener("pointerdown", pd); c.addEventListener("pointermove", pm); c.addEventListener("pointerup", pu); c.addEventListener("pointercancel", pu);
     c.addEventListener("wheel", wh, { passive: false });
     return () => { c.removeEventListener("pointerdown", pd); c.removeEventListener("pointermove", pm); c.removeEventListener("pointerup", pu); c.removeEventListener("pointercancel", pu); c.removeEventListener("wheel", wh); };
@@ -194,7 +204,7 @@ export default function Terrain3D({ data, progress }: Props) {
   return (
     <div className="canvaswrap" ref={wrap}>
       <canvas ref={cv} className="map" role="img" aria-label={`3D terrain of ${data.meta.name}. Drag to rotate, scroll to zoom.`} />
-      <div className="noprint" style={{ position: "absolute", left: 12, top: 12, background: "#fff", padding: "6px 10px", fontSize: 13, borderRadius: 3 }}>Drag to rotate · scroll to zoom · green tiles are forest</div>
+      {!compact && <div className="noprint" style={{ position: "absolute", left: 12, top: 12, background: "#fff", padding: "6px 10px", fontSize: 13, borderRadius: 3 }}>Drag to rotate · scroll to zoom · green tiles are forest</div>}
     </div>
   );
 }
