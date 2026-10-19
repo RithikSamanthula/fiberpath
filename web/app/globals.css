@@ -302,7 +302,7 @@ button, a, summary { touch-action: manipulation; }
   body { font-size: 16px; }
   input, select, textarea, .field { font-size: 16px !important; } /* below 16px, iPhones zoom the page when a field is tapped */
   .wrap { padding-left: 16px; padding-right: 16px; }
-  .page { padding: 20px 0 40px; }
+  .page { padding: 20px 16px 40px; }
   h1 { font-size: 30px; }
   h2 { font-size: 22px; margin: 36px 0 10px; }
   .lede { font-size: 17px; }
