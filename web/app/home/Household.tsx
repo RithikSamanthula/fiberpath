@@ -243,7 +243,7 @@ export default function Household() {
                 {reqState.state === "error" && <span role="alert">Could not save right now.</span>}
                 {reqState.state === "idle" && res.requests ? <span className="small">{num(res.requests)} already requested.</span> : null}
               </div>
-              <p className="row" style={{ marginTop: 16 }}><Link href="/county">See what a full plan looks like in Towns County, GA</Link></p>
+              <p className="row" style={{ marginTop: 16 }}><Link href="/county?county=towns-ga">See what a full plan looks like in Towns County, GA</Link></p>
               <Next office={office} />
             </>
           )}

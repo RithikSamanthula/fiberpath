@@ -33,11 +33,4 @@ export function useCountyParam() {
   return { slug, setSlug, index, data, error };
 }
 
-export function CountySelect({ index, slug, onChange }: { index: IndexItem[] | null; slug: string | null; onChange: (s: string) => void }) {
-  if (!index || !slug) return null;
-  return (
-    <select className="field" value={slug} onChange={(e) => onChange(e.target.value)} aria-label="County">
-      {index.map((i) => <option key={i.slug} value={i.slug}>{i.name}, {i.state}</option>)}
-    </select>
-  );
-}
+export { CountyButton as CountySelect } from "@/components/CountyPicker";
