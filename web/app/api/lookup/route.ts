@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { fccStatus } from "@/lib/fccCoverage";
 import { getPlan, nearestHome, plans, requestCount } from "@/lib/server";
 
 export const dynamic = "force-dynamic";
@@ -49,6 +50,8 @@ export async function GET(req: NextRequest) {
   };
   out.acs = await acs(geo);
 
+  const fcc = county ? await fccStatus(out.lat, out.lon, county.GEOID.slice(0, 2)).catch(() => null) : null;
+  out.fccStatus = fcc;
   const slug = county ? (await plans())[county.GEOID] : undefined;
   out.requests = county ? await requestCount(county.GEOID).catch(() => 0) : 0;
   if (slug) {
@@ -60,6 +63,8 @@ export async function GET(req: NextRequest) {
       out.home = home;
       out.homeMeters = Math.round(meters);
       out.coverageSource = meta.coverageSource;
+      // plans made before the FCC data was loaded still get the real answer for the address itself
+      if (fcc !== null && meta.coverageSource !== "fcc") { out.home = { ...home, status: fcc }; out.coverageSource = "fcc"; out.replanning = true; }
       out.towers = null;
     } else {
       out.planned = true;

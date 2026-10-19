@@ -148,7 +148,7 @@ export default function Household() {
                   {h.status === 2 && "This area has no internet at 25 Mbps down and 3 Mbps up or faster."}
                 </p>
                 <p className="small" style={{ marginTop: 8 }}>
-                  Source: {res.coverageSource === "fcc" ? "FCC National Broadband Map" : "an estimate. FCC data is not loaded yet, so town centers and dense neighborhoods count as served"}
+                  Source: {res.coverageSource === "fcc" ? "FCC National Broadband Map" : "an estimate, because this county has no FCC data yet"}
                 </p>
               </div>
 
