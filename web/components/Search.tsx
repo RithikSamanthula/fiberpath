@@ -36,7 +36,7 @@ export default function Search({ initial = "", autoFocus = false }: { initial?: 
         }}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
         onFocus={() => items.length && setOpen(true)}
-        placeholder="Street address, city and state"
+        placeholder="Enter your address"
         aria-label="Street address"
         aria-autocomplete="list"
         autoComplete="off"

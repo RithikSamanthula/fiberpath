@@ -27,7 +27,19 @@ export default function Pros() {
             <span className="label">Name for this workspace</span>
             <input className="field" style={{ minHeight: 46, fontSize: 16, marginTop: 4 }} value={ws.name} onChange={(e) => update({ name: e.target.value })} placeholder="For example Blue Ridge EMC, or GA-09" />
           </label>
-          <p style={{ fontWeight: 700, marginBottom: 8 }}>Pick the counties you serve, fund or represent</p>
+          <p style={{ fontWeight: 700, marginBottom: 8 }}>Quick start</p>
+          <div className="ah-actions" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", marginBottom: 20 }}>
+            {[
+              ["The 25 counties with the most unserved homes", "Real FCC data only", () => index.filter((c) => c.coverageSource === "fcc").sort((a, b) => b.unserved - a.unserved).slice(0, 25).map((c) => c.geoid)],
+              ["Every county in Georgia", "The state we started with", () => index.filter((c) => c.state === "GA").map((c) => c.geoid)],
+              ["Towns County, GA", "A small county to explore", () => index.filter((c) => c.slug === "towns-ga").map((c) => c.geoid)],
+            ].map(([t, d, f]: any) => (
+              <button key={t} className="ah-act" style={{ textAlign: "left", cursor: "pointer", font: "inherit" }} onClick={() => { const g = f(); if (g.length) { update({ geoids: g, name: ws.name || t }); setChanging(false); } }}>
+                <b>{t}</b><span>{d}</span>
+              </button>
+            ))}
+          </div>
+          <p style={{ fontWeight: 700, marginBottom: 8 }}>Or pick the counties you serve, fund or represent</p>
           <AreaPicker index={index} value={ws.geoids} onChange={(g) => update({ geoids: g })} />
           <div className="row" style={{ marginTop: 16 }}>
             <button className="btn" disabled={!ws.geoids.length} onClick={() => setChanging(false)}>Open the dashboard</button>
@@ -37,8 +49,8 @@ export default function Pros() {
 
       {step === 2 && (
         <div style={{ marginTop: 24 }}>
-          <div className="row noprint" style={{ justifyContent: "space-between", marginBottom: 18 }}>
-            <h2 style={{ margin: 0 }}>{ws.name || "Your workspace"}</h2>
+          <div className="row noprint" style={{ justifyContent: "flex-end", marginBottom: 14 }}>
+            <span />
             <div className="row">
               <button className="btn sm line" onClick={() => setChanging(true)}>Change counties</button>
               <button className="btn sm line" onClick={() => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(ws, null, 1)], { type: "application/json" })); a.download = "fiberpath-workspace.json"; a.click(); }}>Export</button>

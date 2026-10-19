@@ -188,7 +188,8 @@ const listeners = new Set<(i: IndexItem[]) => void>();
 function mergeIdx(a: IndexItem[], b: IndexItem[]) {
   const m = new Map<string, IndexItem>();
   for (const i of a) m.set(i.geoid, i);
-  for (const i of b) m.set(i.geoid, i); // the cloud copy is the newer one
+  // a county planned with real FCC data always beats one planned with the old estimate; otherwise the newer copy wins
+  for (const i of b) { const o = m.get(i.geoid); if (!o || (o.coverageSource === "fcc") === (i.coverageSource === "fcc") || i.coverageSource === "fcc") m.set(i.geoid, i); }
   return [...m.values()];
 }
 

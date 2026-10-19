@@ -1,0 +1,19 @@
+{
+  "name": "FiberPath",
+  "short_name": "FiberPath",
+  "description": "Check your home's internet and see the cheapest plan to connect every home in your county",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f1b2d",
+  "theme_color": "#0f1b2d",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ],
+  "shortcuts": [
+    { "name": "Check an address", "url": "/home" },
+    { "name": "Find poles with the camera", "url": "/live" },
+    { "name": "Street view", "url": "/street" }
+  ]
+}

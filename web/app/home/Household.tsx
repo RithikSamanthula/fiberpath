@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import Glossary from "@/components/Glossary";
 import Providers from "@/components/Providers";
+import { useSaved } from "@/lib/saved";
 import HomeContext from "@/components/HomeContext";
 import Search from "@/components/Search";
 import { dollars, num } from "@/lib/cost";
@@ -55,6 +56,7 @@ export default function Household() {
   const [pledge, setPledge] = useState<{ state: "idle" | "saving" | "done" | "error"; total?: number; msg?: string }>({ state: "idle" });
   const [reqState, setReqState] = useState<{ state: "idle" | "done" | "error"; n?: number }>({ state: "idle" });
   const [copied, setCopied] = useState(false);
+  const saved = useSaved();
 
   useEffect(() => {
     if (!address) return;
@@ -124,6 +126,7 @@ export default function Household() {
           <div className="row noprint" style={{ justifyContent: "space-between" }}>
             <p className="small">{res.matched} · {countyName}</p>
             <div className="row">
+              {res.matched && <button className="btn sm" onClick={() => (saved.has(res.matched) ? saved.remove(res.matched) : saved.add({ address: res.matched, county: countyName, status: h?.status, at: new Date().toISOString() }))}>{saved.has(res.matched) ? "Saved" : "Save this place"}</button>}
               <button className="btn sm line" onClick={() => { navigator.clipboard?.writeText(location.href); setCopied(true); setTimeout(() => setCopied(false), 1800); }}>{copied ? "Link copied" : "Copy link"}</button>
               <button className="btn sm line" onClick={() => window.print()}>Print this answer</button>
             </div>
