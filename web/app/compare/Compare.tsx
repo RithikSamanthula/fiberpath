@@ -51,7 +51,7 @@ export default function Compare() {
               <button key={k} className="btn sm line" aria-pressed={by === k} onClick={() => setBy(k)}>{l}</button>
             ))}
           </div>
-          <table>
+          <div className="tscroll"><table>
             <thead><tr><th>County</th><th className="r">Without service</th><th className="r">Reached by plan</th><th className="r">Total cost</th><th>Cost per home</th><th className="r">Fiber on poles</th><th className="r">Wireless</th><th /></tr></thead>
             <tbody>
               {rows.slice(0, shown).map(({ c, cost, aerialPct, wirelessPct }) => (
@@ -67,9 +67,9 @@ export default function Compare() {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
           {rows.length > shown && <p style={{ marginTop: 8 }}><button className="btn sm line" onClick={() => setShown((n) => n + 50)}>Show more ({rows.length - shown} left)</button></p>}
-          <p className="small">“Fiber on poles” is the share of fiber that runs on roads with poles. Counties with more poles cost less to connect. Service status is an estimate until FCC data is loaded.</p>
+          <p className="small">“Fiber on poles” is the share of fiber that runs on roads with poles. Counties with more poles cost less to connect.</p>
         </>
       )}
     </main>

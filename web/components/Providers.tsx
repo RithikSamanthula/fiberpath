@@ -34,7 +34,7 @@ export default function Providers({ lat, lon, state }: { lat: number; lon: numbe
           <p style={{ fontSize: 18 }}>The fastest service listed {here.length ? "here" : "nearby"} is <b>{best.down >= 1000 ? `${best.down / 1000} Gbps` : `${best.down} Mbps`}</b> down from {best.brand} ({best.tech.toLowerCase()}).</p>
           <div style={{ marginTop: 12 }}>
             {list.map((o) => (
-              <div key={o.brand + o.tech} style={{ display: "grid", gridTemplateColumns: "minmax(140px, 260px) 1fr 130px", gap: 12, alignItems: "center", padding: "7px 0", borderBottom: "1px solid var(--line)" }}>
+              <div key={o.brand + o.tech} className="row3" style={{ "--c1": "260px", "--c3": "130px", padding: "7px 0", borderBottom: "1px solid var(--line)" } as React.CSSProperties}>
                 <div><b>{o.brand}</b><br /><span className="small" style={{ color: TECH_COLOR[o.tech] ?? "#8a8f99", fontWeight: 700 }}>{o.tech}</span></div>
                 <div className="bar" style={{ height: 16, marginTop: 0 }}><i style={{ width: `${Math.max(3, (o.down / max) * 100)}%`, background: TECH_COLOR[o.tech] ?? "#8a8f99" }} /></div>
                 <span className="small" style={{ textAlign: "right" }}>{o.down} down, {o.up} up (Mbps)</span>

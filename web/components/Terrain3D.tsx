@@ -284,8 +284,17 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
     const c = cv.current!;
     let down: { x: number; y: number } | null = null;
     let moved = 0;
-    const pd = (e: PointerEvent) => { moved = 0; grabbed.current = true; c.setPointerCapture(e.pointerId); down = { x: e.clientX, y: e.clientY }; };
+    const ptrs = new Map<number, { x: number; y: number }>();
+    let pinch = 0;
+    const pd = (e: PointerEvent) => { moved = 0; grabbed.current = true; c.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY }); down = { x: e.clientX, y: e.clientY }; pinch = 0; };
     const pm = (e: PointerEvent) => {
+      if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (ptrs.size === 2) { // two fingers: pinch to zoom
+        const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+        if (pinch && !spin) { st.current.zoom = Math.max(0.6, Math.min(60, st.current.zoom * (d / pinch))); schedule(); }
+        pinch = d; moved = 99; down = { x: e.clientX, y: e.clientY };
+        return;
+      }
       if (!down) return;
       moved += Math.abs(e.clientX - down.x) + Math.abs(e.clientY - down.y);
       st.current.yaw += (e.clientX - down.x) * 0.006;
@@ -294,6 +303,7 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
       schedule();
     };
     const pu = (e: PointerEvent) => {
+      ptrs.delete(e.pointerId); pinch = 0;
       down = null;
       if (moved < 6 && pickRef.current) {
         const r = c.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;

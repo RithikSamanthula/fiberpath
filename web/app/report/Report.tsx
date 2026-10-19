@@ -131,7 +131,7 @@ export default function Report() {
             <p>{b.name} is an electric co-op in this part of Georgia. It plans to connect {num(b.homes)} hard-to-reach homes for {money(b.total)}, or {dollars(b.per_home)} a home, with {money(b.grant)} of that from the federal BEAD program.</p>
             <div style={{ marginTop: 12 }}>
               {rows.map(([l, v], i) => (
-                <div key={l} style={{ display: "grid", gridTemplateColumns: "minmax(160px, 320px) 1fr 80px", gap: 12, alignItems: "center", padding: "6px 0" }}>
+                <div key={l} className="row3" style={{ "--c1": "320px", "--c3": "80px", padding: "6px 0" } as React.CSSProperties}>
                   <span>{l}</span>
                   <div className="bar" style={{ height: 18, marginTop: 0 }}><i style={{ width: `${(v / top) * 100}%`, background: i === 3 ? "#d64533" : "#1b5fd1" }} /></div>
                   <b style={{ textAlign: "right" }}>{dollars(v)}</b>

@@ -9,6 +9,9 @@ export default function Search({ initial = "", autoFocus = false }: { initial?: 
   const [open, setOpen] = useState(false);
   const [sel, setSel] = useState(-1);
   const typed = useRef(false);
+  const inp = useRef<HTMLInputElement>(null);
+  // a phone keyboard that jumps up on arrival hides the page, so only focus where there is a mouse
+  useEffect(() => { if (autoFocus && window.matchMedia("(pointer: fine)").matches) inp.current?.focus(); }, [autoFocus]);
 
   // suggestions appear after a short pause in typing
   useEffect(() => {
@@ -24,6 +27,7 @@ export default function Search({ initial = "", autoFocus = false }: { initial?: 
   return (
     <form className="search" role="search" onSubmit={(e) => { e.preventDefault(); go(sel >= 0 ? items[sel] : q); }} style={{ position: "relative" }}>
       <input
+        ref={inp}
         className="field"
         name="address"
         value={q}
@@ -40,7 +44,9 @@ export default function Search({ initial = "", autoFocus = false }: { initial?: 
         aria-label="Street address"
         aria-autocomplete="list"
         autoComplete="off"
-        autoFocus={autoFocus}
+        autoCapitalize="words"
+        enterKeyHint="search"
+        inputMode="text"
       />
       <button className="btn" type="submit">Check</button>
       {open && items.length > 0 && (

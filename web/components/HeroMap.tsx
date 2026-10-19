@@ -38,10 +38,10 @@ export default function HeroMap() {
       <div style={{ height: 380, display: "flex", flexDirection: "column" }}>
         <MapView data={d} layers={layers} progress={p} still />
       </div>
-      <div style={{ display: "flex", gap: 28, padding: "14px 18px", color: "#fff", height: 84, overflow: "hidden", whiteSpace: "nowrap" }}>
-        <div style={{ minWidth: 120 }}><div style={{ fontSize: 28, fontWeight: 800 }}>{num(homes)}</div><div className="label" style={{ color: "#aebad0" }}>Homes connected</div></div>
-        <div style={{ minWidth: 170 }}><div style={{ fontSize: 28, fontWeight: 800 }}>{p >= 1 ? dollars(spent / homes) : dollars(spent)}</div><div className="label" style={{ color: "#aebad0" }}>{p >= 1 ? "Cost per home" : "Cost so far"}</div></div>
-        <div style={{ marginLeft: "auto", alignSelf: "center", fontSize: 13, color: "#aebad0" }}>{d.meta.name}, {d.meta.state}</div>
+      <div className="hero-stats" style={{ display: "flex", gap: 28, padding: "14px 18px", color: "#fff", height: 84, overflow: "hidden", whiteSpace: "nowrap" }}>
+        <div style={{ minWidth: 100 }}><div style={{ fontSize: 28, fontWeight: 800 }}>{num(homes)}</div><div className="label" style={{ color: "#aebad0" }}>Homes connected</div></div>
+        <div style={{ minWidth: 120 }}><div style={{ fontSize: 28, fontWeight: 800 }}>{p >= 1 ? dollars(spent / homes) : dollars(spent)}</div><div className="label" style={{ color: "#aebad0" }}>{p >= 1 ? "Cost per home" : "Cost so far"}</div></div>
+        <div className="hero-where" style={{ marginLeft: "auto", alignSelf: "center", fontSize: 13, color: "#aebad0" }}>{d.meta.name}, {d.meta.state}</div>
       </div>
     </div>
   );

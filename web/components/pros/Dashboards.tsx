@@ -40,7 +40,7 @@ function Bars({ rows, fmt, color = "#1b5fd1", mark }: { rows: { name: string; v:
   return (
     <div style={{ position: "relative" }}>
       {rows.map((r) => (
-        <div key={r.name} style={{ display: "grid", gridTemplateColumns: "minmax(90px, 170px) 1fr 84px", gap: 10, alignItems: "center", padding: "5px 0" }}>
+        <div key={r.name} className="row3" style={{ "--c1": "170px", "--c3": "84px", padding: "5px 0" } as React.CSSProperties}>
           {r.href ? <Link href={r.href} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</Link> : <span>{r.name}</span>}
           <div className="bar" style={{ height: 16, marginTop: 0, borderRadius: 4, position: "relative" }}>
             <i style={{ width: `${(r.v / max) * 100}%`, background: color, borderRadius: 4 }} />

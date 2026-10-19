@@ -289,3 +289,61 @@ canvas.map { position: absolute; inset: 0; width: 100%; height: 100%; touch-acti
 .tabs button:hover { background: #1b2a42; }
 .tabs button.on { background: #fff; color: var(--ink); }
 .ah-card .seg { margin-top: 6px; }
+
+/* rows of label, bar and number: the bar drops under the label on a phone */
+.row3 { display: grid; grid-template-columns: minmax(90px, var(--c1, 200px)) 1fr var(--c3, 90px); gap: 12px; align-items: center; }
+.tscroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
+.tscroll table { min-width: 640px; }
+.stats2 { grid-template-columns: 1fr 1fr; }
+html { -webkit-tap-highlight-color: transparent; }
+button, a, summary { touch-action: manipulation; }
+
+@media (max-width: 860px) {
+  body { font-size: 16px; }
+  input, select, textarea, .field { font-size: 16px !important; } /* below 16px, iPhones zoom the page when a field is tapped */
+  .wrap { padding-left: 16px; padding-right: 16px; }
+  .page { padding: 20px 0 40px; }
+  h1 { font-size: 30px; }
+  h2 { font-size: 22px; margin: 36px 0 10px; }
+  .lede { font-size: 17px; }
+  .btn { min-height: 48px; }
+  .btn.sm { min-height: 42px; padding: 6px 14px; }
+  .btn.sm.line, .btn.line { padding-left: 14px; padding-right: 14px; }
+  .picker { grid-template-columns: 1fr 1fr; max-height: 260px; }
+  .picker label { min-height: 44px; }
+  .stats { grid-template-columns: 1fr 1fr; }
+  .stat { padding: 14px; }
+  .big.sm { font-size: 28px; }
+  .box { padding: 14px; }
+  table { font-size: 14px; }
+  th, td { padding: 8px 8px; }
+  .row3 { grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; }
+  .row3 > .bar { grid-column: 1 / -1; grid-row: 2; }
+  .street-grid { grid-template-columns: 1fr !important; }
+  .flyer-grid { grid-template-columns: 1fr !important; }
+  .flyer-sheet { padding: 18px !important; }
+  .flyer-sheet h1 { font-size: 30px !important; }
+  .rail-tab.install { display: none; }
+  .tabs { flex-wrap: nowrap; overflow-x: auto; margin: 0 -8px; padding: 0 8px; -webkit-overflow-scrolling: touch; }
+  .tabs button { flex: none; padding: 10px 14px; }
+  .search { margin-top: 18px; }
+  .search .field { min-height: 52px; padding: 0 12px; }
+  .search .btn { min-height: 52px; padding: 0 18px; }
+  .three { gap: 18px; }
+  .terms { grid-template-columns: 1fr; }
+  .thumbs { grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)) !important; }
+  /* the map screens: stats in one scrolling strip, a tall map, then the panel */
+  .topbar { display: flex; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .topbar::-webkit-scrollbar { display: none; }
+  .topbar .stat { flex: none; min-width: 112px; padding: 8px 14px; border-top: 0 !important; border-right: 1px solid var(--line) !important; }
+  .topbar .stat .big { font-size: 22px; }
+  .topbar .stat .label { margin-top: 2px; font-size: 10px; }
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: calc(100dvh - 64px - env(safe-area-inset-bottom) - 56px) auto; }
+  .app .stage, .side { min-width: 0; max-width: 100vw; }
+  .hero-where { display: none; }
+  .hero-stats { gap: 18px !important; padding: 12px 14px !important; }
+  .app .stage { height: auto; min-height: 340px; }
+  .side { padding: 14px 16px 28px; }
+  .legend { max-width: calc(100% - 16px); }
+}
+@media (max-width: 380px) { .ah-actions, .ah-stats { grid-template-columns: 1fr; } }

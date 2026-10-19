@@ -40,7 +40,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
           </Link>
         ))}
         <span className="rail-gap" />
-        {prompt && <button className="rail-tab" onClick={() => { prompt.prompt(); setPrompt(null); }}><Icon name="install" /><span>Install</span></button>}
+        {prompt && <button className="rail-tab install" onClick={() => { prompt.prompt(); setPrompt(null); }}><Icon name="install" /><span>Install</span></button>}
         <Link href="/about" className="rail-tab more" aria-current={active(path, "/about") ? "page" : undefined}><Icon name="more" /><span>About</span></Link>
       </nav>
       <div className="shell-main">

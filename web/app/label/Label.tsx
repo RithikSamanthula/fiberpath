@@ -165,7 +165,7 @@ export default function Label() {
         <li>A utility pole carries power or phone wires. Street lights, signs and trees do not count. If you cannot tell, press Skip.</li>
       </ul>
 
-      <div className="street-grid" style={{ gridTemplateColumns: "minmax(0, 1.7fr) minmax(0, 1fr)" }}>
+      <div className="street-grid" style={{ gridTemplateColumns: "minmax(0, 1.7fr) minmax(0, 1fr)" }} data-fixed>
         <div>
           {!item && <div style={{ background: "#0a1424", color: "#aebad0", display: "grid", placeItems: "center", height: 380 }}>{msg || "Loading"}</div>}
           {item && (
@@ -183,7 +183,7 @@ export default function Label() {
           </div>
         </div>
         <div>
-          <div className="stats" style={{ gridTemplateColumns: "1fr 1fr" }}>
+          <div className="stats stats2">
             <div className="stat"><div className="big sm">{stats.photos}</div><span className="label">Photos checked</span></div>
             <div className="stat"><div className="big sm">{stats.real}</div><span className="label">Confirmed poles</span></div>
             <div className="stat"><div className="big sm">{stats.fake}</div><span className="label">Not poles</span></div>
