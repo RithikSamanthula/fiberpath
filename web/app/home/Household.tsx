@@ -7,7 +7,7 @@ import Providers from "@/components/Providers";
 import { useSaved } from "@/lib/saved";
 import HomeContext from "@/components/HomeContext";
 import Search from "@/components/Search";
-import { dollars, num } from "@/lib/cost";
+import { RANGE_NOTE, dollars, homeRange, num, range } from "@/lib/cost";
 import type { Home } from "@/lib/data";
 
 type Result = {
@@ -176,7 +176,8 @@ export default function Household() {
                   <p style={{ marginTop: 12 }}><Link href={`/sight?county=${res.slug}&home=${h.i}`}>See the line-of-sight picture</Link></p>
 
                   <h2>Cost to connect you</h2>
-                  <p className="big">{dollars(h.cost)}</p>
+                  <p className="big">{(() => { const [lo, hi] = homeRange(h.cost, h.tech, h.dropFt); return range(lo, hi, dollars); })()}</p>
+                  {h.tech === 2 && <p className="small" style={{ marginTop: 6 }}>It is a range because no poles were seen on your road in the street photos. If poles are there, the low number applies. {RANGE_NOTE.split(". ").slice(-1)[0]}</p>}
                   <p style={{ marginTop: 10 }}>
                     {h.tech === 3
                       ? "Your share of the tower plus your own antenna"

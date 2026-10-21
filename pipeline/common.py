@@ -122,6 +122,9 @@ def county_config(arg):
 
     if arg in COUNTIES:
         return COUNTIES[arg]
+    for c in COUNTIES.values():  # a GEOID for a county that has a hand-made config uses it, so its benchmark and hub carry over
+        if c["geoid"] == arg:
+            return c
     geoid = arg
     d = http_json(
         "https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/State_County/MapServer/1/query",

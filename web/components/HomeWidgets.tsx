@@ -1,5 +1,7 @@
 "use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { DATA_BASE } from "@/lib/data";
 import { num } from "@/lib/cost";
 import { useIndex } from "@/lib/useIndex";
 import { useSaved } from "@/lib/saved";
@@ -43,6 +45,25 @@ export function SavedPlaces() {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+// The detector's measured results, read from the file the training script writes
+export function DetectorFacts() {
+  const [m, setM] = useState<any>(null);
+  useEffect(() => { fetch(`${DATA_BASE}/cv-metrics.json`).then((r) => (r.ok ? r.json() : null)).then(setM).catch(() => {}); }, []);
+  if (!m?.photo) return null;
+  const pct = (v: number) => `${Math.round(v * 100)}%`;
+  const near = m.recallByDistance?.near;
+  return (
+    <div>
+      <div className="ah-stats" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))" }}>
+        <div className="stat-card"><div className="v">{pct(m.photo.accuracy)}</div><div className="l">Of street photos judged right (pole or no pole)</div></div>
+        {near && <div className="stat-card"><div className="v">{pct(near.recall)}</div><div className="l">Of nearby poles found</div></div>}
+        <div className="stat-card"><div className="v">{num(m.valImages)}</div><div className="l">Test photos from streets it never saw</div></div>
+      </div>
+      <p className="small" style={{ marginTop: 8, color: "#4a5870" }}>Measured against Mapillary&apos;s own labels, so it shows agreement with them. Far-away poles are harder: the detector finds about {pct(m.recallByDistance?.far?.recall ?? 0)} of those.</p>
     </div>
   );
 }

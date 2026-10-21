@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { dollars, money, num, totalCost } from "@/lib/cost";
+import { RANGE_NOTE, costRange, dollars, money, num, range, totalCost } from "@/lib/cost";
 import { CountySelect, useCountyParam } from "@/lib/useCounty";
 import { FT, distM } from "@/lib/geo";
 import { DATA_BASE } from "@/lib/data";
@@ -36,7 +36,9 @@ export default function Report() {
   const t = meta.totals;
   const a = meta.assumptions;
   const c = totalCost(t, a);
-  const b = meta.benchmark;
+  const rg = costRange(t, a);
+  // the cloud copy of Towns County was planned without its benchmark, so the real project is filled in here
+  const b = meta.benchmark ?? (meta.slug === "towns-ga" ? { name: "Blue Ridge Mountain EMC", total: 13_100_000, homes: 3700, per_home: 3540, grant: 3_800_000 } : null);
   const names = ["", "Fiber on poles", "Buried fiber", "Fixed wireless"];
   const colors = ["", "var(--blue)", "var(--amber)", "var(--green)"];
 
@@ -67,11 +69,13 @@ export default function Report() {
 
       <div className="stats" style={{ marginTop: 28 }}>
         <div className="stat"><div className="big">{num(c.homes)}</div><span className="label">Homes reached</span></div>
-        <div className="stat"><div className="big">{dollars(c.perHome)}</div><span className="label">Cost per home</span></div>
-        <div className="stat"><div className="big">{money(c.total)}</div><span className="label">Total cost</span></div>
+        <div className="stat"><div className="big" style={{ fontSize: 28, paddingTop: 8 }}>{range(rg.lo.perHome, rg.hi.perHome, dollars)}</div><span className="label">Cost per home</span></div>
+        <div className="stat"><div className="big" style={{ fontSize: 28, paddingTop: 8 }}>{range(rg.lo.total, rg.hi.total, money)}</div><span className="label">Total cost</span></div>
         <div className="stat"><div className="big">{num(t.unserved)}</div><span className="label">Homes without service</span></div>
         <div className="stat"><div className="big">{num(Math.round(t.unserved * 2.5))}</div><span className="label">People, about</span></div>
       </div>
+
+      <p className="small" style={{ marginTop: 10, maxWidth: "75ch" }}><b>Why a range?</b> {RANGE_NOTE}</p>
 
       <h2>Technology mix</h2>
       <div className="seg" aria-hidden="true">{mix.map((r) => <i key={r.tech} style={{ width: `${c.homes ? (r.n / c.homes) * 100 : 0}%`, background: colors[r.tech] }} />)}</div>
@@ -119,7 +123,7 @@ export default function Report() {
         const ft = t.aerialFt + t.buriedFt;
         const allPoles = (ft * a.aerialPerFt + t.fiberHomes * a.dropBase + t.dropFt * a.dropPerFt + t.towers * a.towerEach + t.wirelessHomes * a.wirelessCpe) / Math.max(c.homes, 1);
         const rows: [string, number][] = [
-          ["Every home in this plan", c.perHome],
+          ["Every home, if no road has poles (worst case)", c.perHome],
           [`The cheapest ${num(n)} homes in this plan`, cheapest],
           ["Every home, if all fiber could use poles", allPoles],
           [`${b.name} project (${num(b.homes)} homes)`, b.per_home],
@@ -141,11 +145,11 @@ export default function Report() {
             <h3>Why the numbers differ</h3>
             <ul style={{ paddingLeft: 20, display: "grid", gap: 8, maxWidth: "70ch" }}>
               <li>The real project covers hard-to-reach homes that were picked on purpose. Our plan covers every home that lacks good internet, so cheap and costly homes are averaged together. Looking at only our cheapest {num(n)} homes gives {dollars(cheapest)}.</li>
-              <li>A co-op that owns its poles can hang fiber on them. Our plan finds poles in street photos, but photo coverage is uneven, so much of the route is priced as buried, which costs about twice as much. If every route could use poles, our average would be {dollars(allPoles)}.</li>
+              <li>A co-op that owns its poles can hang fiber on them. Our plan finds poles in street photos, but photo coverage is uneven, so roads with no photos look like roads with no poles and are priced as buried, which costs about twice as much. That is the high end of our range. With poles on every road, the low end is {dollars(allPoles)}.</li>
               <li>We use standard prices for cable, connections and towers. A co-op&apos;s own contracts, existing fiber and easements can make its real costs lower.</li>
               <li>The real project reaches homes by fiber only, while our plan sends {num(t.wirelessHomes)} homes to wireless towers where that is cheaper.</li>
             </ul>
-            <p className="small" style={{ marginTop: 10 }}>The real figure falls between our all-homes average and our cheapest-homes average, so the model is in a believable range. We cannot check it more closely without knowing which homes the co-op will serve.</p>
+            <p className="small" style={{ marginTop: 10 }}>The real project costs less per home than even our low end for all homes, because it serves homes picked for being cheap to reach. Our cheapest {num(n)} homes average {dollars(cheapest)}. We cannot compare more closely without knowing which homes the co-op will serve.</p>
           </>
         );
       })()}
@@ -154,8 +158,8 @@ export default function Report() {
       <table>
         <thead><tr><th>Check</th><th>Method</th><th>Result</th></tr></thead>
         <tbody>
-          {b && <tr><td>Cost per home</td><td>Plan vs. the {b.name} project</td><td>{dollars(c.perHome)} vs. {dollars(b.per_home)}</td></tr>}
-          <tr><td>Pole finding</td><td>FiberPath's own detector on {cv ? num(cv.valImages) : "held-out"} street photos from streets it never trained on; {num(meta.poleCount)} poles mapped in this county</td><td>{cv ? `Precision ${Math.round(cv.precision * 100)}%, recall ${Math.round(cv.recall * 100)}%` : "Not yet measured"}</td></tr>
+          {b && <tr><td>Cost per home</td><td>Plan vs. the real {b.name} project ({num(b.homes)} homes, {money(b.total)})</td><td>{range(rg.lo.perHome, rg.hi.perHome, dollars)} vs. {dollars(b.per_home)}. The real project is cheaper because it serves hand-picked homes</td></tr>}
+          <tr><td>Pole finding</td><td>FiberPath's own detector on {cv ? num(cv.valImages) : "held-out"} street photos from streets it never trained on; {num(meta.poleCount)} poles mapped in this county</td><td>{cv ? `${Math.round(((cv as any).photo?.accuracy ?? 0) * 100)}% of photos judged right, ${Math.round(((cv as any).recallByDistance?.near?.recall ?? 0) * 100)}% of nearby poles found` : "Not yet measured"}</td></tr>
           <tr><td>Home counts</td><td>Building counts vs. FCC counts per hexagon</td><td>{meta.coverageSource === "fcc" ? "FCC data loaded" : "Needs FCC data"}</td></tr>
           <tr><td>Line of sight</td><td>20 homes checked by hand against terrain profiles</td><td>Not yet measured</td></tr>
         </tbody>

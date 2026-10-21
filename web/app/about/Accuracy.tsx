@@ -13,6 +13,7 @@ export default function Accuracy() {
   if (!m) return <p className="small">Loading</p>;
   const bars: [string, number, string][] = [
     ["Does a photo have a utility pole? Right answer", m.photo.accuracy, "#1b5fd1"],
+    ["Poles close to the camera that it finds", m.recallByDistance.near?.recall ?? 0, "#1b5fd1"],
     ["Poles it marks that are real", m.precision, "#1c8c4e"],
     ["Labeled poles it finds", m.recall, "#f2a900"],
   ];
@@ -26,7 +27,7 @@ export default function Accuracy() {
             <div className="bar" style={{ height: 18 }}><i style={{ width: pct(v), background: c }} /></div>
           </div>
         ))}
-        <p className="small">Tested on {m.valImages} photos from streets the model was not trained on. These labels come from Mapillary, so these three numbers show agreement with Mapillary.</p>
+        <p className="small">Tested on {m.valImages} photos from streets the model was not trained on. These labels come from Mapillary, so these numbers show agreement with Mapillary.</p>
       </div>
       <div>
         <p style={{ fontWeight: 700, marginBottom: 8 }}>Poles found by distance</p>

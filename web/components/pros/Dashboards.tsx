@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import UsMap from "@/components/UsMap";
-import { dollars, money, num, totalCost } from "@/lib/cost";
+import { RANGE_NOTE, costRange, dollars, money, num, range, totalCost } from "@/lib/cost";
 import type { Assumptions, IndexItem } from "@/lib/data";
 
 const PEOPLE = 2.5; // national average people per household
@@ -12,6 +12,10 @@ const LABELS: Record<keyof Assumptions, string> = {
   towerEach: "Wireless tower, $ each", wirelessCpe: "Antenna for a home, $",
 };
 const TABS = ["Overview", "Counties", "Funding", "Prices", "Documents"] as const;
+
+export function lowOf(c: IndexItem, prices: Assumptions | null) {
+  return costRange({ homesAll: c.homes, unserved: c.unserved, fiberHomes: c.fiberHomes, wirelessHomes: c.wirelessHomes, unreached: 0, towers: c.towers, aerialFt: c.aerialFt, buriedFt: c.buriedFt, dropFt: c.dropFt }, prices ?? c.assumptions).lo;
+}
 
 export function costOf(c: IndexItem, prices: Assumptions | null) {
   return totalCost({ homesAll: c.homes, unserved: c.unserved, fiberHomes: c.fiberHomes, wirelessHomes: c.wirelessHomes, unreached: 0, towers: c.towers, aerialFt: c.aerialFt, buriedFt: c.buriedFt, dropFt: c.dropFt }, prices ?? c.assumptions);
@@ -28,7 +32,7 @@ function usePledges(items: IndexItem[]) {
 }
 
 function Tiles({ tiles }: { tiles: [string, string][] }) {
-  return <div className="ah-stats">{tiles.map(([b, l]) => <div className="stat-card" key={l}><div className="v">{b}</div><div className="l">{l}</div></div>)}</div>;
+  return <div className="ah-stats">{tiles.map(([b, l]) => <div className="stat-card" key={l}><div className="v" style={b.length > 12 ? { fontSize: 22, paddingTop: 7 } : undefined}>{b}</div><div className="l">{l}</div></div>)}</div>;
 }
 
 function Card({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
@@ -94,7 +98,7 @@ function Histogram({ values, fmt }: { values: number[]; fmt: (v: number) => stri
 const Badge = ({ fcc }: { fcc: boolean }) => <span className={`chip ${fcc ? "green" : "gray"}`}>{fcc ? "FCC data" : "Estimate"}</span>;
 
 // One workspace for everyone: a co-op, a county office or a congressional office all see the same things.
-export default function Workspace({ items, name, prices, setPrices }: { items: IndexItem[]; name: string; prices: Assumptions | null; setPrices: (p: Assumptions | null) => void }) {
+export default function Workspace({ items, name, note, prices, setPrices }: { items: IndexItem[]; name: string; note?: string; prices: Assumptions | null; setPrices: (p: Assumptions | null) => void }) {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
   const nFcc = items.filter((c) => c.coverageSource === "fcc").length;
   const [withEst, setWithEst] = useState(nFcc === 0);
@@ -107,6 +111,8 @@ export default function Workspace({ items, name, prices, setPrices }: { items: I
   const pledges = usePledges(used);
   const hi = useMemo(() => new Set(used.map((c) => c.geoid)), [used]);
   const perHome = homes ? cost / homes : 0;
+  const lowCost = rows.reduce((s, r) => s + lowOf(r.c, prices).total, 0);
+  const lowPer = homes ? lowCost / homes : 0;
   const cheap = [...rows].filter((r) => r.cost.homes > 50).sort((a, b) => a.cost.perHome - b.cost.perHome).slice(0, 3);
   const need = [...rows].sort((a, b) => b.c.unserved - a.c.unserved).slice(0, 3);
   const states = useMemo(() => { const m = new Map<string, number>(); for (const r of rows) m.set(r.c.state, (m.get(r.c.state) ?? 0) + r.c.unserved); return [...m].map(([name, v]) => ({ name, v })).sort((a, b) => b.v - a.v).slice(0, 8); }, [rows]);
@@ -157,13 +163,15 @@ export default function Workspace({ items, name, prices, setPrices }: { items: I
 
       {rows.length > 0 && tab === "Overview" && (
         <section style={{ display: "grid", gap: 16 }}>
-          <Tiles tiles={[[num(un), "Homes without good internet"], [allHomes ? `${(un / allHomes * 100).toFixed(1)}%` : "-", "Share of all homes"], [money(cost), "Cost to connect them"], [homes ? dollars(perHome) : "-", "Cost per home"], [num(Math.round(un * PEOPLE)), "People, about"], [pledges === null ? "-" : num(pledges), "Homes asking for service"]]} />
+          <Tiles tiles={[[num(un), "Homes without good internet"], [allHomes ? `${(un / allHomes * 100).toFixed(1)}%` : "-", "Share of all homes"], [range(lowCost, cost, money), "Cost to close the gap"], [homes ? range(lowPer, perHome, dollars) : "-", "Cost per home"], [`${num(homes)} of ${num(un)}`, "Homes the plan reaches"], [num(Math.round(un * PEOPLE)), "People, about"], [pledges === null ? "-" : num(pledges), "Homes asking for service"]]} />
           <div className="box soft">
             <p style={{ fontSize: 18, maxWidth: "75ch" }}>
-              {name || "This area"} covers {rows.length} {rows.length === 1 ? "county" : "counties"}. About {num(un)} homes ({num(Math.round(un * PEOPLE))} people) do not have good internet. Connecting all of them would cost about {money(cost)}, or {homes ? dollars(perHome) : "-"} a home.
+              {name || "This area"} covers {rows.length} {rows.length === 1 ? "county" : "counties"}. About {num(un)} homes ({num(Math.round(un * PEOPLE))} people) do not have good internet. Connecting all of them would cost about {range(lowCost, cost, money)}, or {homes ? range(lowPer, perHome, dollars) : "-"} a home. {num(homes)} of them can be reached by the plan{un > homes ? `, and ${num(un - homes)} are not on a connected road` : ""}.
               {cheap.length ? ` The cheapest places to start are ${cheap.map((r) => `${r.c.name} (${dollars(r.cost.perHome)} a home)`).join(", ")}.` : ""}
               {need.length ? ` The most homes without service are in ${need.map((r) => `${r.c.name} (${num(r.c.unserved)})`).join(", ")}.` : ""}
             </p>
+            {note && <p className="small" style={{ marginTop: 8 }}><b>About this area.</b> {note}</p>}
+            <p className="small" style={{ marginTop: 8 }}><b>Why a range?</b> {RANGE_NOTE}</p>
             <p className="small" style={{ marginTop: 8 }}>Costs are planning estimates from public data. Service status comes from the FCC National Broadband Map{withEst && nFcc < items.length ? "; counties marked Estimate are still waiting for it" : ""}.</p>
             <p className="noprint" style={{ marginTop: 12 }}><button className="btn sm" onClick={() => window.print()}>Print this summary</button></p>
           </div>
@@ -241,7 +249,7 @@ export default function Workspace({ items, name, prices, setPrices }: { items: I
             </div>
           )}
           {prices && <button className="btn sm line" style={{ marginTop: 10 }} onClick={() => setPrices(null)}>Back to the standard prices</button>}
-          <p className="small" style={{ marginTop: 16 }}>Total with these prices: <b>{money(cost)}</b>, or <b>{homes ? dollars(perHome) : "-"}</b> a home.</p>
+          <p className="small" style={{ marginTop: 16 }}>Total with these prices: <b>{range(lowCost, cost, money)}</b>, or <b>{homes ? range(lowPer, perHome, dollars) : "-"}</b> a home.</p>
         </section>
       )}
 

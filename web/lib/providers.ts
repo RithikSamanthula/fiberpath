@@ -25,7 +25,7 @@ async function load(fips: string) {
   return m!;
 }
 
-export type Offer = { brand: string; tech: string; down: number; up: number; here: boolean; homes: number };
+export type Offer = { brand: string; tech: string; down: number; up: number; here: boolean; homes: number; hereN: number };
 
 export async function providersNear(lat: number, lon: number, fips: string): Promise<Offer[] | null> {
   const m = await load(fips);
@@ -35,8 +35,8 @@ export async function providersNear(lat: number, lon: number, fips: string): Pro
   for (const cell of gridDisk(here, 1)) {
     for (const [brand, tech, down, up, n] of m[cell] ?? []) {
       const k = `${brand}|${tech}`;
-      const o = out.get(k) ?? { brand, tech, down: 0, up: 0, here: false, homes: 0 };
-      o.down = Math.max(o.down, down); o.up = Math.max(o.up, up); o.homes += n; o.here = o.here || cell === here;
+      const o = out.get(k) ?? { brand, tech, down: 0, up: 0, here: false, homes: 0, hereN: 0 };
+      o.down = Math.max(o.down, down); o.up = Math.max(o.up, up); o.homes += n; o.here = o.here || cell === here; if (cell === here) o.hereN += n;
       out.set(k, o);
     }
   }

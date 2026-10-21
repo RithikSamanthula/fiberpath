@@ -27,6 +27,12 @@ async function load(fips: string) {
   return m;
 }
 
+// how many locations the FCC counts in the home's own hexagon: [unserved, underserved, served]
+export async function hexTotals(lat: number, lon: number, fips: string): Promise<[number, number, number] | null> {
+  const m = await load(fips);
+  return m?.get(latLngToCell(lat, lon, 8)) ?? null;
+}
+
 // 0 served, 1 underserved, 2 unserved: the most common tier among the locations in the home's hexagon (as in the plan)
 export async function fccStatus(lat: number, lon: number, fips: string): Promise<number | null> {
   const m = await load(fips);

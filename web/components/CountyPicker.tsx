@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import UsMap from "@/components/UsMap";
-import { dollars, num, totalCost } from "@/lib/cost";
+import { costRange, dollars, num, range, totalCost } from "@/lib/cost";
 import type { IndexItem } from "@/lib/data";
 import { useIndex } from "@/lib/useIndex";
 
@@ -12,6 +12,8 @@ const STATE_NAMES: Record<string, string> = { AL: "Alabama", AK: "Alaska", AZ: "
 const readRecent = (): string[] => { try { return JSON.parse(localStorage.getItem(RECENT) || "[]"); } catch { return []; } };
 export const rememberCounty = (slug: string) => { try { localStorage.setItem(RECENT, JSON.stringify([slug, ...readRecent().filter((s) => s !== slug)].slice(0, 8))); } catch {} };
 
+const tot = (c: IndexItem) => ({ homesAll: c.homes, unserved: c.unserved, fiberHomes: c.fiberHomes, wirelessHomes: c.wirelessHomes, unreached: 0, towers: c.towers, aerialFt: c.aerialFt, buriedFt: c.buriedFt, dropFt: c.dropFt });
+const perHomeRange = (c: IndexItem) => { const r = costRange(tot(c), c.assumptions); return r.hi.homes ? range(r.lo.perHome, r.hi.perHome, dollars) : "-"; };
 const perHome = (c: IndexItem) => { const t = totalCost({ homesAll: c.homes, unserved: c.unserved, fiberHomes: c.fiberHomes, wirelessHomes: c.wirelessHomes, unreached: 0, towers: c.towers, aerialFt: c.aerialFt, buriedFt: c.buriedFt, dropFt: c.dropFt }, c.assumptions); return t.homes ? t.total / t.homes : 0; };
 const miles = (la1: number, lo1: number, la2: number, lo2: number) => { const k = Math.cos((la1 * Math.PI) / 180); return Math.hypot((lo1 - lo2) * k, la1 - la2) * 69; };
 
@@ -108,7 +110,7 @@ export function CountyBrowser({ onPick, current }: { onPick: (slug: string) => v
                     <span className="cb-bar2"><i style={{ width: `${Math.max(2, (c.unserved / maxUn) * 100)}%` }} /></span>
                   </span>
                   <span className="cb-side">
-                    <b>{ph ? dollars(ph) : "-"}</b>
+                    <b>{ph ? perHomeRange(c) : "-"}</b>
                     <span className="small">a home</span>
                     <span className={`chip ${c.coverageSource === "fcc" ? "green" : "gray"}`}>{c.coverageSource === "fcc" ? "FCC" : "Estimate"}</span>
                   </span>

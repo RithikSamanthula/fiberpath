@@ -6,7 +6,7 @@ import MapView, { Layers } from "@/components/MapView";
 import Terrain3D from "@/components/Terrain3D";
 import BudgetLens from "@/components/BudgetLens";
 import Scanner from "@/components/cv/Scanner";
-import { dollars, edgeCosts, money, num, totalCost } from "@/lib/cost";
+import { RANGE_NOTE, costRange, dollars, edgeCosts, money, num, range, totalCost } from "@/lib/cost";
 import { contours } from "@/lib/contours";
 import { viewshed } from "@/lib/geo";
 import type { Assumptions, Home } from "@/lib/data";
@@ -56,6 +56,7 @@ export default function Planner() {
 
   const eff = a ?? data?.meta.assumptions;
   const cost = useMemo(() => (data && eff ? totalCost(data.meta.totals, eff) : null), [data, eff]);
+  const rg = useMemo(() => (data && eff ? costRange(data.meta.totals, eff) : null), [data, eff]);
   const cum = useMemo(() => {
     if (!data || !eff) return [0];
     const c = edgeCosts(data.plan, eff);
@@ -104,9 +105,9 @@ export default function Planner() {
     <div className="app">
       <div className="stage">
         <div className="topbar" aria-live="polite">
-          <div className="stat"><div className="big">{progress === 0 ? "—" : dollars(perHome)}</div><span className="label">Cost per home</span></div>
+          <div className="stat" style={{ minWidth: progress >= 1 && rg ? 210 : undefined }}><div className="big" style={progress >= 1 && rg ? { fontSize: 22, paddingTop: 8 } : undefined}>{progress === 0 ? "—" : progress >= 1 && rg ? range(rg.lo.perHome, rg.hi.perHome, dollars) : dollars(perHome)}</div><span className="label">Cost per home</span></div>
           <div className="stat"><div className="big">{num(progress === 0 ? 0 : shown.homes)}</div><span className="label">Homes connected</span></div>
-          <div className="stat"><div className="big">{progress === 0 ? "—" : money(shown.total)}</div><span className="label">Total cost</span></div>
+          <div className="stat" style={{ minWidth: progress >= 1 && rg ? 190 : undefined }}><div className="big" style={progress >= 1 && rg ? { fontSize: 22, paddingTop: 8 } : undefined}>{progress === 0 ? "—" : progress >= 1 && rg ? range(rg.lo.total, rg.hi.total, money) : money(shown.total)}</div><span className="label">Total cost</span></div>
           <div className="stat"><div className="big">{num(unreachedNow)}</div><span className="label">Homes left</span></div>
         </div>
         {view3d ? <Terrain3D data={data} progress={progress} onPick={setSel} focus={sel ? { lon: sel.lon, lat: sel.lat, key: sel.i } : null} /> : (
@@ -138,6 +139,7 @@ export default function Planner() {
       <aside className="side">
         <CountySelect index={index} slug={slug} onChange={setSlug} />
         <p className="small" style={{ marginTop: 8 }}>{num(t.homesAll)} homes, {num(t.unserved)} without good internet</p>
+        {rg && <details className="small" style={{ marginTop: 8 }}><summary style={{ cursor: "pointer", fontWeight: 700 }}>Why the cost is a range</summary><p style={{ marginTop: 6 }}>{RANGE_NOTE} Here: {range(rg.lo.perHome, rg.hi.perHome, dollars)} a home.</p></details>}
         <div className="box soft" style={{ marginTop: 12 }}>
           <p className="label">How to read this</p>
           <p className="small" style={{ marginTop: 6 }}>

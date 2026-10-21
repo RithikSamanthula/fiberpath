@@ -2,7 +2,7 @@ import Link from "next/link";
 import DetectionDemo from "@/components/cv/DetectionDemo";
 import HeroMap from "@/components/HeroMap";
 import Icon from "@/components/Icons";
-import { LiveStats, SavedPlaces } from "@/components/HomeWidgets";
+import { DetectorFacts, LiveStats, SavedPlaces } from "@/components/HomeWidgets";
 import LiveFeed from "@/components/LiveFeed";
 import Search from "@/components/Search";
 import UsMap from "@/components/UsMap";
@@ -23,7 +23,7 @@ export default function Home() {
           <h1>Is your home connected?</h1>
           <p className="lede">Check any U.S. address for fast internet. FiberPath plans the cheapest way to reach the homes that are left.</p>
           <Search autoFocus />
-          <p className="hint" style={{ color: "#aebad0", marginTop: 12, fontSize: 14 }}>Try <Link style={{ color: "#fff" }} href="/home?address=200%20Lower%20Bell%20Creek%20Rd%2C%20Hiawassee%2C%20GA">200 Lower Bell Creek Rd, Hiawassee, GA</Link> or <Link style={{ color: "#fff" }} href="/tour">watch the 90 second tour</Link></p>
+          <p className="hint" style={{ color: "#aebad0", marginTop: 12, fontSize: 14 }}>Try <Link style={{ color: "#fff" }} href="/home?address=6333%20US%20Hwy%2076%2C%20Hiawassee%2C%20GA">6333 US Hwy 76, Hiawassee, GA</Link> or <Link style={{ color: "#fff" }} href="/tour">watch the 90 second tour</Link></p>
         </div>
         <div className="ah-map"><HeroMap /></div>
       </section>
@@ -53,6 +53,7 @@ export default function Home() {
       <section style={{ background: "#0a1424", color: "#fff", borderRadius: 16, padding: "32px 24px" }}>
         <h2 style={{ color: "#fff" }}>The detector reads street photos to find utility poles</h2>
         <DetectionDemo />
+        <div style={{ marginTop: 20, color: "var(--ink)" }}><DetectorFacts /></div>
       </section>
 
       <section>

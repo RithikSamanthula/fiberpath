@@ -2,7 +2,7 @@
 import QRCode from "qrcode";
 import { useEffect, useState } from "react";
 import { CountySelect, useCountyParam } from "@/lib/useCounty";
-import { dollars, money, num, totalCost } from "@/lib/cost";
+import { costRange, dollars, money, num, range, totalCost } from "@/lib/cost";
 
 // A one-page flyer a neighbor can put up: the numbers for the county and a code that opens the address check
 export default function Flyer() {
@@ -23,7 +23,7 @@ export default function Flyer() {
       {data && c && t && (
         <div style={{ border: "4px solid #0f1b2d", padding: 36 }} className="flyer-sheet">
           <h1 style={{ fontSize: 52, lineHeight: 1.05 }}>{num(t.unserved)} homes in {data.meta.name} do not have good internet</h1>
-          <p style={{ fontSize: 22, marginTop: 14 }}>A plan exists to connect all of them. It would cost about {money(c.total)}, or {dollars(c.perHome)} a home.</p>
+          <p style={{ fontSize: 22, marginTop: 14 }}>A plan exists to connect all of them. It would cost about {range(costRange(t, data.meta.assumptions).lo.total, c.total, money)}, or {range(costRange(t, data.meta.assumptions).lo.perHome, c.perHome, dollars)} a home.</p>
           <div className="flyer-grid">
             <div>
               <p style={{ fontSize: 28, fontWeight: 800 }}>Check your address and add your home to the count</p>
