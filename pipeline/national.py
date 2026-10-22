@@ -59,9 +59,10 @@ def save_status(s):
 def queue(args, st):
     counties = json.load(open(LIST))
     prio = []
-    pf = os.path.join(CACHE, "priority.txt")
-    if os.path.exists(pf):
-        prio = [l.strip() for l in open(pf) if l.strip()]
+    # the committed list (Georgia's 9th District first, then the rest of Georgia) and any local one
+    for pf in (os.path.join(HERE, "priority.txt"), os.path.join(CACHE, "priority.txt")):
+        if os.path.exists(pf):
+            prio += [l.strip() for l in open(pf) if l.strip() and l.strip() not in prio]
     done = {i["geoid"] for i in json.load(open(os.path.join(OUT, "index.json")))} if os.path.exists(os.path.join(OUT, "index.json")) else set()
     todo = []
     for c in counties:

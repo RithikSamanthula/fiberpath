@@ -118,17 +118,20 @@ export default function Report() {
 
       {b && (() => {
         const costs = data.homes.filter((h) => h.tech > 0).map((h) => h.cost).sort((x, y) => x - y);
-        const n = Math.min(b.homes, costs.length);
-        const cheapest = costs.slice(0, n).reduce((s, v) => s + v, 0) / Math.max(n, 1);
+        const avg = (k: number) => costs.slice(0, k).reduce((s, v) => s + v, 0) / Math.max(k, 1);
+        const nHalf = Math.max(1, Math.round(costs.length / 2)), nQuarter = Math.max(1, Math.round(costs.length / 4));
+        const half = avg(nHalf), quarter = avg(nQuarter);
         const ft = t.aerialFt + t.buriedFt;
         const allPoles = (ft * a.aerialPerFt + t.fiberHomes * a.dropBase + t.dropFt * a.dropPerFt + t.towers * a.towerEach + t.wirelessHomes * a.wirelessCpe) / Math.max(c.homes, 1);
         const rows: [string, number][] = [
           ["Every home, if no road has poles (worst case)", c.perHome],
-          [`The cheapest ${num(n)} homes in this plan`, cheapest],
+          [`The cheapest half of the homes (${num(nHalf)})`, half],
+          [`The cheapest quarter of the homes (${num(nQuarter)})`, quarter],
           ["Every home, if all fiber could use poles", allPoles],
           [`${b.name} project (${num(b.homes)} homes)`, b.per_home],
         ];
         const top = Math.max(...rows.map((r) => r[1]));
+        const last = rows.length - 1;
         return (
           <>
             <h2>Compared with a real project</h2>
@@ -137,19 +140,19 @@ export default function Report() {
               {rows.map(([l, v], i) => (
                 <div key={l} className="row3" style={{ "--c1": "320px", "--c3": "80px", padding: "6px 0" } as React.CSSProperties}>
                   <span>{l}</span>
-                  <div className="bar" style={{ height: 18, marginTop: 0 }}><i style={{ width: `${(v / top) * 100}%`, background: i === 3 ? "#d64533" : "#1b5fd1" }} /></div>
+                  <div className="bar" style={{ height: 18, marginTop: 0 }}><i style={{ width: `${(v / top) * 100}%`, background: i === last ? "#d64533" : "#1b5fd1" }} /></div>
                   <b style={{ textAlign: "right" }}>{dollars(v)}</b>
                 </div>
               ))}
             </div>
             <h3>Why the numbers differ</h3>
             <ul style={{ paddingLeft: 20, display: "grid", gap: 8, maxWidth: "70ch" }}>
-              <li>The real project covers hard-to-reach homes that were picked on purpose. Our plan covers every home that lacks good internet, so cheap and costly homes are averaged together. Looking at only our cheapest {num(n)} homes gives {dollars(cheapest)}.</li>
+              <li>The real project covers hard-to-reach homes that were picked on purpose. Our plan covers every home that lacks good internet, so cheap and costly homes are averaged together. Our cheapest half of the homes average {dollars(half)}, and the cheapest quarter {dollars(quarter)}.</li>
               <li>A co-op that owns its poles can hang fiber on them. Our plan finds poles in street photos, but photo coverage is uneven, so roads with no photos look like roads with no poles and are priced as buried, which costs about twice as much. That is the high end of our range. With poles on every road, the low end is {dollars(allPoles)}.</li>
               <li>We use standard prices for cable, connections and towers. A co-op&apos;s own contracts, existing fiber and easements can make its real costs lower.</li>
               <li>The real project reaches homes by fiber only, while our plan sends {num(t.wirelessHomes)} homes to wireless towers where that is cheaper.</li>
             </ul>
-            <p className="small" style={{ marginTop: 10 }}>The real project costs less per home than even our low end for all homes, because it serves homes picked for being cheap to reach. Our cheapest {num(n)} homes average {dollars(cheapest)}. We cannot compare more closely without knowing which homes the co-op will serve.</p>
+            <p className="small" style={{ marginTop: 10 }}>{b.per_home > half && b.per_home < allPoles ? <>The real project&apos;s {dollars(b.per_home)} a home falls between our cheapest half of the homes ({dollars(half)}) and our all-homes low end ({dollars(allPoles)}), which is what you would expect if it serves homes picked for being cheap to reach.</> : <>The real project costs {b.per_home < half ? "less than even our cheapest half of the homes" : "less than our low end for all homes"}, because it serves homes picked for being cheap to reach.</>} We cannot compare more closely without knowing which homes the co-op will serve.</p>
           </>
         );
       })()}
@@ -167,7 +170,7 @@ export default function Report() {
 
       <h2>Data and method</h2>
       <p>
-        Homes: Microsoft building footprints, 60 to 600 m². Roads: OpenStreetMap. Poles: {meta.poleSource}. Terrain: USGS 3DEP via AWS terrain tiles. Trees: Meta and WRI canopy height. Coverage: {meta.coverageSource === "fcc" ? "FCC National Broadband Map" : "modeled estimate (FCC data not loaded)"}. Network: Kou–Markowsky–Berman Steiner tree approximation over the road graph, provably within 2× of the cheapest possible network. Full credits are on the How it works screen.
+        Homes: Microsoft building footprints, 60 to 600 m². Roads: OpenStreetMap. Poles: {meta.poleSource}. Terrain: USGS 3DEP via AWS terrain tiles. Trees: Meta and WRI canopy height. Coverage: {meta.coverageSource === "fcc" ? "FCC National Broadband Map" : "modeled estimate (FCC data not loaded)"}. Network: new fiber grows outward from the fiber the FCC lists as already in place (a hexagon counts when half its addresses report fiber at 100 Mbps or more), using the Kou–Markowsky–Berman Steiner tree approximation over the road graph, provably within 2× of the cheapest possible network. Full credits are on the How it works screen.
       </p>
     </main>
   );

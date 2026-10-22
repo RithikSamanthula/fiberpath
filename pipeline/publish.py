@@ -120,7 +120,7 @@ def item_from_meta(meta, geoid):
             "homes": t["homesAll"], "unserved": t["unserved"], "reached": t["fiberHomes"] + t["wirelessHomes"],
             "fiberHomes": t["fiberHomes"], "wirelessHomes": t["wirelessHomes"], "towers": t["towers"],
             "aerialFt": t["aerialFt"], "buriedFt": t["buriedFt"], "dropFt": t["dropFt"], "assumptions": meta["assumptions"],
-            "coverageSource": meta["coverageSource"], "plannedAt": meta.get("generatedAt"), "remote": True}
+            "coverageSource": meta["coverageSource"], "planVersion": meta.get("planVersion", 1), "plannedAt": meta.get("generatedAt"), "remote": True}
 
 
 def load_index(rid, st):

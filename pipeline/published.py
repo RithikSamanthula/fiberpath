@@ -1,6 +1,6 @@
-"""Print the GEOID of every county already planned with real FCC coverage (one per line).
+"""Print the GEOID of every county already planned with real FCC coverage and the current network method (one per line).
 
-Counties planned earlier with the stand-in coverage estimate are not counted, so they get planned again."""
+Counties planned with the stand-in estimate, or before new fiber grew out from existing fiber, are not counted, so they get planned again."""
 import json
 import os
 
@@ -25,7 +25,7 @@ while True:
         if j.status_code != 200:
             continue
         for item in json.loads(j.content):
-            if item.get("coverageSource") == "fcc":
+            if item.get("coverageSource") == "fcc" and item.get("planVersion", 1) >= 2:
                 print(item["geoid"])
     if len(rows) < 100:
         break

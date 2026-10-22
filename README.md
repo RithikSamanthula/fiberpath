@@ -77,3 +77,8 @@ cd pipeline && ../.venv/bin/python fcc_bdc.py 13        # one state at a time (1
 ```
 
 `fcc_bdc.py` keeps the fastest advertised residential speed in each H3 hexagon, leaves out satellite service as the BEAD program does, and `plan.py` labels a home served at 100/20 Mbps or better, underserved at 25/3 up to that, and unserved below. The older Form 477 data that needs no login is not used: it counts a whole census block as served if one address in it can be, which would hide most unserved homes.
+
+
+## How new fiber is routed
+
+Every county plan grows new fiber outward from the fiber that is already there. Using the FCC provider file for the state, a hexagon counts as fiber-served when half of its addresses report fiber at 100 Mbps or more. One virtual source node is tied at no cost to every road node inside those hexagons (and to the town hub), and the Steiner tree (Kou-Markowsky-Berman) is rooted at that node. Before this, every route started from one hub, which made far-away homes look very costly. Plans made this way carry `planVersion: 2`; the cloud run re-plans any county that does not.
