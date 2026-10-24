@@ -41,7 +41,7 @@ export default function Planner() {
   const [tool, setTool] = useState(false);
   const [ghost, setGhost] = useState<{ lon: number; lat: number } | null>(null);
   const cont = useMemo(() => (data?.hasGrids ? contours(data) : null), [data]);
-  const vs = useMemo(() => (data && ghost ? viewshed(data, ghost.lon, ghost.lat, data.homes) : null), [data, ghost]);
+  const vs = useMemo(() => (data?.hasGrids && ghost ? viewshed(data, ghost.lon, ghost.lat, data.homes) : null), [data, ghost]);
 
   useEffect(() => { if (data && !a) setA(data.meta.assumptions); }, [data, a]);
   // links like /county?county=towns-ga&home=123&view=3d open straight to a home in 3D
@@ -143,11 +143,11 @@ export default function Planner() {
         <div className="box soft" style={{ marginTop: 12 }}>
           <p className="label">How to read this</p>
           <p className="small" style={{ marginTop: 6 }}>
-            Each red dot is a home without good internet. Press Plan network to watch the cheapest roads connect them. Blue lines are fiber on poles, amber lines are buried fiber and green squares are towers.<strong>Plan network</strong> and watch the cheapest set of roads connect them. Blue lines are fiber on poles, amber lines are buried fiber, and green squares are wireless towers.
+            Each red dot is a home without good internet. Press <strong>Plan network</strong> to watch the cheapest set of roads connect them. Blue lines are fiber on poles, amber lines are buried fiber, and green squares are wireless towers.
           </p>
         </div>
         <div className="row" style={{ marginTop: 12 }}>
-          <button className="btn line" aria-pressed={view3d} onClick={() => setView3d((v) => !v)}>{view3d ? "Back to map" : "See in 3D"}</button>
+          <button className="btn line" aria-pressed={view3d} disabled={!data.hasGrids} onClick={() => setView3d((v) => !v)}>{view3d ? "Back to map" : data.hasGrids ? "See in 3D" : "Loading terrain"}</button>
           <button className="btn" onClick={play} disabled={playing}>{progress === 0 ? "Plan network" : playing ? "Planning" : "Replay"}</button>
           {progress > 0 && !playing && <button className="btn line" onClick={() => setProgress(0)}>Before</button>}
         </div>
@@ -176,7 +176,7 @@ export default function Planner() {
         <h3>Try a tower</h3>
         <p className="small">Drop a tower anywhere and see which homes can reach it past the hills and trees.</p>
         <div className="row" style={{ marginTop: 10 }}>
-          <button className="btn sm" aria-pressed={tool} onClick={() => setTool((v) => !v)}>{tool ? "Click the map" : "Drop a tower"}</button>
+          <button className="btn sm" aria-pressed={tool} disabled={!data.hasGrids} onClick={() => setTool((v) => !v)}>{tool ? "Click the map" : "Drop a tower"}</button>
           {ghost && <button className="btn sm line" onClick={() => { setGhost(null); setTool(false); }}>Clear</button>}
         </div>
         {vs && (

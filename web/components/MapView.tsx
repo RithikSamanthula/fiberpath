@@ -41,6 +41,8 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
   const props = useRef({ data, layers, progress, selected, link, hexes, contours, reach, ghost, pulse, satellite });
   props.current = { data, layers, progress, selected, link, hexes, contours, reach, ghost, pulse, satellite };
   const tiles = useRef(new Map<string, HTMLImageElement | null>());
+  const tileVer = useRef(0);
+  const baseCache = useRef<{ cv: HTMLCanvasElement | null; key: string; data: unknown; contours: unknown }>({ cv: null, key: "", data: null, contours: null });
   const redrawRef = useRef<() => void>(() => {});
   const [, setTick] = useState(0);
 
@@ -60,78 +62,109 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
     const k = cosφ();
     const X = (lon: number) => (lon - v.lon) * k * v.s + w / 2;
     const Y = (lat: number) => (v.lat - lat) * v.s + h / 2;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = BG;
-    ctx.fillRect(0, 0, w, h);
-    ctx.strokeStyle = LINE;
-    ctx.fillStyle = LINE;
-    ctx.lineJoin = "round";
-    ctx.lineCap = "round";
+    const vk = `${w}|${h}|${dpr}|${v.lon}|${v.lat}|${v.s}|${layers.roads}|${layers.homes}|${satellite}|${tileVer.current}`;
+    const paintBase = (ctx: CanvasRenderingContext2D) => {
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.fillStyle = BG;
+      ctx.fillRect(0, 0, w, h);
+      ctx.strokeStyle = LINE;
+      ctx.fillStyle = LINE;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
 
-    // aerial photos (USGS, public domain), drawn only when close enough for them to be useful
-    let aerial = false;
-    if (satellite) {
-      const pxPerDegLon = k * v.s;
-      const z = Math.round(Math.log2((pxPerDegLon * 360) / 256));
-      if (z >= 12 && z <= 18) {
-        aerial = true;
-        const n = 2 ** z;
-        const lonAt = (px: number) => (px - w / 2) / (k * v.s) + v.lon, latAt = (py: number) => v.lat - (py - h / 2) / v.s;
-        const tx0 = Math.floor(((lonAt(0) + 180) / 360) * n), tx1 = Math.floor(((lonAt(w) + 180) / 360) * n);
-        const ty = (lat: number) => Math.floor(((1 - Math.asinh(Math.tan((lat * Math.PI) / 180)) / Math.PI) / 2) * n);
-        const ty0 = ty(latAt(0)), ty1 = ty(latAt(h));
-        const latOf = (yy: number) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * yy) / n))) * 180) / Math.PI;
-        for (let tx = tx0; tx <= tx1; tx++) for (let tyy = ty0; tyy <= ty1; tyy++) {
-          const key = `${z}/${tx}/${tyy}`;
-          let img = tiles.current.get(key);
-          if (img === undefined) {
-            tiles.current.set(key, null);
-            const im = new Image();
-            im.onload = () => { tiles.current.set(key, im); redrawRef.current(); };
-            im.src = `https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/${z}/${tyy}/${tx}`;
-            continue;
+      // aerial photos (USGS, public domain), drawn only when close enough for them to be useful
+      let aerial = false;
+      if (satellite) {
+        const pxPerDegLon = k * v.s;
+        const z = Math.round(Math.log2((pxPerDegLon * 360) / 256));
+        if (z >= 12 && z <= 18) {
+          aerial = true;
+          const n = 2 ** z;
+          const lonAt = (px: number) => (px - w / 2) / (k * v.s) + v.lon, latAt = (py: number) => v.lat - (py - h / 2) / v.s;
+          const tx0 = Math.floor(((lonAt(0) + 180) / 360) * n), tx1 = Math.floor(((lonAt(w) + 180) / 360) * n);
+          const ty = (lat: number) => Math.floor(((1 - Math.asinh(Math.tan((lat * Math.PI) / 180)) / Math.PI) / 2) * n);
+          const ty0 = ty(latAt(0)), ty1 = ty(latAt(h));
+          const latOf = (yy: number) => (Math.atan(Math.sinh(Math.PI * (1 - (2 * yy) / n))) * 180) / Math.PI;
+          for (let tx = tx0; tx <= tx1; tx++) for (let tyy = ty0; tyy <= ty1; tyy++) {
+            const key = `${z}/${tx}/${tyy}`;
+            let img = tiles.current.get(key);
+            if (img === undefined) {
+              tiles.current.set(key, null);
+              const im = new Image();
+              im.onload = () => { tiles.current.set(key, im); tileVer.current++; redrawRef.current(); };
+              im.src = `https://basemap.nationalmap.gov/arcgis/rest/services/USGSImageryOnly/MapServer/tile/${z}/${tyy}/${tx}`;
+              continue;
+            }
+            if (!img) continue;
+            const lo0 = (tx / n) * 360 - 180, lo1 = ((tx + 1) / n) * 360 - 180;
+            const x0 = X(lo0), x1 = X(lo1), y0 = Y(latOf(tyy)), y1 = Y(latOf(tyy + 1));
+            ctx.drawImage(img, x0, y0, x1 - x0 + 0.6, y1 - y0 + 0.6);
           }
-          if (!img) continue;
-          const lo0 = (tx / n) * 360 - 180, lo1 = ((tx + 1) / n) * 360 - 180;
-          const x0 = X(lo0), x1 = X(lo1), y0 = Y(latOf(tyy)), y1 = Y(latOf(tyy + 1));
-          ctx.drawImage(img, x0, y0, x1 - x0 + 0.6, y1 - y0 + 0.6);
+          ctx.fillStyle = "rgba(10,20,36,0.18)"; ctx.fillRect(0, 0, w, h);
         }
-        ctx.fillStyle = "rgba(10,20,36,0.18)"; ctx.fillRect(0, 0, w, h);
       }
-    }
 
-    // county line
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([]);
-    ctx.beginPath();
-    data.meta.boundary.forEach(([lo, la], i) => (i ? ctx.lineTo(X(lo), Y(la)) : ctx.moveTo(X(lo), Y(la))));
-    ctx.closePath();
-    ctx.stroke();
+      // county line
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      data.meta.boundary.forEach(([lo, la], i) => (i ? ctx.lineTo(X(lo), Y(la)) : ctx.moveTo(X(lo), Y(la))));
+      ctx.closePath();
+      ctx.stroke();
 
-    if (contours) {
-      for (const [seg, color, lw] of [[contours.minor, "#16273f", 0.8], [contours.major, "#22385a", 1.2]] as const) {
-        ctx.strokeStyle = color;
-        ctx.lineWidth = lw;
+      if (contours) {
+        for (const [seg, color, lw] of [[contours.minor, "#16273f", 0.8], [contours.major, "#22385a", 1.2]] as const) {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = lw;
+          ctx.beginPath();
+          for (let i = 0; i < seg.length; i += 4) {
+            ctx.moveTo(X(seg[i]), Y(seg[i + 1]));
+            ctx.lineTo(X(seg[i + 2]), Y(seg[i + 3]));
+          }
+          ctx.stroke();
+        }
+        ctx.strokeStyle = LINE;
+      }
+
+      if (layers.roads) {
+        ctx.strokeStyle = aerial ? "rgba(255,255,255,0.45)" : ROAD;
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        for (let i = 0; i < seg.length; i += 4) {
-          ctx.moveTo(X(seg[i]), Y(seg[i + 1]));
-          ctx.lineTo(X(seg[i + 2]), Y(seg[i + 3]));
+        for (const r of data.roads) {
+          for (let i = 0; i < r.length; i++) (i ? ctx.lineTo(X(r[i][0]), Y(r[i][1])) : ctx.moveTo(X(r[i][0]), Y(r[i][1])));
         }
         ctx.stroke();
+        ctx.strokeStyle = LINE;
       }
-      ctx.strokeStyle = LINE;
-    }
-
-    if (layers.roads) {
-      ctx.strokeStyle = aerial ? "rgba(255,255,255,0.45)" : ROAD;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      for (const r of data.roads) {
-        for (let i = 0; i < r.length; i++) (i ? ctx.lineTo(X(r[i][0]), Y(r[i][1])) : ctx.moveTo(X(r[i][0]), Y(r[i][1])));
+      if (layers.homes) {
+        const r = Math.max(1.4, Math.min(5, v.s / 22000));
+        ctx.fillStyle = MUTE;
+        ctx.beginPath();
+        for (const hm of data.homes) {
+          if (hm.status !== 0) continue;
+          const x = X(hm.lon), y = Y(hm.lat);
+          if (x < -4 || y < -4 || x > w + 4 || y > h + 4) continue;
+          ctx.moveTo(x + r * 0.7, y);
+          ctx.arc(x, y, r * 0.7, 0, Math.PI * 2);
+        }
+        ctx.fill();
       }
-      ctx.stroke();
-      ctx.strokeStyle = LINE;
+    };
+    // The map, roads and served homes only change when the view does, so they are painted once and reused while the plan animates
+    const cache = baseCache.current;
+    if (!cache.cv || cache.key !== vk || cache.data !== data || cache.contours !== contours) {
+      const cv2 = cache.cv ?? (cache.cv = document.createElement("canvas"));
+      cv2.width = cv.width; cv2.height = cv.height;
+      paintBase(cv2.getContext("2d")!);
+      cache.key = vk; cache.data = data; cache.contours = contours;
     }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.drawImage(cache.cv, 0, 0);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.strokeStyle = LINE;
+    ctx.fillStyle = LINE;
 
     // demand cells
     if (hexes && hexes.length) {
@@ -170,17 +203,6 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
 
     if (layers.homes) {
       const r = Math.max(1.4, Math.min(5, v.s / 22000));
-      // served and not part of the plan
-      ctx.fillStyle = MUTE;
-      ctx.beginPath();
-      for (const hm of data.homes) {
-        if (hm.status !== 0) continue;
-        const x = X(hm.lon), y = Y(hm.lat);
-        if (x < -4 || y < -4 || x > w + 4 || y > h + 4) continue;
-        ctx.moveTo(x + r * 0.7, y);
-        ctx.arc(x, y, r * 0.7, 0, Math.PI * 2);
-      }
-      ctx.fill();
       // homes still without service (filled)
       ctx.fillStyle = RED;
       ctx.beginPath();

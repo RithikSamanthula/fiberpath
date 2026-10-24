@@ -118,6 +118,11 @@ export async function ensureGrids(d: County): Promise<County> {
   return d;
 }
 
+// Start the terrain download while the map is still being looked at, so 3D and the terrain layers open at once
+export function warmGrids(slug: string) {
+  loadCountyLite(slug).then(ensureGrids).catch(() => {});
+}
+
 export function loadCounty(slug: string): Promise<County> {
   return loadCountyLite(slug).then(ensureGrids);
 }
@@ -152,7 +157,10 @@ function build(meta: Meta, rawHomes: number[][], roads: County["roads"], plan: n
 async function fetchCounty(slug: string): Promise<County> {
   const item = (await loadIndex()).find((i) => i.slug === slug);
   if (item?.remote) {
-    const f = await unpack(await fetch(`/api/data/${item.geoid}/pack`));
+    // Counties used in demos ship with the site as files on the CDN, which is much faster than going through the cloud store
+    let res = await fetch(`${DATA_BASE}/packs/${item.geoid}.fpk`).catch(() => null);
+    if (!res?.ok || /html/.test(res.headers.get("content-type") ?? "")) res = await fetch(`/api/data/${item.geoid}/pack`);
+    const f = await unpack(res);
     return build(json(f["county.json"]), json(f["homes.json"]), json(f["roads.json"]), json(f["plan.json"]), json(f["towers.json"]), json(f["poles.json"]));
   }
   const base = `${DATA_BASE}/${slug}`;

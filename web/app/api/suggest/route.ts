@@ -14,6 +14,14 @@ const STATES: Record<string, string> = {
   nd: "north", oh: "ohio", ok: "oklahoma", or: "oregon", pa: "pennsylvania", ri: "rhode", sc: "south", sd: "south", tn: "tennessee", tx: "texas", ut: "utah", vt: "vermont",
   va: "virginia", wa: "washington", wv: "west", wi: "wisconsin", wy: "wyoming", pr: "puerto",
 };
+const ABBR_OF: Record<string, string> = Object.fromEntries(Object.entries({
+  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California", CO: "Colorado", CT: "Connecticut", DE: "Delaware", DC: "District of Columbia", FL: "Florida",
+  GA: "Georgia", HI: "Hawaii", ID: "Idaho", IL: "Illinois", IN: "Indiana", IA: "Iowa", KS: "Kansas", KY: "Kentucky", LA: "Louisiana", ME: "Maine", MD: "Maryland",
+  MA: "Massachusetts", MI: "Michigan", MN: "Minnesota", MS: "Mississippi", MO: "Missouri", MT: "Montana", NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey",
+  NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota", OH: "Ohio", OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania", RI: "Rhode Island",
+  SC: "South Carolina", SD: "South Dakota", TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia", WA: "Washington", WV: "West Virginia", WI: "Wisconsin",
+  WY: "Wyoming", PR: "Puerto Rico",
+}).map(([a, n]) => [n.toLowerCase(), a]));
 const norm = (s: string) => s.toLowerCase().replace(/[.,#]/g, " ").split(/\s+/).filter(Boolean);
 
 // Every word the person typed has to appear (as the start of a word) in the suggestion, and a house number has to match exactly
@@ -24,6 +32,16 @@ function relevant(typed: string[], text: string) {
     const alts = [t, ABBR[t], STATES[t]].filter(Boolean) as string[];
     return words.some((w) => alts.some((a) => w.startsWith(a)));
   });
+}
+
+// "6333 US HWY 76, HIAWASSEE, GA, 30546" and "6333 US Highway 76, Hiawassee, GA 30546" are the same place,
+// so compare street (abbreviations spelled out), city and state, and leave the zip code out
+const LONG: Record<string, string> = { ...ABBR, highway: "highway", hwy: "highway", us: "us", usa: "us" };
+function key(s: string) {
+  const [street = "", city = "", rest = ""] = s.split(",").map((x) => x.trim());
+  const st = (rest + " " + (s.split(",")[3] ?? "")).trim().split(/\s+/)[0] ?? "";
+  const words = (t: string) => norm(t).map((w) => LONG[w] ?? w).join(" ");
+  return `${words(street)}|${words(city)}|${st.toLowerCase()}`;
 }
 
 async function photon(q: string, lat: number | null, lon: number | null) {
@@ -41,7 +59,7 @@ async function photon(q: string, lat: number | null, lon: number | null) {
   for (const f of j.features ?? []) {
     const p = f.properties ?? {};
     if (p.countrycode !== "US" || !p.state || !p.street) continue;
-    out.push([`${p.housenumber ? p.housenumber + " " : ""}${p.street}`, p.city || p.county, `${p.state}${p.postcode ? " " + p.postcode : ""}`].filter(Boolean).join(", "));
+    out.push([`${p.housenumber ? p.housenumber + " " : ""}${p.street}`, p.city || p.county, `${ABBR_OF[String(p.state).toLowerCase()] ?? p.state}${p.postcode ? " " + p.postcode : ""}`].filter(Boolean).join(", "));
   }
   return out;
 }
@@ -55,7 +73,7 @@ async function census(q: string) {
   const r = await fetch(u, { signal: AbortSignal.timeout(5000) });
   const j = await r.json();
   return (j?.result?.addressMatches ?? []).slice(0, 2).map((m: { matchedAddress: string }) =>
-    m.matchedAddress.toLowerCase().replace(/\b([a-z])([a-z]*)/g, (_, a, b) => a.toUpperCase() + b).replace(/\b(Ga|Nc|Sc|Tn|Al|Fl|Va|Wv|Ky|Oh|Ny|Pa|Tx|Ca)\b/g, (s: string) => s.toUpperCase()).replace(/, (\w\w), (\d{5})/, ", $1 $2"));
+    m.matchedAddress.toLowerCase().replace(/\b([a-z])([a-z]*)/g, (_, a, b) => a.toUpperCase() + b).replace(/\bUs\b/g, "US").replace(/, (\w\w), (\d{5})/, (_m: string, a: string, b: string) => `, ${a.toUpperCase()} ${b}`));
 }
 
 export async function GET(req: NextRequest) {
@@ -66,7 +84,7 @@ export async function GET(req: NextRequest) {
   const [ph, ce] = await Promise.allSettled([photon(q, lat ? lat : null, lon ? lon : null), typed.length >= 3 && /^\d/.test(typed[0]) ? census(q) : Promise.resolve([])]);
   const seen = new Set<string>();
   const items: string[] = [];
-  const add = (s: string) => { const k = s.toLowerCase().replace(/[^a-z0-9]/g, ""); if (!seen.has(k)) { seen.add(k); items.push(s); } };
+  const add = (s: string) => { const k = key(s); if (!seen.has(k)) { seen.add(k); items.push(s); } };
   if (ce.status === "fulfilled") for (const s of ce.value) add(s);
   if (ph.status === "fulfilled") for (const s of ph.value) if (relevant(typed, s)) add(s);
   return NextResponse.json({ items: items.slice(0, 6) }, { headers: { "Cache-Control": "public, s-maxage=600" } });
