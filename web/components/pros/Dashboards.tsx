@@ -36,7 +36,7 @@ function Tiles({ tiles }: { tiles: [string, string][] }) {
 }
 
 function Card({ title, note, children }: { title: string; note?: string; children: React.ReactNode }) {
-  return <div className="stat-card" style={{ padding: 20 }}><p style={{ fontWeight: 800, fontSize: 17 }}>{title}</p>{note && <p className="small" style={{ color: "#4a5870", marginBottom: 8 }}>{note}</p>}<div style={{ marginTop: 10 }}>{children}</div></div>;
+  return <div className="stat-card" style={{ padding: 20 }}><p style={{ fontWeight: 800, fontSize: 17 }}>{title}</p>{note && <p className="small" style={{ color: "var(--mute)", marginBottom: 8 }}>{note}</p>}<div style={{ marginTop: 10 }}>{children}</div></div>;
 }
 
 function Bars({ rows, fmt, color = "#1b5fd1", mark }: { rows: { name: string; v: number; href?: string }[]; fmt: (v: number) => string; color?: string; mark?: { v: number; label: string } }) {
@@ -177,7 +177,7 @@ export default function Workspace({ items, name, note, prices, setPrices }: { it
           </div>
           <div style={{ borderRadius: 0, overflow: "hidden" }}><UsMap height={340} highlight={hi} /></div>
           <div className="ah-row">
-            <Card title="How homes would be connected" note="Share of the homes in the plan"><Donut parts={[{ v: fb, color: "#f2a900", label: "Fiber" }, { v: wl, color: "#1c8c4e", label: "Fixed wireless" }, { v: Math.max(0, homes - fb - wl), color: "#8a8f99", label: "Other" }]} /></Card>
+            <Card title="How homes would be connected" note="Share of the homes in the plan"><Donut parts={[{ v: fb, color: "#f2a900", label: "Fiber" }, { v: wl, color: "var(--green)", label: "Fixed wireless" }, { v: Math.max(0, homes - fb - wl), color: "#8a8f99", label: "Other" }]} /></Card>
             <Card title="Cost per home, county by county" note={`How many counties fall in each price range. The Blue Ridge EMC project cost ${dollars(BENCH)} a home.`}><Histogram values={rows.filter((r) => r.cost.homes > 20).map((r) => r.cost.perHome)} fmt={dollars} /></Card>
           </div>
           <div className="ah-row">
@@ -240,7 +240,7 @@ export default function Workspace({ items, name, note, prices, setPrices }: { it
       {tab === "Prices" && (
         <section>
           <p style={{ fontWeight: 700 }}>Your prices</p>
-          <p className="small" style={{ margin: "4px 0 10px" }}>Use your own costs and every number in this workspace updates. They are saved in this browser.</p>
+          <p className="small" style={{ margin: "4px 0 10px" }}>Enter your own costs and every number in this workspace updates, and your values are saved in this browser.</p>
           {eff && (
             <div className="assume" style={{ maxWidth: 520 }}>
               {(Object.keys(LABELS) as (keyof Assumptions)[]).map((k) => (

@@ -15,10 +15,10 @@ const sources = [
 ];
 
 const faq: [string, string][] = [
-  ["Is my address saved?", "No. Checking an address does not store it. If you raise your hand, only the building location is counted, and counts are only shown for areas with many homes."],
+  ["Is my address saved?", "No, checking an address does not store it, and if you raise your hand only the building location is counted and the counts are only shown for areas with many homes."],
   ["How accurate are the costs?", "They are planning estimates built from per-foot prices you can change. They are good for comparing options and starting a grant application, but they are not engineering quotes."],
-  ["Why does my status say \"modeled estimate\"?", "The FCC coverage data needs a free login to download. Until it is loaded for a county, the app guesses that town centers and dense neighborhoods are served and the rest is not."],
-  ["Can a co-op or county office use this?", "Yes. Every county plan comes with a report, a routes file and a homes file, and the planning code runs on any U.S. county."],
+  ["Why does my status say \"modeled estimate\"?", "That label only appears for a county we have not matched to the FCC National Broadband Map yet, and in that case the app guesses that town centers and dense neighborhoods are served and the rest is not. Counties with real FCC data say so instead."],
+  ["Can a co-op or county office use this?", "Yes, because every county plan comes with a report, a routes file and a homes file, and the planning code runs on any U.S. county."],
 ];
 
 export default function About() {

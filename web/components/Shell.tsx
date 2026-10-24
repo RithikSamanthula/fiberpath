@@ -20,6 +20,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const [prompt, setPrompt] = useState<any>(null);
   const [online, setOnline] = useState(true);
+  const [light, setLight] = useState(false);
+  useEffect(() => { setLight(document.documentElement.dataset.theme === "light"); }, []);
+  const flip = () => { const next = light ? "dark" : "light"; document.documentElement.dataset.theme = next; try { localStorage.setItem("fiberpath-theme", next); } catch {} setLight(!light); };
 
   useEffect(() => {
     if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("/sw.js").catch(() => {});
@@ -42,10 +45,11 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         ))}
         <span className="rail-gap" />
         {prompt && <button className="rail-tab install" onClick={() => { prompt.prompt(); setPrompt(null); }}><span className="ti"><Icon name="install" size={20} /></span><span className="tl">Install the app</span></button>}
+        <button className="rail-tab theme" onClick={flip}><span className="ti"><Icon name={light ? "moon" : "sun"} size={20} /></span><span>{light ? "Dark mode" : "Light mode"}</span></button>
         <Link href="/about" className="rail-tab more" aria-current={active(path, "/about") ? "page" : undefined}><span className="ti"><Icon name="more" size={20} /></span><span className="tl">About</span></Link>
       </nav>
       <div className="shell-main">
-        {!online && <div className="offline" role="status">You are offline. Pages you opened before still work.</div>}
+        {!online && <div className="offline" role="status">You are offline, but the pages you opened before still work.</div>}
         {children}
       </div>
     </div>

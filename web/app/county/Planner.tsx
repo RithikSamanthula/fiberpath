@@ -168,7 +168,7 @@ export default function Planner() {
         </div>
         {demand && (
           <p className="small" style={{ marginTop: 8 }}>
-            {num(demand.total)} {demand.total === 1 ? "home has" : "homes have"} raised a hand. Circles appear where {demand.minCell}+ homes in one area have.
+            {num(demand.total)} {demand.total === 1 ? "home has" : "homes have"} raised a hand, and circles appear on the map wherever {demand.minCell} or more homes in one area have.
           </p>
         )}
 
@@ -187,9 +187,9 @@ export default function Planner() {
             <p className="small" style={{ marginTop: 6 }}>
               {vs.seen > 0
                 ? `Serving ${num(Math.min(vs.seen, 250))} homes (a tower serves about 250), that is ${dollars((eff.towerEach) / Math.min(vs.seen, 250) + eff.wirelessCpe)} a home`
-                : "No home can reach a tower here. Try a higher spot"}
+                : "No home can reach a tower from this spot, so try a higher one"}
             </p>
-            <p className="small" style={{ marginTop: 6 }}>Green dots can reach it. Dim red dots are in range but blocked.</p>
+            <p className="small" style={{ marginTop: 6 }}>Green dots can reach the tower, and the dim red dots are in range but blocked by hills or trees.</p>
           </div>
         )}
 
@@ -223,7 +223,7 @@ export default function Planner() {
           ))}
         </div>
         <p className="small" style={{ marginTop: 10 }}>
-          Routes and technology choices were planned at the default values. Changing a value reprices the same plan.
+          The routes and the fiber or wireless choices were planned at the default prices, so changing a value reprices that same plan without redrawing it.
         </p>
         <button className="btn line" style={{ marginTop: 10 }} onClick={() => setA(data.meta.assumptions)}>Reset assumptions</button>
 

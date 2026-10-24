@@ -63,7 +63,7 @@ export function DetectorFacts() {
         {near && <div className="stat-card"><div className="v">{pct(near.recall)}</div><div className="l">Of nearby poles found</div></div>}
         <div className="stat-card"><div className="v">{num(m.valImages)}</div><div className="l">Test photos from streets it never saw</div></div>
       </div>
-      <p className="small" style={{ marginTop: 8, color: "#4a5870" }}>Measured against Mapillary&apos;s own labels, so it shows agreement with them. Far-away poles are harder: the detector finds about {pct(m.recallByDistance?.far?.recall ?? 0)} of those.</p>
+      <p className="small" style={{ marginTop: 8, color: "var(--mute)" }}>Measured against Mapillary&apos;s own labels, so it shows agreement with them. Far-away poles are harder: the detector finds about {pct(m.recallByDistance?.far?.recall ?? 0)} of those.</p>
     </div>
   );
 }

@@ -50,10 +50,10 @@ export default function Search({ initial = "", autoFocus = false }: { initial?: 
       />
       <button className="btn" type="submit">Check</button>
       {open && items.length > 0 && (
-        <ul role="listbox" style={{ position: "absolute", left: 0, right: 0, top: "100%", zIndex: 30, margin: "4px 0 0", padding: 0, listStyle: "none", background: "#fff", border: "1px solid var(--line)", boxShadow: "0 6px 18px rgba(15,27,45,0.18)" }}>
+        <ul role="listbox" style={{ position: "absolute", left: 0, right: 0, top: "100%", zIndex: 30, margin: "4px 0 0", padding: 0, listStyle: "none", background: "var(--card)", border: "1px solid var(--line)", boxShadow: "0 6px 18px rgba(15,27,45,0.18)" }}>
           {items.map((s, i) => (
             <li key={s} role="option" aria-selected={i === sel} onMouseDown={(e) => { e.preventDefault(); setQ(s); typed.current = false; go(s); }} onMouseEnter={() => setSel(i)}
-              style={{ padding: "11px 14px", cursor: "pointer", fontSize: 16, background: i === sel ? "#e8f0fd" : "#fff", borderBottom: i < items.length - 1 ? "1px solid var(--line)" : 0, color: "#0f1b2d" }}>{s}</li>
+              style={{ padding: "11px 14px", cursor: "pointer", fontSize: 16, background: i === sel ? "#e8f0fd" : "#fff", borderBottom: i < items.length - 1 ? "1px solid var(--line)" : 0, color: "var(--ink)" }}>{s}</li>
           ))}
         </ul>
       )}

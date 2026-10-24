@@ -18,7 +18,10 @@ export const viewport: Viewport = { width: "device-width", initialScale: 1, them
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="en" className={`${sans.variable} ${mono.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: `try{var t=localStorage.getItem("fiberpath-theme");if(t)document.documentElement.dataset.theme=t}catch(e){}` }} />
+      </head>
       <body>
         <Shell>{children}</Shell>
       </body>

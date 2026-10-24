@@ -52,7 +52,7 @@ export default function Label() {
         return;
       } catch {}
     }
-    setMsg("Could not find a photo. Try again.");
+    setMsg("We could not find a photo, so please try again.");
   }, [index]);
   useEffect(() => { if (index && !item && !msg) next(); }, [index]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -157,12 +157,12 @@ export default function Label() {
   return (
     <main className="wrap page" style={{ maxWidth: 1100 }}>
       <h1>Check the pole detector</h1>
-      <p className="lede">Each photo shows what the detector marked as a utility pole. Tell us what it got right.</p>
+      <p className="lede">Each photo shows what the detector marked as a utility pole, and you tell us whether it got it right.</p>
       <ul className="small" style={{ margin: "12px 0 0 20px", display: "grid", gap: 4 }}>
         <li><b>Click a box</b> once if it is a real utility pole (green), twice if it is not (red). Boxes you leave blue count as real.</li>
         <li><b>Drag on the photo</b> to draw a box around a utility pole the detector missed. Click a yellow box to remove it.</li>
         <li><b>Keys:</b> Enter saves, S skips, U or Ctrl+Z undoes, R resets this photo.</li>
-        <li>A utility pole carries power or phone wires. Street lights, signs and trees do not count. If you cannot tell, press Skip.</li>
+        <li>A utility pole carries power or phone wires, so street lights, signs and trees do not count, and if you cannot tell, press Skip.</li>
       </ul>
 
       <div className="street-grid" style={{ gridTemplateColumns: "minmax(0, 1.7fr) minmax(0, 1fr)" }} data-fixed>
@@ -189,7 +189,7 @@ export default function Label() {
             <div className="stat"><div className="big sm">{stats.fake}</div><span className="label">Not poles</span></div>
             <div className="stat"><div className="big sm">{stats.missed}</div><span className="label">Poles you added</span></div>
           </div>
-          <p className="small" style={{ marginTop: 10 }}>Every answer is saved and the detector learns from it the next time it retrains. Aim for about 100 photos.</p>
+          <p className="small" style={{ marginTop: 10 }}>Every answer is saved and the detector learns from it the next time it retrains, so aim for about 100 photos.</p>
           <div className="row" style={{ marginTop: 12 }}>
             <button className="btn sm line" disabled={!saved.length} onClick={() => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(saved, null, 1)], { type: "application/json" })); a.download = "fiberpath-handchecks.json"; a.click(); }}>Download answers</button>
             <button className="btn sm line" disabled={!saved.length} onClick={() => { if (confirm("Delete all saved answers in this browser?")) { setSaved([]); try { localStorage.removeItem(KEY); } catch {} } }}>Clear</button>

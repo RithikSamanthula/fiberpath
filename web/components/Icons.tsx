@@ -12,6 +12,8 @@ export const ICONS: Record<string, React.ReactElement> = {
   search: <g {...P}><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4.5 4.5" /></g>,
   install: <g {...P}><path d="M12 4v11M7.5 11L12 15.5 16.5 11M5 20h14" /></g>,
   bookmark: <g {...P}><path d="M7 4h10v16l-5-4-5 4z" /></g>,
+  sun: <g {...P}><circle cx="12" cy="12" r="4" /><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6L7 7M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4" /></g>,
+  moon: <g {...P}><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z" /></g>,
   pole: <g {...P}><path d="M12 3v18M6 7h12M8 11h8" /></g>,
 };
 export default function Icon({ name, size = 24 }: { name: string; size?: number }) {

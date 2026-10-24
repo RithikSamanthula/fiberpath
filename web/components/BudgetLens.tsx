@@ -40,7 +40,7 @@ export default function BudgetLens({ data, onMask }: { data: County; onMask: (m:
   return (
     <>
       <h3>What a grant would buy</h3>
-      <p className="small">Pick a budget. The cheapest homes get connected first.</p>
+      <p className="small">Pick a budget and the cheapest homes get connected first.</p>
       <input type="range" min={0} max={100} value={pct} onChange={(e) => { setPct(Number(e.target.value)); setShow(true); }} style={{ width: "100%", marginTop: 10, accentColor: "#1b5fd1" }} aria-label="Grant size" />
       <div className="box soft" style={{ marginTop: 6 }}>
         <p className="big sm">{money(budget)}</p>

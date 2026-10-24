@@ -88,7 +88,7 @@ export default function LiveView({ startLat, startLon }: { startLat: number; sta
       };
       window.addEventListener("deviceorientationabsolute", onOri as any, true);
       window.addEventListener("deviceorientation", onOri as any, true);
-      const wid = navigator.geolocation.watchPosition((p) => { live.current.lat = p.coords.latitude; live.current.lon = p.coords.longitude; live.current.acc = p.coords.accuracy; setGps((g) => ({ acc: p.coords.accuracy, heading: g?.heading ?? null })); }, () => setStatus("Location is off. Allow location to place poles on the map."), { enableHighAccuracy: true, maximumAge: 1000 });
+      const wid = navigator.geolocation.watchPosition((p) => { live.current.lat = p.coords.latitude; live.current.lon = p.coords.longitude; live.current.acc = p.coords.accuracy; setGps((g) => ({ acc: p.coords.accuracy, heading: g?.heading ?? null })); }, () => setStatus("Location is turned off, so allow it if you want poles placed on the map."), { enableHighAccuracy: true, maximumAge: 1000 });
       setMode("camera"); setStatus("");
       let n = 0, t0 = performance.now();
       while (run.current === my) {
@@ -106,7 +106,7 @@ export default function LiveView({ startLat, startLon }: { startLat: number; sta
       window.removeEventListener("deviceorientation", onOri as any, true);
       navigator.geolocation.clearWatch(wid);
     } catch (e: any) {
-      setStatus(e?.name === "NotAllowedError" ? "Camera permission was declined." : "This device has no usable camera here. Try the replay instead.");
+      setStatus(e?.name === "NotAllowedError" ? "Camera permission was declined." : "This device does not have a usable camera here, so try the replay instead.");
       setMode("idle");
     }
   }

@@ -73,7 +73,7 @@ export function CountyBrowser({ onPick, current }: { onPick: (slug: string) => v
           <button {...chip(!!near)} onClick={() => {
             if (near) return setNear(null);
             setGeoErr("");
-            navigator.geolocation?.getCurrentPosition((p) => { setNear({ lat: p.coords.latitude, lon: p.coords.longitude }); setQ(""); }, () => setGeoErr("Location is off. Allow it to list nearby counties."), { timeout: 8000 });
+            navigator.geolocation?.getCurrentPosition((p) => { setNear({ lat: p.coords.latitude, lon: p.coords.longitude }); setQ(""); }, () => setGeoErr("Location is turned off, so allow it if you want to see nearby counties."), { timeout: 8000 });
           }}>Near me</button>
           <button {...chip(fccOnly)} onClick={() => setFccOnly(!fccOnly)}>FCC data only</button>
         </div>
@@ -87,7 +87,7 @@ export function CountyBrowser({ onPick, current }: { onPick: (slug: string) => v
 
       {view === "map" ? (
         <div style={{ padding: "0 0 8px" }}>
-          <p className="small" style={{ padding: "0 4px 8px" }}>Tap a blue dot to open that county. Gray dots are counties that have not been planned yet.</p>
+          <p className="small" style={{ padding: "0 4px 8px" }}>Tap a blue dot to open that county, and note that the gray dots are counties that have not been planned yet.</p>
           <UsMap height={420} onPick={(c, sl) => { if (sl) onPick(sl); else { setQ(c[1].replace(" County", "")); setView("list"); } }} />
         </div>
       ) : (
@@ -117,7 +117,7 @@ export function CountyBrowser({ onPick, current }: { onPick: (slug: string) => v
                 </button>
               );
             })}
-            {!list.length && <p style={{ padding: 20 }}>No planned county matches. More are added as the planning run finishes.</p>}
+            {!list.length && <p style={{ padding: 20 }}>No planned county matches yet, but more are added as the planning run finishes.</p>}
           </div>
           {list.length > shown && <p style={{ textAlign: "center", marginTop: 10 }}><button className="btn sm line" onClick={() => setShown((n) => n + 60)}>Show more ({num(list.length - shown)} left)</button></p>}
         </div>

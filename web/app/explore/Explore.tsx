@@ -50,11 +50,11 @@ export default function Explore() {
   return (
     <main className="wrap page">
       <h1>Explore the country</h1>
-      <p className="lede">Pick a state to see its counties. Counties with a plan open on the map. For the others, you can ask for one.</p>
+      <p className="lede">Pick a state to see its counties. Counties that already have a plan open on the map, and for the others you can ask for one.</p>
 
       <div style={{ marginTop: 28 }}><UsMap onPick={(c, slug) => { if (slug) location.href = `/county?county=${slug}`; else { setSt(c[2]); setQ(c[1].replace(" County", "")); } }} /></div>
       <div style={{ marginTop: 16 }}><LiveFeed /></div>
-      <p className="small" style={{ marginTop: 8 }}>Each dot is a county. Blue dots with a white ring have a plan. Click one to open it.</p>
+      <p className="small" style={{ marginTop: 8 }}>Each dot is a county, and the blue dots with a white ring already have a plan, so you can click one to open it.</p>
 
       <div className="row" style={{ marginTop: 28 }}>
         <label style={{ flex: "1 1 240px" }}><span className="label">State</span>
@@ -94,7 +94,7 @@ export default function Explore() {
 
       <div className="box soft" style={{ marginTop: 40 }}>
         <h3 style={{ marginTop: 0 }}>Run a co-op, a small provider or a county office?</h3>
-        <p>You can plan any county yourself with the open code. See <Link href="/about#run">how to run it</Link>.</p>
+        <p>Because the code is open, you can plan any county yourself, and here is <Link href="/about#run">how to run it</Link>.</p>
       </div>
     </main>
   );

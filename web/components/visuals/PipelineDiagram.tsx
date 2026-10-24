@@ -1,11 +1,11 @@
 // The six steps as one picture: public data goes in on the left, a plan comes out on the right.
 const STEPS = [
   { n: "1", t: "Find homes", d: "Building outlines", icon: "homes", color: "#d64533" },
-  { n: "2", t: "Find poles", d: "Street photos and a detector", icon: "pole", color: "#1b5fd1" },
-  { n: "3", t: "Check wireless", d: "Hills and tree height", icon: "hill", color: "#1c8c4e" },
+  { n: "2", t: "Find poles", d: "Street photos and a detector", icon: "pole", color: "var(--blue)" },
+  { n: "3", t: "Check wireless", d: "Hills and tree height", icon: "hill", color: "var(--green)" },
   { n: "4", t: "Pick the roads", d: "Cheapest route to every home", icon: "tree", color: "#f2a900" },
-  { n: "5", t: "Price it", d: "Cost for each home", icon: "tag", color: "#0f1b2d" },
-  { n: "6", t: "Share it", d: "Report and address lookup", icon: "doc", color: "#0f1b2d" },
+  { n: "5", t: "Price it", d: "Cost for each home", icon: "tag", color: "var(--ink)" },
+  { n: "6", t: "Share it", d: "Report and address lookup", icon: "doc", color: "var(--ink)" },
 ];
 
 function Icon({ k, c }: { k: string; c: string }) {

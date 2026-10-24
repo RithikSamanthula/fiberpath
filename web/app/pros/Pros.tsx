@@ -30,7 +30,7 @@ export default function Pros() {
           <p style={{ fontWeight: 700, marginBottom: 8 }}>Quick start</p>
           <div className="ah-actions" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", marginBottom: 20 }}>
             {[
-              ["Georgia's 9th District", "Rep. Clyde's district, nine whole counties", () => ["13011", "13111", "13123", "13137", "13157", "13241", "13257", "13281", "13291"].filter((g) => index.some((c) => c.geoid === g)), "Georgia's 9th District (Rep. Clyde), as drawn since 2023. Banks, Fannin, Gilmer, Habersham, Jackson, Rabun, Stephens, Towns and Union counties are fully inside it. Hall and Gwinnett are only partly inside, and plans cover whole counties, so they are left out of these totals."],
+              ["Georgia's 9th District", "Rep. Clyde's district, which is nine whole counties", () => ["13011", "13111", "13123", "13137", "13157", "13241", "13257", "13281", "13291"].filter((g) => index.some((c) => c.geoid === g)), "Georgia's 9th District (Rep. Clyde), as drawn since 2023. Banks, Fannin, Gilmer, Habersham, Jackson, Rabun, Stephens, Towns and Union counties are fully inside it. Hall and Gwinnett are only partly inside, and plans cover whole counties, so they are left out of these totals."],
               ["The 25 counties with the most unserved homes", "Real FCC data only", () => index.filter((c) => c.coverageSource === "fcc").sort((a, b) => b.unserved - a.unserved).slice(0, 25).map((c) => c.geoid)],
               ["Every county in Georgia", "The state we started with", () => index.filter((c) => c.state === "GA").map((c) => c.geoid)],
               ["Towns County, GA", "A small county to explore", () => index.filter((c) => c.slug === "towns-ga").map((c) => c.geoid)],

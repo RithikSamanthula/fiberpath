@@ -37,7 +37,7 @@ export default function StreetPage() {
         if (r.ok) { const j = await r.json(); setMsg(`${c.name}, ${c.state}`); go(j.lat, j.lon); setBusy(false); return; }
       } catch {}
     }
-    setMsg("No street with photos turned up. Try again, or search an address.");
+    setMsg("We could not find a street with photos, so try again or search for an address.");
     setBusy(false);
   }
 

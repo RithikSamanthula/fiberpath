@@ -65,7 +65,7 @@ export default function Report() {
       </div>
       <p className="label" style={{ marginTop: 28 }}>Grant report</p>
       <h1 style={{ marginTop: 8 }}>{meta.name}, {meta.state}: buildout plan</h1>
-      <p className="lede">The cheapest network to connect {num(c.homes)} homes without good internet. Made {meta.generated} from public data.</p>
+      <p className="lede">This is the cheapest network we found to connect {num(c.homes)} homes without good internet, built on {meta.generated} from public data.</p>
 
       <div className="stats" style={{ marginTop: 28 }}>
         <div className="stat"><div className="big">{num(c.homes)}</div><span className="label">Homes reached</span></div>
@@ -161,9 +161,9 @@ export default function Report() {
       <table>
         <thead><tr><th>Check</th><th>Method</th><th>Result</th></tr></thead>
         <tbody>
-          {b && <tr><td>Cost per home</td><td>Plan vs. the real {b.name} project ({num(b.homes)} homes, {money(b.total)})</td><td>{range(rg.lo.perHome, rg.hi.perHome, dollars)} vs. {dollars(b.per_home)}. The real project is cheaper because it serves hand-picked homes</td></tr>}
+          {b && <tr><td>Cost per home</td><td>Our plan compared with the real data {b.name} project ({num(b.homes)} homes, {money(b.total)})</td><td>{range(rg.lo.perHome, rg.hi.perHome, dollars)} vs. {dollars(b.per_home)}. The real project is cheaper because it serves hand-picked homes</td></tr>}
           <tr><td>Pole finding</td><td>FiberPath's own detector on {cv ? num(cv.valImages) : "held-out"} street photos from streets it never trained on; {num(meta.poleCount)} poles mapped in this county</td><td>{cv ? `${Math.round(((cv as any).photo?.accuracy ?? 0) * 100)}% of photos judged right, ${Math.round(((cv as any).recallByDistance?.near?.recall ?? 0) * 100)}% of nearby poles found` : "Not yet measured"}</td></tr>
-          <tr><td>Home counts</td><td>Building counts vs. FCC counts per hexagon</td><td>{meta.coverageSource === "fcc" ? "FCC data loaded" : "Needs FCC data"}</td></tr>
+          <tr><td>Home counts</td><td>How our building counts compare with the FCC counts in each hexagon</td><td>{meta.coverageSource === "fcc" ? "FCC data loaded" : "Needs FCC data"}</td></tr>
           <tr><td>Line of sight</td><td>20 homes checked by hand against terrain profiles</td><td>Not yet measured</td></tr>
         </tbody>
       </table>

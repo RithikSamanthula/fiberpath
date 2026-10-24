@@ -69,7 +69,7 @@ export default function Compare() {
             </tbody>
           </table></div>
           {rows.length > shown && <p style={{ marginTop: 8 }}><button className="btn sm line" onClick={() => setShown((n) => n + 50)}>Show more ({rows.length - shown} left)</button></p>}
-          <p className="small">“Fiber on poles” is the share of fiber that runs on roads with poles. Counties with more poles cost less to connect.</p>
+          <p className="small">“Fiber on poles” is the share of new fiber that runs along roads that already have poles, and counties with more of those roads cost less to connect.</p>
         </>
       )}
     </main>
@@ -90,7 +90,7 @@ function Scatter({ rows }: { rows: { name: string; x: number; y: number; slug: s
   return (
     <div style={{ marginTop: 28 }}>
       <h2 style={{ margin: "0 0 8px" }}>Every county at a glance</h2>
-      <p className="small" style={{ marginBottom: 8 }}>Each dot is a county. Dots further right cost more to connect a home. Dots higher up have more homes without service. The line shows the middle county.</p>
+      <p className="small" style={{ marginBottom: 8 }}>Each dot is a county. The further right a dot sits, the more it costs to connect a home there, and the higher it sits, the more homes in that county lack service. The line marks the middle county.</p>
       <svg className="chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Cost per home against homes without service for each county">
         {[0.25, 0.5, 0.75, 1].map((f) => <g key={f}><line x1={L} x2={W - R} y1={T + (1 - f) * (H - T - B)} y2={T + (1 - f) * (H - T - B)} stroke="#e4e0d6" /></g>)}
         {[1000, 3000, 6000, 10000, 15000].filter((v) => v < xmax).map((v) => <text key={v} x={X(v)} y={H - 18} textAnchor="middle">{"$" + v.toLocaleString("en-US")}</text>)}

@@ -60,7 +60,7 @@ export function PolesPanel() {
   const [ref, vis] = useVisible<HTMLDivElement>();
   const d = useTowns(vis);
   return (
-    <Frame forwardRef={ref} title="Utility poles found" big={d ? num(d.meta.poleCount) : "—"} note="Spotted in street photos. Roads with poles are cheaper to build on">
+    <Frame forwardRef={ref} title="Utility poles found" big={d ? num(d.meta.poleCount) : "—"} note="Poles spotted in street photos, because roads that have poles are cheaper to build on">
       {d && <MapView data={d} layers={L({ poles: true, plan: true })} progress={1} still focus={{ lon: -83.76, lat: 34.95, zoom: 9000, key: 2 }} />}
     </Frame>
   );
@@ -102,7 +102,7 @@ export function TerrainPanel() {
   const [ref, vis] = useVisible<HTMLDivElement>();
   const d = useTowns(vis, true);
   return (
-    <Frame forwardRef={ref} tall title="The county in 3D" big="3D" note="Hills, forest and every route. Drag to turn it">
+    <Frame forwardRef={ref} tall title="The county in 3D" big="3D" note="The hills, the forest and every route, which you can drag to turn">
       {d && <Terrain3D data={d} progress={1} spin compact />}
     </Frame>
   );

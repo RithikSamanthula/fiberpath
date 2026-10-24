@@ -12,7 +12,7 @@ export default function Accuracy() {
   useEffect(() => { fetch(`${DATA_BASE}/cv-metrics.json`).then((r) => (r.ok ? r.json() : null)).then(setM).catch(() => {}); }, []);
   if (!m) return <p className="small">Loading</p>;
   const bars: [string, number, string][] = [
-    ["Does a photo have a utility pole? Right answer", m.photo.accuracy, "#1b5fd1"],
+    ["Does the photo have a utility pole, and was the detector right?", m.photo.accuracy, "#1b5fd1"],
     ["Poles close to the camera that it finds", m.recallByDistance.near?.recall ?? 0, "#1b5fd1"],
     ["Poles it marks that are real", m.precision, "#1c8c4e"],
     ["Labeled poles it finds", m.recall, "#f2a900"],
@@ -43,7 +43,7 @@ export default function Accuracy() {
             );
           })}
         </svg>
-        <p className="small">Poles close to the camera are found most of the time. Poles far down the road are much harder.</p>
+        <p className="small">The detector finds poles close to the camera most of the time, but poles far down the road are much harder to spot.</p>
       </div>
     </div>
   );

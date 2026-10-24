@@ -100,10 +100,10 @@ export default function Sight() {
 
           <Chart p={p} />
           <p className="small" style={{ marginTop: 8 }}>
-            {(p.dist / 1000).toFixed(2)} km path · tower {num(25)} m, home {num(6)} m above ground · 5.8 GHz. Green or red dashed line: the signal path. Amber line: the lower edge of the room the signal needs. Hatched green: trees. Dark: ground.
+            {(p.dist / 1000).toFixed(2)} km path · tower {num(25)} m, home {num(6)} m above ground · 5.8 GHz. The dashed green or red line is the signal path, the amber line is the lower edge of the clear space the signal needs, the hatched green areas are trees and the dark area is the ground.
           </p>
 
-          <div style={{ height: 380, marginTop: 24, border: "1px solid #d6d1c4", display: "flex", flexDirection: "column" }}>
+          <div style={{ height: 380, marginTop: 24, border: "1px solid var(--line)", display: "flex", flexDirection: "column" }}>
             <MapView data={data} layers={layers} selected={home} onPick={(h) => h && choose(h)} link={{ a: [tower.lon, tower.lat], b: [home.lon, home.lat] }} focus={{ lon: (tower.lon + home.lon) / 2, lat: (tower.lat + home.lat) / 2, zoom: Math.min(160000, 5.2e6 / Math.max(p.dist, 800) * 0.9) , key: home.i * 100 + tower.id }} />
           </div>
           <p className="small" style={{ marginTop: 8 }}>Tap a home on the map to check it against the tower.</p>

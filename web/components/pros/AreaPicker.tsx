@@ -32,7 +32,7 @@ export default function AreaPicker({ index, value, onChange, single }: { index: 
             <span>{c.name}{!st ? `, ${c.state}` : ""}</span>
           </label>
         ))}
-        {!list.length && <p className="small" style={{ padding: 12 }}>No planned county matches. More are added as the planning run finishes.</p>}
+        {!list.length && <p className="small" style={{ padding: 12 }}>No planned county matches yet, but more are added as the planning run finishes.</p>}
       </div>
       <p className="small" style={{ marginTop: 6 }}>{value.length} selected{list.length > 120 ? `, showing the first 120 of ${list.length}` : ""}</p>
     </div>

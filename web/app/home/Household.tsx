@@ -121,7 +121,7 @@ export default function Household() {
       {err && <p className="box red" style={{ marginTop: 32 }} role="alert">{err}</p>}
       {!address && !busy && (
         <div className="box soft" style={{ marginTop: 28, display: "grid", gap: 8, maxWidth: 560 }}>
-          <b style={{ fontSize: 18 }}>Type any U.S. address to see where it stands</b>
+          <b style={{ fontSize: 18 }}>Type any U.S. address to see where it stands on internet service</b>
           <p className="small">You get the internet speed tier the FCC reports there, who offers service, and what a fix would cost. Want an example? <a href="/home?address=6333%20US%20Hwy%2076%2C%20Hiawassee%2C%20GA">6333 US Hwy 76, Hiawassee, GA</a> has no good service today.</p>
         </div>
       )}
@@ -234,7 +234,7 @@ export default function Household() {
                     <div className="stat"><div className="big sm">{est.homesNearby ?? "—"}</div><span className="label">Homes within 300 m</span></div>
                   </div>
                   {est.partial && <p className="small" style={{ marginTop: 8 }}>Some map data did not respond, so these numbers may be incomplete.</p>}
-                  {est.polesOnRoad === 0 && <p className="small" style={{ marginTop: 8 }}>“None seen” means no poles showed up in street photos. There may still be some.</p>}
+                  {est.polesOnRoad === 0 && <p className="small" style={{ marginTop: 8 }}>“None seen” only means no poles showed up in the street photos, so there may still be some on that road.</p>}
                   <Calculator est={est} />
                 </>
               )}
@@ -242,7 +242,7 @@ export default function Household() {
               <RaiseHand county={res.county?.name ?? ""} pledge={pledge} onRaise={raise} />
 
               <h2>Ask for a plan for {res.county?.name ?? "this county"}</h2>
-              <p>A full plan finds every home and prices every route. Counties with the most requests are planned first.</p>
+              <p>A full plan finds every home and prices every route, and the counties with the most requests get planned first.</p>
               <div className="row" style={{ marginTop: 14 }}>
                 <button className="btn dark" onClick={requestPlan} disabled={reqState.state === "done"}>{reqState.state === "done" ? "Requested" : "Request a plan"}</button>
                 {reqState.state === "done" && <span>{num(reqState.n ?? 1)} {reqState.n === 1 ? "request" : "requests"} so far for this county.</span>}
@@ -266,7 +266,7 @@ function RaiseHand({ county, pledge, onRaise }: { county: string; pledge: { stat
   return (
     <div className="noprint">
       <h2>Raise your hand</h2>
-      <p>One tap adds your home to your community&apos;s count. Providers and counties use these counts to ask for funding.</p>
+      <p>One tap adds your home to your community&apos;s count, which providers and counties use when they ask for funding.</p>
       <div className="row" style={{ marginTop: 14 }}>
         <button className="btn" onClick={onRaise} disabled={pledge.state === "saving" || pledge.state === "done"}>
           {pledge.state === "done" ? "You are counted" : pledge.state === "saving" ? "Saving" : "Raise your hand"}
@@ -274,7 +274,7 @@ function RaiseHand({ county, pledge, onRaise }: { county: string; pledge: { stat
         {pledge.state === "done" && <span>{num(pledge.total ?? 0)} {pledge.total === 1 ? "home has" : "homes have"} raised a hand{county ? ` in ${county}` : ""}.</span>}
         {pledge.state === "error" && <span role="alert">{pledge.msg}</span>}
       </div>
-      <p className="small" style={{ marginTop: 10 }}>Privacy: counts are only shown for areas with many homes. No address is ever shown.</p>
+      <p className="small" style={{ marginTop: 10 }}>Counts only appear for areas with many homes, and no one ever sees an address.</p>
     </div>
   );
 }
@@ -291,7 +291,7 @@ function Calculator({ est }: { est: Estimate }) {
   return (
     <div className="box" style={{ marginTop: 20 }}>
       <h3 style={{ marginTop: 0 }}>Rough cost to reach this address</h3>
-      <p className="small">A quick estimate, not a plan. Change the numbers to see how distance, poles and sharing change the price.</p>
+      <p className="small">This is a quick estimate rather than a full plan, and you can change the numbers to see how distance, poles and sharing affect the price.</p>
       <div className="row" style={{ marginTop: 14, alignItems: "flex-end" }}>
         <label style={{ flex: "1 1 150px" }}><span className="label">Fiber to build (km)</span>
           <input className="field" style={{ minHeight: 46, fontSize: 16 }} inputMode="decimal" value={km} onChange={(e) => setKm(Math.max(0, Number(e.target.value) || 0))} /></label>
@@ -315,7 +315,7 @@ function Next({ office, served }: { office: { name: string; href: string }; serv
           {served ? "If this listing is wrong, " : "If a provider is listed that does not actually serve you, "}
           <a href="https://www.fcc.gov/BroadbandData/consumers">file a challenge with the FCC</a>, and check <a href="https://broadbandmap.fcc.gov">the National Broadband Map</a>.
         </li>
-        <li>Tell your neighbors. The counts only help when many homes are included.</li>
+        <li>Tell your neighbors, because the counts only help when many homes are included.</li>
       </ul>
     </div>
   );
