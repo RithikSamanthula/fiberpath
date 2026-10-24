@@ -12,6 +12,7 @@ pipeline/*.pt
 .DS_Store
 web/public/data/*/
 !web/public/data/towns-ga/
+!web/public/data/packs/
 web/tsconfig.tsbuildinfo
 *.pdf
 web/public/data/index.json
