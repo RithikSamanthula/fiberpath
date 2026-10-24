@@ -161,7 +161,9 @@ async function fetchCounty(slug: string): Promise<County> {
     let res = await fetch(`${DATA_BASE}/packs/${item.geoid}.fpk`).catch(() => null);
     if (!res?.ok || /html/.test(res.headers.get("content-type") ?? "")) res = await fetch(`/api/data/${item.geoid}/pack`);
     const f = await unpack(res);
-    return build(json(f["county.json"]), json(f["homes.json"]), json(f["roads.json"]), json(f["plan.json"]), json(f["towers.json"]), json(f["poles.json"]));
+    const meta = json(f["county.json"]);
+    meta.slug = item.slug;
+    return build(meta, json(f["homes.json"]), json(f["roads.json"]), json(f["plan.json"]), json(f["towers.json"]), json(f["poles.json"]));
   }
   const base = `${DATA_BASE}/${slug}`;
   const j = async (f: string) => {
@@ -198,7 +200,11 @@ function mergeIdx(a: IndexItem[], b: IndexItem[]) {
   for (const i of a) m.set(i.geoid, i);
   const rank = (x: IndexItem) => (x.coverageSource === "fcc" ? 10 : 0) + (x.planVersion ?? 1);
   for (const i of b) { const o = m.get(i.geoid); if (!o || rank(i) >= rank(o)) m.set(i.geoid, i); }
-  return [...m.values()];
+  // Virginia's independent cities share a name with a county (Fairfax, Richmond, Roanoke...), so give them their own slug
+  const out = [...m.values()];
+  const n = new Map<string, number>();
+  for (const i of out) n.set(i.slug, (n.get(i.slug) ?? 0) + 1);
+  return out.map((i) => (n.get(i.slug)! > 1 && !/county|parish|borough/i.test(i.name) ? { ...i, slug: `${i.slug}-${/ city$/i.test(i.name) ? "city" : i.geoid}` } : i));
 }
 
 async function refresh() {
