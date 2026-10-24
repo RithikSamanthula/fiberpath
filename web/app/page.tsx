@@ -2,6 +2,7 @@ import Link from "next/link";
 import DetectionDemo from "@/components/cv/DetectionDemo";
 import HeroMap from "@/components/HeroMap";
 import Icon from "@/components/Icons";
+import Logo from "@/components/Logo";
 import { DetectorFacts, LiveStats, SavedPlaces } from "@/components/HomeWidgets";
 import LiveFeed from "@/components/LiveFeed";
 import Search from "@/components/Search";
@@ -20,6 +21,7 @@ export default function Home() {
     <main className="ah">
       <section className="ah-top">
         <div className="ah-card">
+          <div className="ah-brand"><Logo size={30} /></div>
           <h1>Is your home connected?</h1>
           <p className="lede">Check any U.S. address for fast internet. FiberPath plans the cheapest way to reach the homes that are left.</p>
           <Search autoFocus />

@@ -119,7 +119,12 @@ export default function Household() {
 
       {busy && <p style={{ marginTop: 32 }}>Looking up your address</p>}
       {err && <p className="box red" style={{ marginTop: 32 }} role="alert">{err}</p>}
-      {!address && !busy && <p style={{ marginTop: 32 }}>Enter an address above.</p>}
+      {!address && !busy && (
+        <div className="box soft" style={{ marginTop: 28, display: "grid", gap: 8, maxWidth: 560 }}>
+          <b style={{ fontSize: 18 }}>Type any U.S. address to see where it stands</b>
+          <p className="small">You get the internet speed tier the FCC reports there, who offers service, and what a fix would cost. Want an example? <a href="/home?address=6333%20US%20Hwy%2076%2C%20Hiawassee%2C%20GA">6333 US Hwy 76, Hiawassee, GA</a> has no good service today.</p>
+        </div>
+      )}
 
       {res && (
         <section style={{ marginTop: 32 }}>

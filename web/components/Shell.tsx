@@ -3,6 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Icon from "./Icons";
+import Logo, { LogoMark } from "./Logo";
 
 const TABS: [string, string, string][] = [
   ["/", "Home", "home"],
@@ -33,15 +34,15 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="shell">
       <nav className="rail noprint" aria-label="Main">
-        <Link href="/" className="rail-brand" aria-label="FiberPath home"><span className="mark" aria-hidden="true" /></Link>
+        <Link href="/" className="rail-brand" aria-label="FiberPath home"><Logo size={34} /></Link>
         {TABS.map(([href, label, icon]) => (
           <Link key={href} href={href} className="rail-tab" aria-current={active(path, href) ? "page" : undefined}>
-            <Icon name={icon} /><span>{label}</span>
+            <span className="ti"><Icon name={icon} size={20} /></span><span className="tl">{label}</span>
           </Link>
         ))}
         <span className="rail-gap" />
-        {prompt && <button className="rail-tab install" onClick={() => { prompt.prompt(); setPrompt(null); }}><Icon name="install" /><span>Install</span></button>}
-        <Link href="/about" className="rail-tab more" aria-current={active(path, "/about") ? "page" : undefined}><Icon name="more" /><span>About</span></Link>
+        {prompt && <button className="rail-tab install" onClick={() => { prompt.prompt(); setPrompt(null); }}><span className="ti"><Icon name="install" size={20} /></span><span className="tl">Install the app</span></button>}
+        <Link href="/about" className="rail-tab more" aria-current={active(path, "/about") ? "page" : undefined}><span className="ti"><Icon name="more" size={20} /></span><span className="tl">About</span></Link>
       </nav>
       <div className="shell-main">
         {!online && <div className="offline" role="status">You are offline. Pages you opened before still work.</div>}
