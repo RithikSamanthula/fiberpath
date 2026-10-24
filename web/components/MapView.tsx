@@ -58,7 +58,7 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
     const { w, h, dpr } = size.current;
     const ctx = cv.getContext("2d")!;
     const { data, layers, progress, selected, link, hexes, contours, reach, ghost, pulse, satellite } = props.current;
-    const BG = "#0f1b2d", ROAD = "#31435f", LINE = "#7d90b3", MUTE = "#51658a";
+    const BG = "#0d0d0d", ROAD = "#333333", LINE = "#8a8a8a", MUTE = "#666666";
     const BLUE = "#4d8dff", AMBER = "#ffb81c", GREEN = "#38c47c", RED = "#ff5a4a", WHITE = "#ffffff";
     const k = cosφ();
     const X = (lon: number) => (lon - v.lon) * k * v.s + w / 2;
@@ -114,7 +114,7 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
       ctx.stroke();
 
       if (contours) {
-        for (const [seg, color, lw] of [[contours.minor, "#16273f", 0.8], [contours.major, "#22385a", 1.2]] as const) {
+        for (const [seg, color, lw] of [[contours.minor, "#1d1d1d", 0.8], [contours.major, "#2a2a2a", 1.2]] as const) {
           ctx.strokeStyle = color;
           ctx.lineWidth = lw;
           ctx.beginPath();

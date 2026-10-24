@@ -155,11 +155,11 @@ export default function LiveView({ startLat, startLon }: { startLat: number; sta
   return (
     <div className="street-grid">
       <div style={{ minWidth: 0 }}>
-        <div style={{ position: "relative", background: "#0a1424", borderRadius: 0, overflow: "hidden", minHeight: 300 }}>
+        <div style={{ position: "relative", background: "#080808", borderRadius: 0, overflow: "hidden", minHeight: 300 }}>
           <video ref={video} playsInline muted style={{ width: "100%", display: mode === "camera" ? "block" : "none" }} />
           <canvas ref={replayCv} style={{ width: "100%", display: mode === "replay" ? "block" : "none" }} />
           <canvas ref={over} style={{ position: "absolute", left: 0, top: 0, width: "100%", height: "100%", display: mode === "camera" ? "block" : "none", pointerEvents: "none" }} />
-          {mode === "idle" && <div style={{ display: "grid", placeItems: "center", minHeight: 360, color: "#aebad0", textAlign: "center", padding: 24 }}>{status || (ready ? "Detector ready" : "Loading the detector")}</div>}
+          {mode === "idle" && <div style={{ display: "grid", placeItems: "center", minHeight: 360, color: "#b3b3b3", textAlign: "center", padding: 24 }}>{status || (ready ? "Detector ready" : "Loading the detector")}</div>}
           {fps !== null && <div style={{ position: "absolute", right: 10, top: 10, background: "rgba(15,27,45,0.85)", color: "#fff", padding: "4px 10px", fontSize: 13 }}>{fps.toFixed(1)} frames a second</div>}
         </div>
         <div className="row" style={{ marginTop: 12 }}>

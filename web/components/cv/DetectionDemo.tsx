@@ -43,7 +43,7 @@ export default function DetectionDemo() {
         <PhotoDetect key={i} src={cur.img} boxes={cur.boxes} candidates={cur.candidates} stage={STEPS[s].stage} animate ratio={0.5625} />
         <div style={{ display: "flex", marginTop: 10 }}>
           {STEPS.map((st, k) => (
-            <div key={k} style={{ flex: 1, padding: "8px 12px", borderTop: `4px solid ${k === s ? "#4d8dff" : "#2a3d5c"}`, color: k === s ? "#fff" : "#7f93b5" }}>
+            <div key={k} style={{ flex: 1, padding: "8px 12px", borderTop: `4px solid ${k === s ? "#4d8dff" : "#333333"}`, color: k === s ? "#fff" : "#7f93b5" }}>
               <div style={{ fontWeight: 800 }}>{st.t}</div>
               <div className="small">{st.d}</div>
             </div>
@@ -55,7 +55,7 @@ export default function DetectionDemo() {
         <Tile big={String(other)} label="Street lights and other poles, left out" color="#ffffff" />
         {m && <Tile big={`${Math.round(m.precision * 100)}%`} label={`Of the poles it marks, how many are real (tested on ${m.valImages} new photos)`} color="#38c47c" />}
         {m && <Tile big={`${Math.round(m.recall * 100)}%`} label="Of the labeled poles, how many it finds" color="#ffb81c" />}
-        <p className="small" style={{ color: "#8fa3c4" }}>{cur.place}. Photos from Mapillary contributors</p>
+        <p className="small" style={{ color: "#9a9a9a" }}>{cur.place}. Photos from Mapillary contributors</p>
       </div>
     </div>
   );
@@ -63,9 +63,9 @@ export default function DetectionDemo() {
 
 function Tile({ big, label, color }: { big: string; label: string; color: string }) {
   return (
-    <div style={{ background: "#0a1424", borderLeft: `6px solid ${color}`, padding: "12px 16px", color: "#fff" }}>
+    <div style={{ background: "#080808", borderLeft: `6px solid ${color}`, padding: "12px 16px", color: "#fff" }}>
       <div style={{ fontSize: 38, fontWeight: 800, lineHeight: 1 }}>{big}</div>
-      <div className="small" style={{ color: "#c6d1e4", marginTop: 4 }}>{label}</div>
+      <div className="small" style={{ color: "#cfcfcf", marginTop: 4 }}>{label}</div>
     </div>
   );
 }

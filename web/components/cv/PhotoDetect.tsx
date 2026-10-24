@@ -129,7 +129,7 @@ export default function PhotoDetect({ src, boxes, reference, candidates, stage =
   }, [boxes, reference, candidates, stage, scanning]);
 
   return (
-    <div ref={wrap} style={{ position: "relative", width: "100%", paddingTop: `${ratio * 100}%`, background: "#0a1424", borderRadius: rounded ? 3 : 0, overflow: "hidden" }}>
+    <div ref={wrap} style={{ position: "relative", width: "100%", paddingTop: `${ratio * 100}%`, background: "#080808", borderRadius: rounded ? 3 : 0, overflow: "hidden" }}>
       <canvas ref={cv} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} role="img" aria-label="Street photo with detected utility poles outlined" />
     </div>
   );

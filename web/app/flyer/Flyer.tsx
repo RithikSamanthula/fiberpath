@@ -10,7 +10,7 @@ export default function Flyer() {
   const [qr, setQr] = useState("");
   useEffect(() => {
     if (!slug) return;
-    QRCode.toString(`${location.origin}/home`, { type: "svg", margin: 0, color: { dark: "#0f1b2d", light: "#ffffff" } }).then(setQr).catch(() => {});
+    QRCode.toString(`${location.origin}/home`, { type: "svg", margin: 0, color: { dark: "#0d0d0d", light: "#ffffff" } }).then(setQr).catch(() => {});
   }, [slug]);
   const c = data ? totalCost(data.meta.totals, data.meta.assumptions) : null;
   const t = data?.meta.totals;
@@ -21,7 +21,7 @@ export default function Flyer() {
         <button className="btn" onClick={() => window.print()}>Print the flyer</button>
       </div>
       {data && c && t && (
-        <div style={{ border: "4px solid #0f1b2d", padding: 36 }} className="flyer-sheet">
+        <div style={{ border: "4px solid #0d0d0d", padding: 36 }} className="flyer-sheet">
           <h1 style={{ fontSize: 52, lineHeight: 1.05 }}>{num(t.unserved)} homes in {data.meta.name} do not have good internet</h1>
           <p style={{ fontSize: 22, marginTop: 14 }}>A plan already exists to connect all of them, and it would cost about {range(costRange(t, data.meta.assumptions).lo.total, c.total, money)}, or {range(costRange(t, data.meta.assumptions).lo.perHome, c.perHome, dollars)} a home.</p>
           <div className="flyer-grid">

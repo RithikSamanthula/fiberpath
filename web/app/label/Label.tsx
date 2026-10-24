@@ -167,9 +167,9 @@ export default function Label() {
 
       <div className="street-grid" style={{ gridTemplateColumns: "minmax(0, 1.7fr) minmax(0, 1fr)" }} data-fixed>
         <div>
-          {!item && <div style={{ background: "#0a1424", color: "#aebad0", display: "grid", placeItems: "center", height: 380 }}>{msg || "Loading"}</div>}
+          {!item && <div style={{ background: "#080808", color: "#b3b3b3", display: "grid", placeItems: "center", height: 380 }}>{msg || "Loading"}</div>}
           {item && (
-            <div ref={wrap} style={{ position: "relative", width: "100%", paddingTop: `${ratio * 100}%`, background: "#0a1424" }}>
+            <div ref={wrap} style={{ position: "relative", width: "100%", paddingTop: `${ratio * 100}%`, background: "#080808" }}>
               <canvas ref={cv} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "crosshair", touchAction: "none" }} aria-label="Street photo with detector boxes" />
             </div>
           )}

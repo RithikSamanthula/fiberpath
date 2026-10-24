@@ -20,8 +20,8 @@ export default function HomeContext({ slug, home, lat, lon }: { slug?: string; h
   return (
     <div className={slug && home && !noPhotos ? "hh-visuals" : ""} style={{ marginTop: 20 }}>
       {slug && home && (
-        <div style={{ minHeight: noPhotos ? 440 : 360, display: "flex", flexDirection: "column", borderRadius: 0, overflow: "hidden", position: "relative", background: "#0f1b2d" }}>
-          {d ? <MapView data={d} layers={layers} selected={home} link={link} progress={1} pulse satellite focus={{ lon: home.lon, lat: home.lat, zoom: 22000, key: home.i }} /> : <span style={{ margin: "auto", color: "#aebad0" }}>Loading the plan</span>}
+        <div style={{ minHeight: noPhotos ? 440 : 360, display: "flex", flexDirection: "column", borderRadius: 0, overflow: "hidden", position: "relative", background: "#0d0d0d" }}>
+          {d ? <MapView data={d} layers={layers} selected={home} link={link} progress={1} pulse satellite focus={{ lon: home.lon, lat: home.lat, zoom: 22000, key: home.i }} /> : <span style={{ margin: "auto", color: "#b3b3b3" }}>Loading the plan</span>}
           <span className="label" style={{ position: "absolute", left: 10, top: 10, background: "var(--card)", padding: "4px 8px" }}>Your home on the plan</span>
         </div>
       )}

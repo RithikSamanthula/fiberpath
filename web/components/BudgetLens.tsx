@@ -46,7 +46,7 @@ export default function BudgetLens({ data, onMask }: { data: County; onMask: (m:
         <p className="big sm">{money(budget)}</p>
         <p className="small">connects <strong>{num(funded)}</strong> of {num(order.length)} homes ({order.length ? Math.round((funded / order.length) * 100) : 0}%), about {funded ? dollars(budget / funded) : "—"} each.</p>
         <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", marginTop: 8, display: "block" }} role="img" aria-label="Homes connected as the budget grows">
-          <polyline points={line} fill="none" stroke="#0f1b2d" strokeWidth="2" />
+          <polyline points={line} fill="none" stroke="#0d0d0d" strokeWidth="2" />
           <line x1={mx} x2={mx} y1={0} y2={H} stroke="#1b5fd1" strokeWidth="1.5" strokeDasharray="4 3" />
           <circle cx={mx} cy={my} r="5" fill="#1b5fd1" />
         </svg>

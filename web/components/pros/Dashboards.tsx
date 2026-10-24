@@ -48,7 +48,7 @@ function Bars({ rows, fmt, color = "#1b5fd1", mark }: { rows: { name: string; v:
           {r.href ? <Link href={r.href} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</Link> : <span>{r.name}</span>}
           <div className="bar" style={{ height: 16, marginTop: 0, borderRadius: 0, position: "relative" }}>
             <i style={{ width: `${(r.v / max) * 100}%`, background: color, borderRadius: 0 }} />
-            {mark && <span title={mark.label} style={{ position: "absolute", left: `${(mark.v / max) * 100}%`, top: -3, bottom: -3, width: 2, background: "#0f1b2d" }} />}
+            {mark && <span title={mark.label} style={{ position: "absolute", left: `${(mark.v / max) * 100}%`, top: -3, bottom: -3, width: 2, background: "#0d0d0d" }} />}
           </div>
           <b style={{ textAlign: "right" }}>{fmt(r.v)}</b>
         </div>
@@ -89,7 +89,7 @@ function Histogram({ values, fmt }: { values: number[]; fmt: (v: number) => stri
   return (
     <svg viewBox="0 0 360 130" className="chart" style={{ border: 0 }} role="img" aria-label="How many counties fall in each cost per home range">
       {h.map((n, i) => <rect key={i} x={i * 30 + 3} y={100 - (n / m) * 92} width={24} height={(n / m) * 92} rx={3} fill="#1b5fd1" />)}
-      <line x1="0" y1="100" x2="360" y2="100" stroke="#0f1b2d" />
+      <line x1="0" y1="100" x2="360" y2="100" stroke="#0d0d0d" />
       <text x="2" y="118">{fmt(lo)}</text><text x="358" y="118" textAnchor="end">{fmt(hi)}+</text>
     </svg>
   );
@@ -141,12 +141,12 @@ export default function Workspace({ items, name, note, prices, setPrices }: { it
       <div className="ah-card" style={{ padding: 24, borderRadius: 0, gap: 14 }}>
         <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
-            <p className="label" style={{ color: "#aebad0" }}>{items.length} {items.length === 1 ? "county" : "counties"}</p>
+            <p className="label" style={{ color: "#b3b3b3" }}>{items.length} {items.length === 1 ? "county" : "counties"}</p>
             <h2 style={{ margin: "4px 0 0", color: "#fff", fontSize: 28 }}>{name || "Your workspace"}</h2>
           </div>
           <div style={{ minWidth: 240 }}>
-            <p className="small" style={{ color: "#c6d0e2" }}>{nFcc} of {items.length} on real FCC data</p>
-            <div className="seg" style={{ height: 10, borderRadius: 0, overflow: "hidden", background: "#243653" }}><i style={{ width: `${items.length ? (nFcc / items.length) * 100 : 0}%`, background: "var(--green)" }} /></div>
+            <p className="small" style={{ color: "#cfcfcf" }}>{nFcc} of {items.length} on real FCC data</p>
+            <div className="seg" style={{ height: 10, borderRadius: 0, overflow: "hidden", background: "#2e2e2e" }}><i style={{ width: `${items.length ? (nFcc / items.length) * 100 : 0}%`, background: "var(--green)" }} /></div>
             {nFcc > 0 && nFcc < items.length && (
               <button className="btn sm" style={{ marginTop: 8, background: withEst ? "transparent" : "#fff", color: withEst ? "#fff" : "var(--ink)", borderColor: "#fff" }} aria-pressed={withEst} onClick={() => setWithEst(!withEst)}>
                 {withEst ? "Counting estimated counties too" : "Counting FCC counties only"}

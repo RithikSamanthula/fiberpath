@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 
 type Offer = { brand: string; tech: string; down: number; up: number; here: boolean; homes: number; hereN: number };
-const TECH_COLOR: Record<string, string> = { Fiber: "#1b5fd1", Cable: "#7a6a4f", Copper: "#8a8f99", "Fixed wireless": "#1c8c4e", Other: "#8a8f99" };
+const TECH_COLOR: Record<string, string> = { Fiber: "var(--blue)", Cable: "#7a6a4f", Copper: "#8a8f99", "Fixed wireless": "var(--green)", Other: "#8a8f99" };
 
 // Which companies report service near an address, and how fast, straight from the FCC's map
 export default function Providers({ lat, lon, state }: { lat: number; lon: number; state: string }) {

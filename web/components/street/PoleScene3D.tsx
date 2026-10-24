@@ -31,7 +31,7 @@ export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1
     const yaw = -((here?.heading ?? 0) * Math.PI) / 180 + st.current.yaw;
     const ctx = c.getContext("2d")!;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = "#0a1424";
+    ctx.fillStyle = "#080808";
     ctx.fillRect(0, 0, w, h);
     if (!frames.length) return;
     const lat0 = here.lat, lon0 = here.lon;
@@ -53,11 +53,11 @@ export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1
     }
     ctx.stroke();
     // the path the camera took
-    ctx.strokeStyle = "#5b6f90"; ctx.lineWidth = 6; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.strokeStyle = "#707070"; ctx.lineWidth = 6; ctx.lineCap = "round"; ctx.lineJoin = "round";
     ctx.beginPath();
     frames.forEach((f, i) => { const p = P(E(f.lon), N(f.lat), 0); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); });
     ctx.stroke();
-    ctx.strokeStyle = "#0a1424"; ctx.lineWidth = 2;
+    ctx.strokeStyle = "#080808"; ctx.lineWidth = 2;
     ctx.beginPath();
     frames.forEach((f, i) => { const p = P(E(f.lon), N(f.lat), 0); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); });
     ctx.stroke();
@@ -76,9 +76,9 @@ export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1
       const p = P(E(f.lon), N(f.lat), camH);
       const hd = (f.heading * Math.PI) / 180;
       const tip = P(E(f.lon) + Math.sin(hd) * 5, N(f.lat) + Math.cos(hd) * 5, camH);
-      ctx.strokeStyle = i === current ? "#ffb81c" : "#8fa3c4"; ctx.lineWidth = i === current ? 3 : 1.5;
+      ctx.strokeStyle = i === current ? "#ffb81c" : "#9a9a9a"; ctx.lineWidth = i === current ? 3 : 1.5;
       ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(tip[0], tip[1]); ctx.stroke();
-      ctx.fillStyle = i === current ? "#ffb81c" : "#c6d1e4";
+      ctx.fillStyle = i === current ? "#ffb81c" : "#cfcfcf";
       ctx.beginPath(); ctx.arc(p[0], p[1], i === current ? 5 : 3, 0, 7); ctx.fill();
     });
     // reference poles other sources mapped (hollow amber)
@@ -150,10 +150,10 @@ export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1
   }, [schedule]);
 
   return (
-    <div ref={wrap} style={{ position: "relative", width: "100%", height: "100%", minHeight: 320, background: "#0a1424" }}>
+    <div ref={wrap} style={{ position: "relative", width: "100%", height: "100%", minHeight: 320, background: "#080808" }}>
       <canvas ref={cv} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", touchAction: "none", cursor: "grab" }} role="img" aria-label="3D reconstruction of the street with located utility poles" />
       <div style={{ position: "absolute", left: 10, bottom: 10, background: "var(--card)", padding: "6px 10px", fontSize: 12, borderRadius: 0, lineHeight: 1.5 }}>
-        <span style={{ color: "var(--blue)", fontWeight: 800 }}>█</span> located pole &nbsp; <span style={{ color: "#c98a00", fontWeight: 800 }}>┆</span> already mapped &nbsp; <span style={{ color: "#6b7f9f", fontWeight: 800 }}>●</span> camera &nbsp; thin lines: what each photo saw
+        <span style={{ color: "var(--blue)", fontWeight: 800 }}>█</span> located pole &nbsp; <span style={{ color: "#c98a00", fontWeight: 800 }}>┆</span> already mapped &nbsp; <span style={{ color: "#808080", fontWeight: 800 }}>●</span> camera &nbsp; thin lines: what each photo saw
       </div>
     </div>
   );

@@ -25,7 +25,7 @@ export default function Home() {
           <h1>Is your home connected?</h1>
           <p className="lede">Check whether any U.S. address has fast internet, and see how FiberPath plans the cheapest way to reach the homes that are still left.</p>
           <Search autoFocus />
-          <p className="hint" style={{ color: "#aebad0", marginTop: 12, fontSize: 14 }}>Try <Link style={{ color: "#fff" }} href="/home?address=6333%20US%20Hwy%2076%2C%20Hiawassee%2C%20GA">6333 US Hwy 76, Hiawassee, GA</Link> or <Link style={{ color: "#fff" }} href="/tour">watch the 90 second tour</Link></p>
+          <p className="hint" style={{ color: "#b3b3b3", marginTop: 12, fontSize: 14 }}>Try <Link style={{ color: "#fff" }} href="/home?address=6333%20US%20Hwy%2076%2C%20Hiawassee%2C%20GA">6333 US Hwy 76, Hiawassee, GA</Link> or <Link style={{ color: "#fff" }} href="/tour">watch the 90 second tour</Link></p>
         </div>
         <div className="ah-map"><HeroMap /></div>
       </section>
@@ -52,7 +52,7 @@ export default function Home() {
         <UsMap height={440} />
       </section>
 
-      <section style={{ background: "#0a1424", color: "#fff", borderRadius: 0, padding: "32px 24px" }}>
+      <section style={{ background: "#080808", color: "#fff", borderRadius: 0, padding: "32px 24px" }}>
         <h2 style={{ color: "#fff" }}>The detector reads street photos to find utility poles</h2>
         <DetectionDemo />
         <div style={{ marginTop: 20, color: "var(--ink)" }}><DetectorFacts /></div>

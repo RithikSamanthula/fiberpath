@@ -86,7 +86,7 @@ export default function UsMap({ onPick, height = 420, highlight }: { onPick?: (c
       c.width = W * dpr; c.height = H * dpr; c.style.height = H + "px";
       const ctx = c.getContext("2d")!;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.fillStyle = "#0f1b2d";
+      ctx.fillStyle = "#0d0d0d";
       ctx.fillRect(0, 0, W, H);
       const xs = proj.map((p) => p[0]), ys = proj.map((p) => p[1]);
       const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
@@ -94,7 +94,7 @@ export default function UsMap({ onPick, height = 420, highlight }: { onPick?: (c
       const ox = (W - (x1 - x0) * s) / 2, oy = (H - (y1 - y0) * s) / 2;
       const P: { x: number; y: number; i: number }[] = [];
       const r = Math.max(1.3, Math.min(2.6, W / 520));
-      ctx.fillStyle = "#33496d";
+      ctx.fillStyle = "#3a3a3a";
       counties.forEach((cc, i) => {
         const x = ox + (proj[i][0] - x0) * s, y = oy + (y1 - proj[i][1]) * s;
         P.push({ x, y, i });
@@ -151,7 +151,7 @@ export default function UsMap({ onPick, height = 420, highlight }: { onPick?: (c
         />
         {tip && <div style={{ position: "absolute", left: Math.min(tip.x + 12, 9999), top: tip.y + 12, background: "var(--card)", color: "var(--ink)", padding: "4px 8px", fontSize: 13, fontWeight: 600, pointerEvents: "none", borderRadius: 0, whiteSpace: "nowrap" }}>{tip.text}</div>}
         <div style={{ position: "absolute", left: 14, top: 12, color: "#fff" }}>
-          <div style={{ fontSize: 30, fontWeight: 800, lineHeight: 1 }}>{planned.size.toLocaleString("en-US")} <span style={{ fontSize: 15, fontWeight: 600, color: "#aebad0" }}>of {counties?.length.toLocaleString("en-US") ?? "3,235"} counties</span></div>
+          <div style={{ fontSize: 30, fontWeight: 800, lineHeight: 1 }}>{planned.size.toLocaleString("en-US")} <span style={{ fontSize: 15, fontWeight: 600, color: "#b3b3b3" }}>of {counties?.length.toLocaleString("en-US") ?? "3,235"} counties</span></div>
         </div>
       </div>
     </div>

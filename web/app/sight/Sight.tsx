@@ -142,7 +142,7 @@ function Chart({ p }: { p: ReturnType<typeof profile> }) {
         </g>
       ))}
       <polygon points={canopyArea} fill="url(#hatch)" stroke="none" />
-      <polygon points={groundArea} fill="#0f1b2d" />
+      <polygon points={groundArea} fill="#0d0d0d" />
       <polyline points={poly(p.lower)} fill="none" stroke="#f2a900" strokeWidth="2" />
       <polyline points={poly(p.line)} fill="none" stroke={p.visible ? "#1c8c4e" : "#d64533"} strokeWidth="2" strokeDasharray="7 5" />
       {!p.visible && (

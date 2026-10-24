@@ -109,7 +109,7 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
               <span><b style={{ fontSize: 26 }}>{Math.round((sel / Math.max(1, frames.length - 1)) * pathM)}</b> <span className="small">m driven</span></span>
               <span className="small" style={{ marginLeft: "auto" }}>frame {sel + 1} / {frames.length}</span>
             </div>
-            <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 4, background: "#33496d" }}><i style={{ display: "block", height: 4, width: `${((sel + 1) / frames.length) * 100}%`, background: "#4d8dff" }} /></div>
+            <div style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 4, background: "#3a3a3a" }}><i style={{ display: "block", height: 4, width: `${((sel + 1) / frames.length) * 100}%`, background: "#4d8dff" }} /></div>
           </div>
         )}
 
@@ -214,5 +214,5 @@ function Viewer({ frames, dets, sel, onSel }: { frames: Frame[]; dets: Record<nu
       </div>
     );
   }
-  return <div ref={box} style={{ width: "100%", height: 480, background: "#0a1424", borderRadius: 0, overflow: "hidden" }} aria-label="Interactive street view" />;
+  return <div ref={box} style={{ width: "100%", height: 480, background: "#080808", borderRadius: 0, overflow: "hidden" }} aria-label="Interactive street view" />;
 }

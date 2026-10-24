@@ -61,7 +61,7 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
     const { yaw, pitch, zoom, w, h, dpr } = st.current;
     const ctx = canvas.getContext("2d")!;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.fillStyle = "#0a1424";
+    ctx.fillStyle = "#080808";
     ctx.fillRect(0, 0, w, h);
     const g = data.meta.grid;
     const lat0 = g.n - (g.ny * g.dlat) / 2, lon0 = g.w + (g.nx * g.dlon) / 2;
@@ -169,7 +169,7 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
     // homes: a small block that lights up in the color of the technology that reaches it
     const depth = n > 0 ? data.plan[Math.min(n, data.plan.length) - 1][5] : -1;
     const big = sc * 7 > 2.6;
-    const col = ["#7d90b3", "#4d8dff", "#ffb81c", "#38c47c"];
+    const col = ["#8a8a8a", "#4d8dff", "#ffb81c", "#38c47c"];
     hit.current = [];
     if (o.skyline) {
       // every connected home becomes a bar as tall as its cost: green is cheap, red is expensive
@@ -190,11 +190,11 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
       if (base[0] < -20 || base[1] < -20 || base[0] > w + 20 || base[1] > h + 20) continue;
       const roof = W(hm.lon, hm.lat, o.houses ? 6 : 1);
       hit.current.push(roof[0], roof[1], hm.i);
-      const color = hm.status === 0 ? "#51658a" : up ? col[hm.tech] : "#ff5a4a";
+      const color = hm.status === 0 ? "#666666" : up ? col[hm.tech] : "#ff5a4a";
       if (big && o.houses) {
         const a = W(hm.lon - 0.00004, hm.lat - 0.00003, 0), b = W(hm.lon + 0.00004, hm.lat - 0.00003, 0);
         const a2 = W(hm.lon - 0.00004, hm.lat - 0.00003, 5), b2 = W(hm.lon + 0.00004, hm.lat - 0.00003, 5), c2 = W(hm.lon + 0.00004, hm.lat + 0.00003, 5), d2 = W(hm.lon - 0.00004, hm.lat + 0.00003, 5);
-        ctx.fillStyle = "#1d2c47"; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(b2[0], b2[1]); ctx.lineTo(a2[0], a2[1]); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = "#262626"; ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(b2[0], b2[1]); ctx.lineTo(a2[0], a2[1]); ctx.closePath(); ctx.fill();
         ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(a2[0], a2[1]); ctx.lineTo(b2[0], b2[1]); ctx.lineTo(c2[0], c2[1]); ctx.lineTo(d2[0], d2[1]); ctx.closePath(); ctx.fill();
       } else {
         ctx.fillStyle = color; ctx.fillRect(roof[0] - 1.4, roof[1] - 1.4, 2.8, 2.8);
@@ -327,7 +327,7 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
           <div style={{ background: "var(--card)", padding: "6px 10px", fontSize: 13, borderRadius: 0 }}>Drag to rotate · scroll to zoom · select a home to fly to it</div>
           <div className="toggles">
             {(["houses", "poles", "wires", "pulse", "skyline"] as const).map((k) => (
-              <button key={k} className="btn sm" aria-pressed={opts[k]} style={{ background: opts[k] ? "#0f1b2d" : "#fff", color: opts[k] ? "#fff" : "#1b5fd1", borderColor: opts[k] ? "#0f1b2d" : "#1b5fd1" }} onClick={() => setOpts((v) => ({ ...v, [k]: !v[k] }))}>{k === "pulse" ? "Data pulses" : k === "skyline" ? "Cost skyline" : k[0].toUpperCase() + k.slice(1)}</button>
+              <button key={k} className="btn sm" aria-pressed={opts[k]} style={{ background: opts[k] ? "#0d0d0d" : "#fff", color: opts[k] ? "#fff" : "#1b5fd1", borderColor: opts[k] ? "#0d0d0d" : "#1b5fd1" }} onClick={() => setOpts((v) => ({ ...v, [k]: !v[k] }))}>{k === "pulse" ? "Data pulses" : k === "skyline" ? "Cost skyline" : k[0].toUpperCase() + k.slice(1)}</button>
             ))}
           </div>
         </div>

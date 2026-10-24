@@ -34,20 +34,20 @@ export default function Tour() {
   }, []);
   const s = SCENES[i];
   return (
-    <main style={{ background: "#0a1424", color: "#fff", minHeight: "calc(100dvh - 61px)" }}>
+    <main style={{ background: "#080808", color: "#fff", minHeight: "calc(100dvh - 61px)" }}>
       <div className="wrap" style={{ maxWidth: 1240, padding: "36px 20px 40px" }}>
         <div style={{ display: "flex", gap: 6, marginBottom: 28 }}>
           {SCENES.map((_, k) => (
-            <button key={k} onClick={() => setI(k)} aria-label={`Scene ${k + 1}`} style={{ flex: 1, height: 6, border: 0, padding: 0, cursor: "pointer", background: "#2a3d5c", position: "relative" }}>
+            <button key={k} onClick={() => setI(k)} aria-label={`Scene ${k + 1}`} style={{ flex: 1, height: 6, border: 0, padding: 0, cursor: "pointer", background: "#333333", position: "relative" }}>
               <i key={`${k}-${i}-${playing}`} style={{ position: "absolute", inset: 0, background: "#4d8dff", transform: k < i ? "scaleX(1)" : "scaleX(0)", transformOrigin: "left", animation: k === i && playing ? `fill ${LENGTH}ms linear forwards` : undefined, ...(k === i && !playing ? { transform: "scaleX(0.4)" } : {}) }} />
             </button>
           ))}
         </div>
         <div className="tour-grid">
           <div>
-            <p className="label" style={{ color: "#8fa3c4" }}>{i + 1} of {SCENES.length}</p>
+            <p className="label" style={{ color: "#9a9a9a" }}>{i + 1} of {SCENES.length}</p>
             <h1 style={{ fontSize: 40, marginTop: 10, color: "#fff" }}>{s.title}</h1>
-            <p className="lede" style={{ color: "#c6d1e4" }}>{s.text}</p>
+            <p className="lede" style={{ color: "#cfcfcf" }}>{s.text}</p>
             <div className="row" style={{ marginTop: 28 }}>
               <button className="btn" onClick={() => setPlaying((p) => !p)}>{playing ? "Pause" : "Play"}</button>
               <button className="btn line" style={{ background: "transparent", color: "#fff", borderColor: "#fff" }} onClick={() => setI((v) => (v + 1) % SCENES.length)}>Next</button>

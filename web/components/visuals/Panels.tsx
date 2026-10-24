@@ -33,12 +33,12 @@ function useTowns(active: boolean, grids = false) {
 
 function Frame({ title, big, note, children, tall, forwardRef }: { title: string; big: string; note: string; children: ReactNode; tall?: boolean; forwardRef: React.RefObject<HTMLDivElement | null> }) {
   return (
-    <figure ref={forwardRef} style={{ margin: 0, background: "#0f1b2d", borderRadius: 0, overflow: "hidden", position: "relative", height: tall ? 460 : 380, display: "flex", flexDirection: "column" }}>
+    <figure ref={forwardRef} style={{ margin: 0, background: "#0d0d0d", borderRadius: 0, overflow: "hidden", position: "relative", height: tall ? 460 : 380, display: "flex", flexDirection: "column" }}>
       <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>{children}</div>
-      <figcaption style={{ position: "absolute", left: 0, bottom: 0, right: 0, padding: "14px 16px", background: "#0a1424", color: "#fff", display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap", height: 104, overflow: "hidden", alignContent: "flex-start" }}>
+      <figcaption style={{ position: "absolute", left: 0, bottom: 0, right: 0, padding: "14px 16px", background: "#080808", color: "#fff", display: "flex", alignItems: "baseline", gap: 14, flexWrap: "wrap", height: 104, overflow: "hidden", alignContent: "flex-start" }}>
         <span style={{ fontSize: 28, fontWeight: 800, lineHeight: 1, whiteSpace: "nowrap", minWidth: 150 }}>{big}</span>
-        <span className="label" style={{ color: "#8fa3c4" }}>{title}</span>
-        <span className="small" style={{ color: "#c6d1e4", flexBasis: "100%" }}>{note}</span>
+        <span className="label" style={{ color: "#9a9a9a" }}>{title}</span>
+        <span className="small" style={{ color: "#cfcfcf", flexBasis: "100%" }}>{note}</span>
       </figcaption>
     </figure>
   );
