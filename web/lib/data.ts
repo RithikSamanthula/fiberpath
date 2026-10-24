@@ -42,6 +42,7 @@ export type Meta = {
   totals: Totals;
   benchmark: { name: string; total: number; homes: number; per_home: number; grant: number } | null;
   coverageSource: "fcc" | "proxy";
+  planVersion?: number;
   poleSource: string;
   poleCount: number;
   grid: GridMeta;

@@ -133,6 +133,7 @@ export default function Planner() {
           <div><span className="sw sq" /> Tower</div>
           <div><span className="sw pt" /> Home without service</div>
           <div><span className="sw ring" /> Home connected</div>
+          {(data.meta.planVersion ?? 1) >= 2 && <div><span className="sw ring" /> Joins existing fiber</div>}
         </div>
       </div>
 
@@ -143,7 +144,7 @@ export default function Planner() {
         <div className="box soft" style={{ marginTop: 12 }}>
           <p className="label">How to read this</p>
           <p className="small" style={{ marginTop: 6 }}>
-            Each red dot is a home without good internet. Press <strong>Plan network</strong> to watch the cheapest set of roads connect them. Blue lines are fiber on poles, amber lines are buried fiber, and green squares are wireless towers.
+            Each red dot is a home without good internet. Press <strong>Plan network</strong> to watch the cheapest set of roads connect them. Blue lines are fiber on poles, amber lines are buried fiber, and green squares are wireless towers. Each new run starts at a white circle, where it joins fiber that is already there. Homes that already have service need nothing, so most of the county stays empty.
           </p>
         </div>
         <div className="row" style={{ marginTop: 12 }}>

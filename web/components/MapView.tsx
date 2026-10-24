@@ -42,6 +42,7 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
   props.current = { data, layers, progress, selected, link, hexes, contours, reach, ghost, pulse, satellite };
   const tiles = useRef(new Map<string, HTMLImageElement | null>());
   const tileVer = useRef(0);
+  const joinCache = useRef<{ data: unknown; pts: [number, number, number][] }>({ data: null, pts: [] });
   const baseCache = useRef<{ cv: HTMLCanvasElement | null; key: string; data: unknown; contours: unknown }>({ cv: null, key: "", data: null, contours: null });
   const redrawRef = useRef<() => void>(() => {});
   const [, setTick] = useState(0);
@@ -251,6 +252,29 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
         }
       }
       ctx.strokeStyle = LINE;
+      // where each new run starts: a plan edge whose start is nobody's end sits on the existing fiber network
+      if (nPlan > 0 && data.meta.planVersion && data.meta.planVersion >= 2) {
+        let c = joinCache.current;
+        if (c.data !== data) {
+          const ends = new Set<string>();
+          for (const e of data.plan) ends.add(`${e[2]},${e[3]}`);
+          const seen = new Set<string>(), pts: [number, number, number][] = [];
+          data.plan.forEach((e, i) => { const k = `${e[0]},${e[1]}`; if (!ends.has(k) && !seen.has(k)) { seen.add(k); pts.push([e[0], e[1], i]); } });
+          c = joinCache.current = { data, pts };
+        }
+        ctx.strokeStyle = WHITE;
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        for (const [lo, la, i] of c.pts) {
+          if (i >= nPlan) continue;
+          const x = X(lo), y = Y(la);
+          if (x < -8 || y < -8 || x > w + 8 || y > h + 8) continue;
+          ctx.moveTo(x + 6, y);
+          ctx.arc(x, y, 6, 0, Math.PI * 2);
+        }
+        ctx.stroke();
+        ctx.strokeStyle = LINE;
+      }
       if (pulse && progress >= 1) {
         // each pulse rides one route segment outward from the hub; speed follows how far the segment is from the hub
         const t = performance.now() / 2200;
