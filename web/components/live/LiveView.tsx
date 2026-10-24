@@ -155,7 +155,7 @@ export default function LiveView({ startLat, startLon }: { startLat: number; sta
   return (
     <div className="street-grid">
       <div style={{ minWidth: 0 }}>
-        <div style={{ position: "relative", background: "#0a1424", borderRadius: 3, overflow: "hidden", minHeight: 300 }}>
+        <div style={{ position: "relative", background: "#0a1424", borderRadius: 0, overflow: "hidden", minHeight: 300 }}>
           <video ref={video} playsInline muted style={{ width: "100%", display: mode === "camera" ? "block" : "none" }} />
           <canvas ref={replayCv} style={{ width: "100%", display: mode === "replay" ? "block" : "none" }} />
           <canvas ref={over} style={{ position: "absolute", left: 0, top: 0, width: "100%", height: "100%", display: mode === "camera" ? "block" : "none", pointerEvents: "none" }} />
@@ -176,7 +176,7 @@ export default function LiveView({ startLat, startLon }: { startLat: number; sta
         <p className="small" style={{ marginTop: 10 }}>The detector runs on your device. Nothing from the camera is uploaded. Walk or ride along a road with the camera facing the poles, and the map fills in as your position and compass change.</p>
       </div>
       <div style={{ minWidth: 0, display: "grid", gap: 12, alignContent: "start" }}>
-        <div style={{ height: 360, borderRadius: 3, overflow: "hidden" }}>
+        <div style={{ height: 360, borderRadius: 0, overflow: "hidden" }}>
           <PoleScene3D frames={frames} obs={result.obs} poles={result.poles} ref={ref} current={cur} />
         </div>
         <div className="stats" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>

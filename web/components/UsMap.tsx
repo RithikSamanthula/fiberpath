@@ -139,7 +139,7 @@ export default function UsMap({ onPick, height = 420, highlight }: { onPick?: (c
 
   return (
     <div>
-      <div ref={wrap} style={{ position: "relative", borderRadius: 3, overflow: "hidden" }}>
+      <div ref={wrap} style={{ position: "relative", borderRadius: 0, overflow: "hidden" }}>
         <canvas
           ref={cv}
           style={{ display: "block", width: "100%", cursor: "pointer" }}
@@ -149,7 +149,7 @@ export default function UsMap({ onPick, height = 420, highlight }: { onPick?: (c
           onPointerLeave={() => setTip(null)}
           onClick={(e) => { const { best } = nearest(e as unknown as React.PointerEvent); if (best >= 0 && counties) { const cc = counties[best], sl = planned.get(cc[0]) ?? null; if (onPick) onPick(cc, sl); else router.push(sl ? `/county?county=${sl}` : `/explore?st=${cc[2]}&q=${encodeURIComponent(cc[1].replace(" County", ""))}`); } }}
         />
-        {tip && <div style={{ position: "absolute", left: Math.min(tip.x + 12, 9999), top: tip.y + 12, background: "#fff", color: "#0f1b2d", padding: "4px 8px", fontSize: 13, fontWeight: 600, pointerEvents: "none", borderRadius: 2, whiteSpace: "nowrap" }}>{tip.text}</div>}
+        {tip && <div style={{ position: "absolute", left: Math.min(tip.x + 12, 9999), top: tip.y + 12, background: "#fff", color: "#0f1b2d", padding: "4px 8px", fontSize: 13, fontWeight: 600, pointerEvents: "none", borderRadius: 0, whiteSpace: "nowrap" }}>{tip.text}</div>}
         <div style={{ position: "absolute", left: 14, top: 12, color: "#fff" }}>
           <div style={{ fontSize: 30, fontWeight: 800, lineHeight: 1 }}>{planned.size.toLocaleString("en-US")} <span style={{ fontSize: 15, fontWeight: 600, color: "#aebad0" }}>of {counties?.length.toLocaleString("en-US") ?? "3,235"} counties</span></div>
         </div>

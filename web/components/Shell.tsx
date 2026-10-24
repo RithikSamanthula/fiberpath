@@ -37,7 +37,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <Link href="/" className="rail-brand" aria-label="FiberPath home"><Logo size={34} /></Link>
         {TABS.map(([href, label, icon]) => (
           <Link key={href} href={href} className="rail-tab" aria-current={active(path, href) ? "page" : undefined}>
-            <span className="ti"><Icon name={icon} size={20} /></span><span className="tl">{label}</span>
+            <span className="ti"><Icon name={icon} size={20} /></span><span>{label}</span>
           </Link>
         ))}
         <span className="rail-gap" />

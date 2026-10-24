@@ -324,7 +324,7 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
       <canvas ref={cv} className="map" role="img" aria-label={`3D terrain of ${data.meta.name}. Drag to rotate, scroll to zoom.`} />
       {!compact && (
         <div className="noprint" style={{ position: "absolute", left: 12, top: 12, display: "grid", gap: 6 }}>
-          <div style={{ background: "#fff", padding: "6px 10px", fontSize: 13, borderRadius: 3 }}>Drag to rotate · scroll to zoom · select a home to fly to it</div>
+          <div style={{ background: "#fff", padding: "6px 10px", fontSize: 13, borderRadius: 0 }}>Drag to rotate · scroll to zoom · select a home to fly to it</div>
           <div className="toggles">
             {(["houses", "poles", "wires", "pulse", "skyline"] as const).map((k) => (
               <button key={k} className="btn sm" aria-pressed={opts[k]} style={{ background: opts[k] ? "#0f1b2d" : "#fff", color: opts[k] ? "#fff" : "#1b5fd1", borderColor: opts[k] ? "#0f1b2d" : "#1b5fd1" }} onClick={() => setOpts((v) => ({ ...v, [k]: !v[k] }))}>{k === "pulse" ? "Data pulses" : k === "skyline" ? "Cost skyline" : k[0].toUpperCase() + k.slice(1)}</button>

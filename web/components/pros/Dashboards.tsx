@@ -46,8 +46,8 @@ function Bars({ rows, fmt, color = "#1b5fd1", mark }: { rows: { name: string; v:
       {rows.map((r) => (
         <div key={r.name} className="row3" style={{ "--c1": "170px", "--c3": "84px", padding: "5px 0" } as React.CSSProperties}>
           {r.href ? <Link href={r.href} style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{r.name}</Link> : <span>{r.name}</span>}
-          <div className="bar" style={{ height: 16, marginTop: 0, borderRadius: 4, position: "relative" }}>
-            <i style={{ width: `${(r.v / max) * 100}%`, background: color, borderRadius: 4 }} />
+          <div className="bar" style={{ height: 16, marginTop: 0, borderRadius: 0, position: "relative" }}>
+            <i style={{ width: `${(r.v / max) * 100}%`, background: color, borderRadius: 0 }} />
             {mark && <span title={mark.label} style={{ position: "absolute", left: `${(mark.v / max) * 100}%`, top: -3, bottom: -3, width: 2, background: "#0f1b2d" }} />}
           </div>
           <b style={{ textAlign: "right" }}>{fmt(r.v)}</b>
@@ -73,7 +73,7 @@ function Donut({ parts }: { parts: { v: number; color: string; label: string }[]
         })}
       </svg>
       <div style={{ display: "grid", gap: 6, fontSize: 14 }}>
-        {parts.map((p) => <div key={p.label}><span style={{ display: "inline-block", width: 12, height: 12, background: p.color, borderRadius: 3, marginRight: 8 }} /><b>{Math.round((p.v / tot) * 100)}%</b> {p.label} <span className="small">({num(p.v)})</span></div>)}
+        {parts.map((p) => <div key={p.label}><span style={{ display: "inline-block", width: 12, height: 12, background: p.color, borderRadius: 0, marginRight: 8 }} /><b>{Math.round((p.v / tot) * 100)}%</b> {p.label} <span className="small">({num(p.v)})</span></div>)}
       </div>
     </div>
   );
@@ -138,7 +138,7 @@ export default function Workspace({ items, name, note, prices, setPrices }: { it
 
   return (
     <div className="dash">
-      <div className="ah-card" style={{ padding: 24, borderRadius: 14, gap: 14 }}>
+      <div className="ah-card" style={{ padding: 24, borderRadius: 0, gap: 14 }}>
         <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-start" }}>
           <div>
             <p className="label" style={{ color: "#aebad0" }}>{items.length} {items.length === 1 ? "county" : "counties"}</p>
@@ -146,7 +146,7 @@ export default function Workspace({ items, name, note, prices, setPrices }: { it
           </div>
           <div style={{ minWidth: 240 }}>
             <p className="small" style={{ color: "#c6d0e2" }}>{nFcc} of {items.length} on real FCC data</p>
-            <div className="seg" style={{ height: 10, borderRadius: 5, overflow: "hidden", background: "#243653" }}><i style={{ width: `${items.length ? (nFcc / items.length) * 100 : 0}%`, background: "var(--green)" }} /></div>
+            <div className="seg" style={{ height: 10, borderRadius: 0, overflow: "hidden", background: "#243653" }}><i style={{ width: `${items.length ? (nFcc / items.length) * 100 : 0}%`, background: "var(--green)" }} /></div>
             {nFcc > 0 && nFcc < items.length && (
               <button className="btn sm" style={{ marginTop: 8, background: withEst ? "transparent" : "#fff", color: withEst ? "#fff" : "var(--ink)", borderColor: "#fff" }} aria-pressed={withEst} onClick={() => setWithEst(!withEst)}>
                 {withEst ? "Counting estimated counties too" : "Counting FCC counties only"}
@@ -175,7 +175,7 @@ export default function Workspace({ items, name, note, prices, setPrices }: { it
             <p className="small" style={{ marginTop: 8 }}>Costs are planning estimates from public data. Service status comes from the FCC National Broadband Map{withEst && nFcc < items.length ? "; counties marked Estimate are still waiting for it" : ""}.</p>
             <p className="noprint" style={{ marginTop: 12 }}><button className="btn sm" onClick={() => window.print()}>Print this summary</button></p>
           </div>
-          <div style={{ borderRadius: 14, overflow: "hidden" }}><UsMap height={340} highlight={hi} /></div>
+          <div style={{ borderRadius: 0, overflow: "hidden" }}><UsMap height={340} highlight={hi} /></div>
           <div className="ah-row">
             <Card title="How homes would be connected" note="Share of the homes in the plan"><Donut parts={[{ v: fb, color: "#f2a900", label: "Fiber" }, { v: wl, color: "#1c8c4e", label: "Fixed wireless" }, { v: Math.max(0, homes - fb - wl), color: "#8a8f99", label: "Other" }]} /></Card>
             <Card title="Cost per home, county by county" note={`How many counties fall in each price range. The Blue Ridge EMC project cost ${dollars(BENCH)} a home.`}><Histogram values={rows.filter((r) => r.cost.homes > 20).map((r) => r.cost.perHome)} fmt={dollars} /></Card>

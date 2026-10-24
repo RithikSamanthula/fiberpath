@@ -152,7 +152,7 @@ export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1
   return (
     <div ref={wrap} style={{ position: "relative", width: "100%", height: "100%", minHeight: 320, background: "#0a1424" }}>
       <canvas ref={cv} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", touchAction: "none", cursor: "grab" }} role="img" aria-label="3D reconstruction of the street with located utility poles" />
-      <div style={{ position: "absolute", left: 10, bottom: 10, background: "#fff", padding: "6px 10px", fontSize: 12, borderRadius: 3, lineHeight: 1.5 }}>
+      <div style={{ position: "absolute", left: 10, bottom: 10, background: "#fff", padding: "6px 10px", fontSize: 12, borderRadius: 0, lineHeight: 1.5 }}>
         <span style={{ color: "#1b5fd1", fontWeight: 800 }}>█</span> located pole &nbsp; <span style={{ color: "#c98a00", fontWeight: 800 }}>┆</span> already mapped &nbsp; <span style={{ color: "#6b7f9f", fontWeight: 800 }}>●</span> camera &nbsp; thin lines: what each photo saw
       </div>
     </div>

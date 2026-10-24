@@ -34,7 +34,7 @@ export default function HeroMap() {
   else for (const h of d.homes) if (h.tech === 1 || h.tech === 2) if (h.depth <= depth) homes++;
 
   return (
-    <div style={{ background: "#0f1b2d", borderRadius: 3, overflow: "hidden" }}>
+    <div style={{ background: "#0f1b2d", borderRadius: 0, overflow: "hidden" }}>
       <div style={{ height: 380, display: "flex", flexDirection: "column" }}>
         <MapView data={d} layers={layers} progress={p} still />
       </div>

@@ -130,7 +130,7 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
       </div>
 
       <div style={{ minWidth: 0, display: "grid", gap: 12, alignContent: "start" }}>
-        <div style={{ height: 380, borderRadius: 3, overflow: "hidden" }}>
+        <div style={{ height: 380, borderRadius: 0, overflow: "hidden" }}>
           <PoleScene3D frames={frames} obs={result.obs} poles={result.poles} ref={ref} current={sel} camH={camH} />
         </div>
         <div className="stats" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
@@ -214,5 +214,5 @@ function Viewer({ frames, dets, sel, onSel }: { frames: Frame[]; dets: Record<nu
       </div>
     );
   }
-  return <div ref={box} style={{ width: "100%", height: 480, background: "#0a1424", borderRadius: 3, overflow: "hidden" }} aria-label="Interactive street view" />;
+  return <div ref={box} style={{ width: "100%", height: 480, background: "#0a1424", borderRadius: 0, overflow: "hidden" }} aria-label="Interactive street view" />;
 }

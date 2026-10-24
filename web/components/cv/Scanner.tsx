@@ -53,7 +53,7 @@ export default function Scanner({ lat, lon, ratio = 0.5625, onEmpty }: { lat: nu
 
   useEffect(() => { onEmpty?.(state.kind === "off" || state.kind === "error" || (state.kind === "ready" && !state.images?.length)); }, [state, onEmpty]);
 
-  if (state.kind === "loading") return <div style={{ paddingTop: `${ratio * 100}%`, position: "relative", background: "#0a1424", borderRadius: 3 }}><span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", color: "#aebad0" }}>Finding street photos</span></div>;
+  if (state.kind === "loading") return <div style={{ paddingTop: `${ratio * 100}%`, position: "relative", background: "#0a1424", borderRadius: 0 }}><span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", color: "#aebad0" }}>Finding street photos</span></div>;
   if (state.kind === "off") return <p className="box soft">Street photos are not set up on this server. Add <code>MAPILLARY_TOKEN</code> to turn them on.</p>;
   if (state.kind === "error") return <p className="box red" role="alert">{state.msg}</p>;
   const images = state.images ?? [];

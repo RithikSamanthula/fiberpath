@@ -52,7 +52,7 @@ export default function Home() {
         <UsMap height={440} />
       </section>
 
-      <section style={{ background: "#0a1424", color: "#fff", borderRadius: 16, padding: "32px 24px" }}>
+      <section style={{ background: "#0a1424", color: "#fff", borderRadius: 0, padding: "32px 24px" }}>
         <h2 style={{ color: "#fff" }}>The detector reads street photos to find utility poles</h2>
         <DetectionDemo />
         <div style={{ marginTop: 20, color: "var(--ink)" }}><DetectorFacts /></div>
