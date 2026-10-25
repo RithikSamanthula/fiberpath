@@ -47,7 +47,7 @@ export default function About() {
       </ul>
 
       <h2 id="run">Run it for any county</h2>
-      <p>The planning code downloads the public data and writes a plan the website can show. Give it a five digit county code, for example <code>python plan.py 13111</code>. Set <code>MAPILLARY_TOKEN</code> to use street photos for poles. The README has the details.</p>
+      <p>The planning code downloads the public data and writes a plan the website can show. Give it a five digit county code, for example <code>python plan.py 13111</code>. Set <code>MAPILLARY_TOKEN</code> to use street photos for poles.</p>
 
       <h2 id="credits">Data sources</h2>
       <table>
