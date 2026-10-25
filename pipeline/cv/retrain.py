@@ -1,12 +1,3 @@
-"""Retrain the pole detector from the answers given on the /label page.
-
-Answers come from web/.data/labels.jsonl (written by the local site) and any fiberpath-handchecks*.json
-downloaded from the live site. About one photo in five is kept out of training to test the new model.
-The new model replaces the current one only if it does at least as well on both the held-out hand-checked
-photos and the standard validation photos.
-
-    python retrain.py [minimum new photos, default 20]
-"""
 import glob
 import hashlib
 import json

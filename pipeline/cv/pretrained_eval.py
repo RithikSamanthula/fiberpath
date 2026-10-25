@@ -1,6 +1,3 @@
-"""Score a PRETRAINED street-scene model (Mask2Former, Swin-Large, trained on Mapillary Vistas) on our held-out photos.
-It has a 'Utility Pole' class. Masks are turned into boxes with connected components so they can be scored the
-same way as our own detector. Usage: python pretrained_eval.py [n_photos]"""
 import glob, json, os, sys, time
 import numpy as np
 import torch

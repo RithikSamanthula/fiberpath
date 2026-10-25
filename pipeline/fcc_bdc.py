@@ -1,16 +1,3 @@
-"""Real FCC coverage for a state, from the National Broadband Map's Broadband Data Collection (free account needed).
-
-  1. Register at https://bdc.fcc.gov and generate a token under Manage API Access
-  2. FCC_USERNAME=<your email> FCC_TOKEN=<token> python fcc_bdc.py 13        (13 = Georgia's FIPS code)
-
-Every broadband serviceable location in the state is put into one of the federal tiers, using the best
-non-satellite service advertised there (satellite is left out, as the BEAD program does):
-    served       100 Mbps down and 20 up or better
-    underserved  25/3 up to that
-    unserved     less than 25/3, or no service
-and the counts are summed in each H3 hexagon (resolution 8). Output: data/state-<fips>-fcc-h3.csv with columns
-h3_res8_id, served, underserved, unserved. plan.py labels each home with the majority tier of its hexagon.
-"""
 import csv
 import gzip
 import io
@@ -41,7 +28,6 @@ def get(path):
 
 
 def fetch_csv(file_id):
-    """Download one zipped CSV and yield its rows as dicts."""
     r = requests.get(f"{BASE}/downloads/downloadFile/availability/{file_id}/1", headers=headers(), timeout=900)
     r.raise_for_status()
     z = zipfile.ZipFile(io.BytesIO(r.content))

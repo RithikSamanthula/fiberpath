@@ -1,5 +1,3 @@
-"""Why is the detector's score low? Break the validation result down instead of trusting one number.
-   python analyze.py [weights] [imgsz]"""
 import glob
 import json
 import os
@@ -44,7 +42,6 @@ def match(preds, gts, thr):
 
 
 def evaluate(W, SZ, device="cpu", conf=0.25):
-    """Utility-pole-only metrics on the validation photos. Returns a dict (and what to print)."""
     model = YOLO(W)
     imgs = sorted(glob.glob(os.path.join(HERE, "data", "images", "val", "*.jpg")))
     rows = []

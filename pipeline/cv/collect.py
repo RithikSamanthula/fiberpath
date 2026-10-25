@@ -1,8 +1,3 @@
-"""Build a pole-detection dataset from Mapillary: street photos plus the pole boxes Mapillary's own
-model drew on them. Split by location (0.02 degree cells) so train and validation never share a street.
-
-    MAPILLARY_TOKEN=... python collect.py towns-ga 1800
-"""
 import base64
 import hashlib
 import json

@@ -1,4 +1,3 @@
-"""Stage 0: download public data for one county (cached on disk)."""
 import csv
 import gzip
 import io
@@ -102,7 +101,6 @@ def quadkeys_for(bb, z=9):
 
 
 def footprints(c, bb):
-    """Microsoft Global ML Building Footprints, one GeoJSONL file per z9 quadkey."""
 
     def go():
         links = requests.get(
@@ -128,7 +126,6 @@ def footprints(c, bb):
 
 
 def mapillary_poles(c, bb):
-    """Utility-pole detections from Mapillary map features. Needs MAPILLARY_TOKEN."""
     token = os.environ.get("MAPILLARY_TOKEN")
     if not token:
         return None
@@ -188,7 +185,6 @@ def mapillary_images(c, lon, lat, radius=0.0006):
 
 
 def terrain(c, bb, z=13):
-    """AWS terrain tiles (terrarium encoding, derived from USGS 3DEP and others)."""
     w, s, e, n = bb
     k = 2**z
 
@@ -218,7 +214,6 @@ def terrain(c, bb, z=13):
 
 
 def canopy(c, bb, shape_hint=None):
-    """Meta + WRI 1 m canopy height, read at 30 m cells (mean height within each cell)."""
     import rasterio
     from rasterio.enums import Resampling
     from rasterio.windows import from_bounds

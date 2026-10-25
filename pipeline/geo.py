@@ -1,8 +1,3 @@
-"""Terrain + canopy grids on a regular lon/lat lattice, plus bilinear sampling.
-
-The same quantized grids are shipped to the web app, so the pipeline and the
-line-of-sight screen always agree.
-"""
 import math
 
 import numpy as np

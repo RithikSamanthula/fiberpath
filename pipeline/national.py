@@ -1,13 +1,3 @@
-"""Plan every county in the United States, resumable.
-
-    python national.py list                 # download the county list (Census TIGERweb)
-    python national.py run --workers 3      # work through the queue; safe to stop and restart
-    python national.py status
-
-Order: counties named in cache/priority.txt first (one GEOID per line, e.g. from "Request a plan"
-counts), then smallest land area first, so rural counties finish fastest. A county that fails or
-exceeds the time limit is recorded and skipped; rerun with --retry-failed to try again.
-"""
 import argparse
 import json
 import os

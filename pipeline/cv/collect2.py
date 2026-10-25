@@ -1,8 +1,3 @@
-"""Bigger, more varied pole dataset: street photos from many counties, two classes, labels read the right way up.
-
-    MAPILLARY_TOKEN=... python collect2.py <per_county_images> <geoid> [<geoid> ...]
-Adds to data/ (the existing Towns County photos stay). Split is by 0.02 degree cell so train and val never share a street.
-"""
 import hashlib
 import json
 import os

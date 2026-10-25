@@ -1,8 +1,3 @@
-"""Train FiberPath's utility-pole detector (YOLOv8n) on the Mapillary dataset from collect.py,
-then validate on streets the model never saw and export ONNX for the web app.
-
-    python train.py [epochs]
-"""
 import json
 import os
 import shutil

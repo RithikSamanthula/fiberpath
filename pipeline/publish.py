@@ -1,13 +1,3 @@
-"""Publish a finished county to GitHub Releases so the web app can load it the moment it exists.
-
-One release per state ("data-13" for Georgia) holds, for every county in that state:
-    <geoid>-pack.fpk   county.json, homes.json, roads.json, plan.json, towers.json, poles.json
-    <geoid>-grid.fpk   elev.bin, canopy.bin (terrain and tree height)
-and one small index-<state>.json listing every county in the state. The web app polls those indexes.
-
-An .fpk file is gzip( 4-byte little-endian header length | JSON header [{n, len}] | file bytes ).
-Needs GITHUB_TOKEN and GITHUB_REPOSITORY (both present inside GitHub Actions). Elsewhere it does nothing.
-"""
 import gzip
 import json
 import os
@@ -107,7 +97,6 @@ _idx = {}
 
 
 def download(asset_id):
-    """Read an asset through the API. The public download URL can serve a stale copy right after an upload."""
     repo = os.environ["GITHUB_REPOSITORY"]
     r = _retry(lambda: requests.get(f"{API}/repos/{repo}/releases/assets/{asset_id}", headers={**_h(), "Accept": "application/octet-stream"}, timeout=300))
     r.raise_for_status()
@@ -124,8 +113,6 @@ def item_from_meta(meta, geoid):
 
 
 def load_index(rid, st):
-    """Index for one state, rebuilt from what is really in the release: the saved index plus any county
-    that has files but is missing from it (an earlier write may have been lost)."""
     if st in _idx:
         return _idx[st]
     a = assets(rid)

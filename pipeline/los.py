@@ -1,4 +1,3 @@
-"""Wireless line of sight: terrain + canopy vs. the 60% Fresnel zone."""
 import numpy as np
 
 TOWER_H = 25.0
@@ -14,10 +13,6 @@ END_SKIP = 30.0
 
 
 def margins(grid, t_lon, t_lat, lons, lats, kx, ky, use_canopy=True):
-    """Clearance margin (m) for one tower against many homes. Negative = blocked.
-
-    Returns (margin, worst_fraction) arrays.
-    """
     lons = np.asarray(lons)
     lats = np.asarray(lats)
     f = np.linspace(0, 1, N)[None, :]

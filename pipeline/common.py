@@ -1,4 +1,3 @@
-"""Shared helpers: county config, projection, caching, HTTP."""
 import json
 import math
 import os
@@ -67,7 +66,6 @@ def http_json(url, params=None, data=None, tries=6, timeout=180):
 
 
 class Proj:
-    """Local equirectangular projection in meters around a center."""
 
     def __init__(self, lat0, lon0):
         self.lat0, self.lon0 = lat0, lon0
@@ -86,7 +84,6 @@ class Proj:
 
 
 def point_in_polygon(px, py, ring):
-    """Ray casting for arrays of points against one ring [(x, y), ...]."""
     ring = np.asarray(ring)
     x, y = ring[:, 0], ring[:, 1]
     inside = np.zeros(len(px), dtype=bool)
@@ -115,7 +112,6 @@ FIPS = {"01": "AL", "02": "AK", "04": "AZ", "05": "AR", "06": "CA", "08": "CO", 
 
 
 def county_config(arg):
-    """Config for a county slug (towns-ga) or a 5-digit GEOID (13111). Any U.S. county works."""
     import re
 
     if arg in COUNTIES:

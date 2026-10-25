@@ -1,7 +1,3 @@
-"""Stages 1-5: homes, poles, wireless reach, cheapest network, pricing.
-
-Run:  python plan.py towns-ga
-"""
 import json
 import math
 import os
@@ -182,7 +178,6 @@ def main(arg):
 
 
 def resolve_places(c, bb):
-    """Hub = the largest named place in the county; every city/town/village core counts as served (proxy)."""
     rank = {"city": 3, "town": 2, "village": 1}
     radius = {"city": 2200, "town": 1500, "village": 800}
     pl = [e for e in fetch.places(c, bb) if e.get("tags", {}).get("name")]
@@ -196,11 +191,6 @@ def resolve_places(c, bb):
 
 
 def coverage(c, proj, lon, lat, hx, hy):
-    """0 served, 1 underserved, 2 unserved.
-
-    Uses an FCC availability file if one is present (see README); otherwise falls back
-    to a clearly-labeled proxy: homes outside the town cores count as unserved.
-    """
     d = os.path.join(os.path.dirname(__file__), "data")
     p = next((x for x in (os.path.join(d, f"state-{c['geoid'][:2]}-fcc-h3.csv.gz"), os.path.join(d, f"state-{c['geoid'][:2]}-fcc-h3.csv")) if os.path.exists(x)), None)
     if p:
@@ -239,7 +229,6 @@ FIBER_SHARE = 0.5
 
 
 def fiber_sources(c, nlon, nlat):
-    """Road nodes inside hexagons where the FCC lists fiber to the premises at most addresses."""
     import csv
     import gzip
 
@@ -263,7 +252,6 @@ def fiber_sources(c, nlon, nlat):
 
 
 def pick_towers(c, osm, proj, grid, nlon, nlat, nx_, ny_, hx, hy, lon_c, lat_c, unserved):
-    """Candidate sites: existing communication towers plus road-accessible high points."""
     cands = []
     for e in osm:
         t = e.get("tags", {})
@@ -356,7 +344,6 @@ class Tree:
             self.down[self.parent[u]] += self.down[u]
 
     def node_share(self, snap, terminals, a, dist_to_road):
-        """Fiber cost per home: shared trunk split among downstream homes, plus its own drop."""
         w = self.g.weights(a)
         share = {self.root: 0.0}
         for u in self.order[1:]:
@@ -370,11 +357,6 @@ class Tree:
 
 
 def steiner(g, root, term_nodes, a):
-    """Kou-Markowsky-Berman 2-approximation of the minimum Steiner tree (Mehlhorn's Voronoi form).
-
-    Shortest paths between terminals, a minimum spanning tree over them, then mapped back
-    onto real road segments and pruned.
-    """
     w = g.weights(a)
     n = g.n
     A = csr_matrix(coo_matrix((np.r_[w, w], (np.r_[g.eu, g.ev], np.r_[g.ev, g.eu])), shape=(n, n)))

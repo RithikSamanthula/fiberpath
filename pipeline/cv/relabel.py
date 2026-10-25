@@ -1,7 +1,3 @@
-"""Rewrite the labels of the existing dataset with two classes so the detector learns the difference:
-   0 utility_pole   power/telephone poles (what fiber can hang on)
-   1 other_pole     street lights, traffic lights, sign and generic poles (ignored by the plan)
-"""
 import base64
 import glob
 import os

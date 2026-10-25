@@ -1,6 +1,3 @@
-"""Print the GEOID of every county already planned with real FCC coverage and the current network method (one per line).
-
-Counties planned with the stand-in estimate, or before new fiber grew out from existing fiber, are not counted, so they get planned again."""
 import json
 import os
 

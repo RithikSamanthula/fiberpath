@@ -1,4 +1,3 @@
-"""Export the v4 detector, score it against v3 on the same validation photos, install the better one."""
 import json, os, shutil
 from ultralytics import YOLO
 from analyze import evaluate
