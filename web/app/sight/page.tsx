@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Sight from "./Sight";
 
-export const metadata = { title: "Line of sight — FiberPath" };
+export const metadata = { title: "Line of sight - FiberPath" };
 
 export default function Page() {
   return (

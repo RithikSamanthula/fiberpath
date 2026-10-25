@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Poles from "./Poles";
 
-export const metadata = { title: "Poles — FiberPath" };
+export const metadata = { title: "Poles - FiberPath" };
 
 export default function Page() {
   return (

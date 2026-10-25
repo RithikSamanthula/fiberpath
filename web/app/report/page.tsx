@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import Report from "./Report";
 
-export const metadata = { title: "Grant report — FiberPath" };
+export const metadata = { title: "Grant report - FiberPath" };
 
 export default function Page() {
   return (

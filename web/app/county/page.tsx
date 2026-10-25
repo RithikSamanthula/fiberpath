@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import CountyEntry from "./CountyEntry";
 
-export const metadata = { title: "County plans — FiberPath" };
+export const metadata = { title: "County plans - FiberPath" };
 
 export default function Page() {
   return (
