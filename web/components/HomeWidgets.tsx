@@ -49,7 +49,6 @@ export function SavedPlaces() {
   );
 }
 
-// The detector's measured results, read from the file the training script writes
 export function DetectorFacts() {
   const [m, setM] = useState<any>(null);
   useEffect(() => { fetch(`${DATA_BASE}/cv-metrics.json`).then((r) => (r.ok ? r.json() : null)).then(setM).catch(() => {}); }, []);

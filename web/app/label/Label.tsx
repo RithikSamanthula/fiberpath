@@ -6,7 +6,6 @@ type Box = { x: number; y: number; w: number; h: number; score?: number };
 type Item = { id: string; url: string; lat: number; lon: number; county: string; boxes: Box[] };
 type Saved = { id: string; lat: number; lon: number; county: string; at: string; boxes: (Box & { ok: boolean })[]; missed: Box[] };
 
-// counties whose photos the detector trained on, so they are not used for checking it
 const TRAINED = new Set(["13281", "13059", "42093", "48397", "22121", "18163", "29227", "29199", "54073", "21041", "37089", "12125", "13247", "13121"]);
 const KEY = "fiberpath-handchecks-v1";
 const px = (u: string) => `/api/img?u=${encodeURIComponent(u)}`;
@@ -15,7 +14,7 @@ export default function Label() {
   const index = useIndex();
   const [item, setItem] = useState<Item | null>(null);
   const [msg, setMsg] = useState("");
-  const [state, setState] = useState<Record<number, boolean | null>>({}); // null pending, true real, false not a pole
+  const [state, setState] = useState<Record<number, boolean | null>>({});
   const [extra, setExtra] = useState<Box[]>([]);
   const [saved, setSaved] = useState<Saved[]>([]);
   const [ratio, setRatio] = useState(0.5625);
@@ -95,7 +94,6 @@ export default function Label() {
   }, [item]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { draw(); }, [draw, ratio]);
 
-  // click a box to mark it real, click again for not a pole, again to clear; drag on empty space to add a missed pole
   useEffect(() => {
     const c = cv.current;
     if (!c || !item) return;

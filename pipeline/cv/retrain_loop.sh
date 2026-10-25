@@ -1,5 +1,4 @@
 #!/bin/sh
-# Every 15 minutes, retrain if enough new photos have been checked. Leave running.
 cd "$(dirname "$0")"
 while true; do
   ../../.venv/bin/python -u retrain.py ${1:-20} 2>&1 | tail -6

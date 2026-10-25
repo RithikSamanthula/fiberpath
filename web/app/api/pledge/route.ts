@@ -3,8 +3,6 @@ import { addPledge, demand, getPlan, nearestHome } from "@/lib/server";
 
 export const dynamic = "force-dynamic";
 
-// Raise your hand. For planned counties the pledge snaps to a building in an unserved area.
-// For other counties it is stored by rounded coordinates under the county's GEOID.
 export async function POST(req: NextRequest) {
   let body: any;
   try { body = await req.json(); } catch { return NextResponse.json({ error: "Bad request" }, { status: 400 }); }

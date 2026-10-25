@@ -279,7 +279,6 @@ function RaiseHand({ county, pledge, onRaise }: { county: string; pledge: { stat
   );
 }
 
-// A back-of-the-envelope route cost anyone can adjust. It is not a plan.
 function Calculator({ est }: { est: Estimate }) {
   const [km, setKm] = useState(est.town ? Math.round(est.town.km * 1.3 * 10) / 10 : 5);
   const [type, setType] = useState<"aerial" | "buried">(est.polesOnRoad ? "aerial" : "buried");

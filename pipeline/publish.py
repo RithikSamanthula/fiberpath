@@ -21,8 +21,8 @@ from common import OUT
 
 API = "https://api.github.com"
 _lock = threading.Lock()
-_assets = {}  # release id -> {name: asset id}
-_rel = {}  # tag -> release id
+_assets = {}
+_rel = {}
 
 PACK = ["county.json", "homes.json", "roads.json", "plan.json", "towers.json", "poles.json"]
 GRID = ["elev.bin", "canopy.bin"]
@@ -69,7 +69,7 @@ def release_id(tag):
     if r.status_code == 404:
         r = _retry(lambda: requests.post(f"{API}/repos/{repo}/releases", headers=_h(), timeout=60,
                                          json={"tag_name": tag, "name": f"County data {tag[5:]}", "body": "Planned counties, published as they finish.", "make_latest": "false"}))
-        if r.status_code == 422:  # another job created it first
+        if r.status_code == 422:
             r = _retry(lambda: requests.get(f"{API}/repos/{repo}/releases/tags/{tag}", headers=_h(), timeout=60))
     r.raise_for_status()
     _rel[tag] = r.json()["id"]
@@ -103,7 +103,7 @@ def upload(rid, name, data, ctype="application/octet-stream"):
     a[name] = r.json()["id"]
 
 
-_idx = {}  # state -> {geoid: item}; this process is the only writer for its states, so it is the source of truth
+_idx = {}
 
 
 def download(asset_id):

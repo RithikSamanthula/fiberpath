@@ -1,5 +1,4 @@
 #!/bin/sh
-# Waits for the detector comparison, then re-bakes the demo photos, commits, pushes and deploys the better model.
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 LOG="$1"
 while pgrep -f "cv/finish2.py" >/dev/null; do sleep 15; done

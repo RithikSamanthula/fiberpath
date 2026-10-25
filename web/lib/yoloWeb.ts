@@ -1,7 +1,6 @@
 "use client";
 import type { Det } from "./poleLocate";
 
-// The pole detector running inside the browser (ONNX Runtime Web, WebAssembly), so a phone can use it live.
 const MODEL = "/models/pole-640.onnx";
 const S = 640;
 let sessP: Promise<{ ort: typeof import("onnxruntime-web"); sess: import("onnxruntime-web").InferenceSession }> | null = null;
@@ -12,7 +11,7 @@ export function loadModel() {
     sessP = (async () => {
       const ort = await import("onnxruntime-web");
       ort.env.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.30.0/dist/";
-      ort.env.wasm.numThreads = 1; // multi-threading needs special page headers, one thread works everywhere
+      ort.env.wasm.numThreads = 1;
       const sess = await ort.InferenceSession.create(MODEL, { executionProviders: ["wasm"], graphOptimizationLevel: "all" });
       return { ort, sess };
     })().catch((e) => { sessP = null; throw e; });

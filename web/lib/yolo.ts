@@ -1,10 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
 
-// FiberPath's trained utility-pole detector (YOLOv8n, exported to ONNX), run on the server with ONNX Runtime.
-// Output rows are [cx, cy, w, h, confidence] for 8400 candidate boxes at 640x640.
-
-export type Det = { x: number; y: number; w: number; h: number; score: number; cls: number }; // cls 0 utility pole, 1 other pole (street light, sign post)
+export type Det = { x: number; y: number; w: number; h: number; score: number; cls: number };
 
 let sessionP: Promise<any> | null = null;
 let sessionStamp = 0;
@@ -15,7 +12,6 @@ export async function haveModel() {
   try { await fs.access(modelPath()); return true; } catch { return false; }
 }
 
-// A new model file replaces the old one without restarting the server.
 async function session() {
   const stamp = (await fs.stat(modelPath())).mtimeMs;
   if (!sessionP || stamp !== sessionStamp) {
@@ -29,7 +25,6 @@ async function session() {
   return sessionP;
 }
 
-// The input size always comes from the loaded model, so a model exported at 800 or 1024 can never be fed 640.
 async function inputSize(sess: any): Promise<number> {
   if (sizeCache && sizeCache.stamp === sessionStamp) return sizeCache.size;
   let size = 0;
@@ -42,7 +37,6 @@ async function inputSize(sess: any): Promise<number> {
     try { size = Number(JSON.parse(await fs.readFile(path.join(process.cwd(), "models", "pole.json"), "utf8")).imgsz) || 0; } catch {}
   }
   if (!size) {
-    // last resort: the first run fails with the exact size in the message
     size = 640;
   }
   sizeCache = { stamp: sessionStamp, size };
@@ -68,7 +62,6 @@ export async function detectPoles(image: Buffer, conf = 0.25, iouThr = 0.5): Pro
   try {
     out = await sess.run({ [sess.inputNames[0]]: new ort.Tensor("float32", input, [1, 3, S, S]) });
   } catch (e: any) {
-    // belt and braces: if the model says it wants a different size, take its word and retry once
     const m = /Expected:\s*(\d+)/.exec(String(e?.message ?? e));
     if (m && Number(m[1]) !== S) {
       sizeCache = { stamp: sessionStamp, size: Number(m[1]) };
@@ -85,7 +78,6 @@ export async function detectPoles(image: Buffer, conf = 0.25, iouThr = 0.5): Pro
     for (let k = 0; k < nc; k++) { const v = data[(4 + k) * n + i]; if (v > score) { score = v; cls = k; } }
     if (score < Math.min(conf, 0.1)) continue;
     const cx = data[i], cy = data[n + i], w = data[2 * n + i], h = data[3 * n + i];
-    // undo the letterbox, then normalize to 0..1 of the original image
     const x = (cx - w / 2 - padX) / scale / W, y = (cy - h / 2 - padY) / scale / H;
     cand.push({ x: Math.max(0, x), y: Math.max(0, y), w: Math.min(1, w / scale / W), h: Math.min(1, h / scale / H), score, cls });
   }
@@ -98,7 +90,6 @@ export async function detectPoles(image: Buffer, conf = 0.25, iouThr = 0.5): Pro
   const keep: Det[] = [];
   for (const c of cand) {
     if (c.score < conf) continue;
-    // a box that overlaps a stronger one of ANY class is suppressed, so one pole is never both a utility pole and a light pole
     if (!keep.some((k) => iou(k, c) > iouThr)) keep.push(c);
   }
   return { boxes: keep, candidates: cand.slice(0, 90) };

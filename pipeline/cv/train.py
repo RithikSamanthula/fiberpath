@@ -18,7 +18,7 @@ if len(sys.argv) > 2:
     data = os.path.join(HERE, "data", sys.argv[2])
 name = sys.argv[3] if len(sys.argv) > 3 else "pole"
 imgsz = int(sys.argv[4]) if len(sys.argv) > 4 else 640
-init = sys.argv[5] if len(sys.argv) > 5 else "yolov8n.pt"  # start from earlier weights to fine-tune
+init = sys.argv[5] if len(sys.argv) > 5 else "yolov8n.pt"
 batch = int(sys.argv[6]) if len(sys.argv) > 6 else 16
 
 model = YOLO(init)
@@ -41,7 +41,6 @@ metrics = {
     "trainImages": ntrain,
     "valImages": nval,
     "imgsz": imgsz,
-    # headline numbers are for the utility-pole class only; the street-light class is a decoy, not a goal
     "precision": ev["iou0.5"]["precision"],
     "recall": ev["iou0.5"]["recall"],
     "precisionLoose": ev["iou0.3"]["precision"],

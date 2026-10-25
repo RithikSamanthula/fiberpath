@@ -1,15 +1,9 @@
-// From a box in a street photo to a spot on the ground.
-//
-// For a level pinhole camera at height H, a point on the ground at forward distance d appears below the
-// horizon by  dy = f * H / d  pixels, and sideways by  dx = f * lateral / d  pixels.
-// So the base of a pole box (its lowest edge) gives d and the lateral offset directly. Several photos of the same
-// pole give several estimates, which are merged into one position with a spread that says how well they agree.
 
 export type Frame = {
   id: string; lon: number; lat: number; heading: number; focal: number; w: number; h: number; url: string;
   capturedAt?: string; type?: string;
-  rot?: [number, number, number]; // computed_rotation: angle-axis, world -> camera (OpenSfM), world is east-north-up
-  k?: [number, number]; // radial lens distortion
+  rot?: [number, number, number];
+  k?: [number, number];
 };
 export type Det = { x: number; y: number; w: number; h: number; score: number; cls?: number };
 export type Obs = { frame: number; lon: number; lat: number; range: number; score: number; poleHeight: number };
@@ -17,7 +11,6 @@ export type Pole = { lon: number; lat: number; views: number; spread: number; fr
 
 const kxy = (lat: number) => ({ kx: 111320 * Math.cos((lat * Math.PI) / 180), ky: 110574 });
 
-// camera -> world rotation, from the angle-axis vector (Rodrigues), transposed
 function camToWorld(r: [number, number, number]) {
   const th = Math.hypot(r[0], r[1], r[2]);
   if (th < 1e-9) return [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
@@ -27,24 +20,18 @@ function camToWorld(r: [number, number, number]) {
   return [[R[0][0], R[1][0], R[2][0]], [R[0][1], R[1][1], R[2][1]], [R[0][2], R[1][2], R[2][2]]];
 }
 
-// the world-space direction a pixel looks along
 function ray(f: Frame, u: number, v: number): [number, number, number] {
   const fpx = f.focal * Math.max(f.w, f.h);
   let x = (u * f.w - f.w / 2) / fpx, y = (v * f.h - f.h / 2) / fpx;
-  if (f.k) { const r2 = x * x + y * y; const d = 1 + f.k[0] * r2 + f.k[1] * r2 * r2; x /= d; y /= d; } // undo the lens
+  if (f.k) { const r2 = x * x + y * y; const d = 1 + f.k[0] * r2 + f.k[1] * r2 * r2; x /= d; y /= d; }
   if (f.rot) {
     const M = camToWorld(f.rot);
     return [M[0][0] * x + M[0][1] * y + M[0][2], M[1][0] * x + M[1][1] * y + M[1][2], M[2][0] * x + M[2][1] * y + M[2][2]];
   }
-  // no pose: assume a level camera facing the heading
   const h = (f.heading * Math.PI) / 180;
   return [Math.sin(h) * 1 + Math.cos(h) * x, Math.cos(h) * 1 - Math.sin(h) * x, -y];
 }
 
-// Each detection gives a bearing: the compass direction from the camera to the middle of the pole's box.
-// That bearing is reliable, unlike the distance (the base of a pole is often hidden by grass or a hedge, so the
-// bottom of its box is not the ground). A pole seen from several places along the road is where the bearings cross,
-// so the position comes from triangulation. A pole is reported when at least two photos agree, and counted as firm at three or more.
 type Ray = { f: number; x: number; y: number; dx: number; dy: number; score: number; elev: number; h: number };
 
 export function locate(frames: Frame[], dets: (Det[] | undefined)[], camH = 1.6): { obs: Obs[]; poles: Pole[] } {
@@ -54,7 +41,7 @@ export function locate(frames: Frame[], dets: (Det[] | undefined)[], camH = 1.6)
   const rays: Ray[] = [];
   frames.forEach((f, fi) => {
     for (const d of dets[fi] ?? []) {
-      if ((d.cls ?? 0) !== 0 || d.h < 0.05) continue; // street lights and specks are not used
+      if ((d.cls ?? 0) !== 0 || d.h < 0.05) continue;
       const r = ray(f, d.x + d.w / 2, d.y + d.h / 2);
       const hz = Math.hypot(r[0], r[1]);
       if (hz < 1e-6) continue;
@@ -62,13 +49,12 @@ export function locate(frames: Frame[], dets: (Det[] | undefined)[], camH = 1.6)
       rays.push({ f: fi, x: (f.lon - lon0) * kx, y: (f.lat - lat0) * ky, dx: r[0] / hz, dy: r[1] / hz, score: d.score, elev: top[2] / Math.max(1e-6, Math.hypot(top[0], top[1])), h: d.h });
     }
   });
-  // where do pairs of bearings from different places cross?
   const cands: [number, number][] = [];
   for (let i = 0; i < rays.length; i++) for (let j = i + 1; j < rays.length; j++) {
     const a = rays[i], b = rays[j];
     if (a.f === b.f || Math.hypot(a.x - b.x, a.y - b.y) < 8) continue;
     const det = -a.dx * b.dy + b.dx * a.dy;
-    if (Math.abs(det) < Math.sin((5 * Math.PI) / 180)) continue; // nearly parallel: no usable crossing
+    if (Math.abs(det) < Math.sin((5 * Math.PI) / 180)) continue;
     const rx = b.x - a.x, ry = b.y - a.y;
     const s = (-rx * b.dy + b.dx * ry) / det, t = (a.dx * ry - a.dy * rx) / det;
     if (s > 3 && s < 90 && t > 3 && t < 90) cands.push([a.x + s * a.dx, a.y + s * a.dy]);
@@ -91,7 +77,6 @@ export function locate(frames: Frame[], dets: (Det[] | undefined)[], camH = 1.6)
   }
   const obs: Obs[] = [];
   const poles: Pole[] = found.map((c) => {
-    // least-squares point closest to every supporting bearing
     let a11 = 0, a12 = 0, a22 = 0, b1 = 0, b2 = 0;
     for (const r of c.items) { const m11 = 1 - r.dx * r.dx, m12 = -r.dx * r.dy, m22 = 1 - r.dy * r.dy; a11 += m11; a12 += m12; a22 += m22; b1 += m11 * r.x + m12 * r.y; b2 += m12 * r.x + m22 * r.y; }
     const dt = a11 * a22 - a12 * a12;
@@ -104,7 +89,6 @@ export function locate(frames: Frame[], dets: (Det[] | undefined)[], camH = 1.6)
   return { obs, poles: poles.sort((a, b) => a.firstFrame - b.firstFrame) };
 }
 
-// How far off are the estimated poles from poles other sources already mapped?
 export function compare(poles: Pole[], ref: [number, number][]) {
   if (!poles.length || !ref.length) return null;
   const lat0 = poles[0].lat;

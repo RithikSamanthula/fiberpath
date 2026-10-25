@@ -6,7 +6,6 @@ type M = { valImages: number; trainImages: number; precision: number; recall: nu
 
 const pct = (v: number) => `${Math.round(v * 100)}%`;
 
-// The detector's measured results, shown as bars instead of a paragraph
 export default function Accuracy() {
   const [m, setM] = useState<M | null>(null);
   useEffect(() => { fetch(`${DATA_BASE}/cv-metrics.json`).then((r) => (r.ok ? r.json() : null)).then(setM).catch(() => {}); }, []);

@@ -76,7 +76,6 @@ export default function Compare() {
   );
 }
 
-// Every planned county as a dot: cost to connect a home across, homes without service up
 function Scatter({ rows }: { rows: { name: string; x: number; y: number; slug: string }[] }) {
   const pts = rows.filter((r) => r.x > 0 && r.y > 0);
   if (pts.length < 3) return null;

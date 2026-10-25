@@ -6,7 +6,6 @@ import { useIndex } from "@/lib/useIndex";
 
 type C = [string, string, string, number, number];
 
-// Albers equal-area conic, the standard projection for maps of the lower 48.
 function albers(lon: number, lat: number, lat1 = 29.5, lat2 = 45.5, lat0 = 37.5, lon0 = -96) {
   const r = Math.PI / 180;
   const n = (Math.sin(lat1 * r) + Math.sin(lat2 * r)) / 2;
@@ -18,13 +17,11 @@ function albers(lon: number, lat: number, lat1 = 29.5, lat2 = 45.5, lat0 = 37.5,
 }
 
 const INSET: Record<string, [number, number, number, number, number, number]> = {
-  // state: lat1, lat2, lat0, lon0, anchor x, anchor width (as fractions of the lower-48 box)
   "02": [55, 65, 50, -154, 0.0, 0.26],
   "15": [8, 18, 3, -157, 0.3, 0.17],
   "72": [17, 19, 18, -66, 0.82, 0.1],
 };
 
-// Lower 48 in Albers; Alaska, Hawaii and Puerto Rico are redrawn as small insets below it.
 function projectAll(cs: C[]): [number, number][] {
   const out: [number, number][] = new Array(cs.length);
   const main: number[] = [];
@@ -58,13 +55,11 @@ export default function UsMap({ onPick, height = 420, highlight }: { onPick?: (c
   const pts = useRef<{ x: number; y: number; i: number }[]>([]);
 
   useEffect(() => {
-    // states, DC and Puerto Rico only: the Pacific territories would stretch the map across the globe
     fetch(`${DATA_BASE}/counties.json`).then((r) => r.json()).then((c: C[]) => setCounties(c.filter((x) => Number(x[2]) <= 56 || x[2] === "72"))).catch(() => {});
   }, []);
 
   useEffect(() => {
     const now = performance.now();
-    // only a handful of new counties at once is a live arrival; a big jump is just the list finishing loading
     if (seen.current) { const fresh = idx.filter((i) => !seen.current!.has(i.geoid)); if (fresh.length > 0 && fresh.length <= 6) for (const i of fresh) born.current.set(i.geoid, now); }
     seen.current = new Set(idx.map((i) => i.geoid));
     if (born.current.size) {
@@ -108,11 +103,9 @@ export default function UsMap({ onPick, height = 420, highlight }: { onPick?: (c
         ctx.beginPath(); ctx.arc(P[i].x, P[i].y, r + 2.2, 0, 7); ctx.fill(); ctx.stroke();
       });
       if (highlight?.size) {
-        // the chosen counties stand out as solid amber dots; everything else stays quiet
         ctx.fillStyle = "#ffb81c";
         counties.forEach((cc, i) => { if (!highlight.has(cc[0])) return; ctx.beginPath(); ctx.arc(P[i].x, P[i].y, r + 1.6, 0, 7); ctx.fill(); });
       }
-      // a county that just finished planning shows as a brighter white dot for a few seconds
       const nowT = performance.now();
       ctx.fillStyle = "#ffffff";
       counties.forEach((cc, i) => {

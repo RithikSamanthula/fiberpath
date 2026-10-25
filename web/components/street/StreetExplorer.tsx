@@ -35,7 +35,6 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
       setSel(Math.floor(fr.length / 2));
       fetch(`/api/refpoles?lat=${fr[0].lat}&lon=${fr[0].lon}`).then((r) => r.json()).then((x) => live && setRef(x.poles ?? [])).catch(() => {});
       setBusy(true);
-      // read the photos four at a time, starting from the middle so the part you are looking at is ready first
       const order = fr.map((_, i) => i).sort((a, b) => Math.abs(a - fr.length / 2) - Math.abs(b - fr.length / 2));
       let next = 0, failed = false;
       const worker = async () => {
@@ -71,7 +70,6 @@ export default function StreetExplorer({ lat, lon, onMove }: { lat: number; lon:
   const aerial = share >= 0.5 || per100 >= 0.8;
   const finished = frames && done === frames.length;
 
-  // ride-along clock
   useEffect(() => {
     if (!playing || !frames) return;
     const t = setInterval(() => setSel((s) => { if (s >= frames.length - 1) { setPlaying(false); return s; } return s + 1; }), 450);
@@ -179,13 +177,11 @@ function Viewer({ frames, dets, sel, onSel }: { frames: Frame[]; dets: Record<nu
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [frames]);
 
-  // jump when a thumbnail is picked
   useEffect(() => {
     const v = viewer.current;
     if (v && frames[sel] && v.isNavigable !== false) v.moveTo(frames[sel].id).catch(() => {});
   }, [sel, frames]);
 
-  // draw the detections as tags on the photo
   useEffect(() => {
     const v = viewer.current, m = lib.current;
     if (!v || !m) return;

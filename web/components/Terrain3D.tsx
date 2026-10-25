@@ -3,10 +3,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { County } from "@/lib/data";
 import { metersPerDeg } from "@/lib/geo";
 
-// The county as a solid-shaded 3D model of the real terrain. Flat facets, no gradients:
-// each tile is one solid color picked from an elevation band, shaded by which way it faces.
-// Green tiles are tall tree canopy. Routes, homes and towers sit on the ground.
-
 const BANDS = ["#16263f", "#1a2e4b", "#1f3757", "#254163", "#2c4b70", "#34567c", "#3d6189", "#476c95", "#5278a1"];
 const FOREST = ["#133a2f", "#17443a", "#1c4f42", "#215a4b"];
 
@@ -28,13 +24,12 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
   const [opts, setOpts] = useState({ houses: true, poles: true, wires: true, pulse: true, skyline: false });
   const optsRef = useRef(opts);
   optsRef.current = opts;
-  const hit = useRef<number[]>([]); // screen x, y and index of every home drawn last frame, for picking
+  const hit = useRef<number[]>([]);
   const pickRef = useRef(onPick);
   pickRef.current = onPick;
-  const cen = useRef<{ lon: number; lat: number } | null>(null); // what the view is centered on; null = the whole county
+  const cen = useRef<{ lon: number; lat: number } | null>(null);
   const raf = useRef(0);
 
-  // downsample once per county
   useEffect(() => {
     if (!data.hasGrids) return;
     const g = data.meta.grid;
@@ -69,18 +64,15 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
     const cs = Math.cos(yaw), sn = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
     const span = Math.max(g.nx * g.dlon * kx, g.ny * g.dlat * ky);
     const sc = (Math.min(w, h * 1.25) / span) * 1.05 * zoom;
-    const ex = 2.2; // vertical exaggeration
+    const ex = 2.2;
     const { nx, ny, z, c } = G;
     const zAt = (r: number, q: number) => z[r * (nx + 1) + q];
-    // ground height at a lon/lat for draping overlays
     const ground = (lon: number, lat: number) => {
       const fq = ((lon - g.w) / g.dlon) / G.step, fr = ((g.n - lat) / g.dlat) / G.step;
       const q = Math.max(0, Math.min(nx - 1, Math.floor(fq))), r = Math.max(0, Math.min(ny - 1, Math.floor(fr)));
       return zAt(r, q);
     };
-    // vertical origin: the whole county's middle height, or the ground under the home we flew to
     const zc = cen.current ? ground(cen.current.lon, cen.current.lat) : (G.zmin + G.zmax) / 2;
-    // world (meters east, north, up) -> screen
     const offx = cen.current ? (cen.current.lon - lon0) * kx : 0, offy = cen.current ? (cen.current.lat - lat0) * ky : 0;
     const P = (x: number, y: number, z: number): [number, number, number] => {
       x -= offx; y -= offy;
@@ -92,15 +84,12 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
     const gy = (r: number) => (g.n - r * G.step * g.dlat - lat0) * ky;
     const bandH = (G.zmax - G.zmin) / BANDS.length || 1;
 
-    // painter's order: far tiles first
     const cols = Array.from({ length: nx }, (_, i) => i), rows = Array.from({ length: ny }, (_, i) => i);
     const farFirst = (v: number[], key: (i: number) => number) => v.sort((a, b) => key(b) - key(a));
-    // depth increases away from the camera along (sin, cos) of the view direction after the yaw rotation
     farFirst(cols, (q) => (q - nx / 2) * (-sn) * 1);
     farFirst(rows, (r) => ((ny / 2 - r)) * cs);
     const colsOrd = sn >= 0 ? cols.slice().sort((a, b) => b - a) : cols.slice().sort((a, b) => a - b);
     const rowsOrd = cs >= 0 ? rows.slice().sort((a, b) => b - a) : rows.slice().sort((a, b) => a - b);
-    // far-to-near for ry: ry = -x sn + y cs; larger ry is farther
     const lightX = -0.5, lightY = 0.7;
     for (const r of rowsOrd) {
       for (const q of colsOrd) {
@@ -118,7 +107,7 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
         ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.lineTo(cc[0], cc[1]); ctx.lineTo(d[0], d[1]);
         ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = ctx.fillStyle; // hides hairline seams between tiles
+        ctx.strokeStyle = ctx.fillStyle;
         ctx.lineWidth = 0.6;
         ctx.stroke();
       }
@@ -127,7 +116,6 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
     const W = (lon: number, lat: number, lift = 4): [number, number, number] =>
       P((lon - lon0) * kx, (lat - lat0) * ky, ground(lon, lat) + lift);
 
-    // routes drawn in
     const n = Math.floor(prog.current * data.plan.length);
     for (const cls of [2, 1]) {
       ctx.strokeStyle = cls === 1 ? "#4d8dff" : "#ffb81c";
@@ -143,7 +131,6 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
     }
     const o = optsRef.current;
     const nowT = performance.now() / 1000;
-    // poles and wires along the routes that ride on poles (blue lines)
     if (o.poles || o.wires) {
       const seen = new Set<string>();
       const post: [number, number, number][] = [];
@@ -166,13 +153,11 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
         ctx.stroke();
       }
     }
-    // homes: a small block that lights up in the color of the technology that reaches it
     const depth = n > 0 ? data.plan[Math.min(n, data.plan.length) - 1][5] : -1;
     const big = sc * 7 > 2.6;
     const col = ["#8a8a8a", "#4d8dff", "#ffb81c", "#38c47c"];
     hit.current = [];
     if (o.skyline) {
-      // every connected home becomes a bar as tall as its cost: green is cheap, red is expensive
       for (const hm of data.homes) {
         if (hm.tech === 0) continue;
         const a = W(hm.lon, hm.lat, 0), b = W(hm.lon, hm.lat, Math.min(900, hm.cost / 16));
@@ -200,7 +185,6 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
         ctx.fillStyle = color; ctx.fillRect(roof[0] - 1.4, roof[1] - 1.4, 2.8, 2.8);
       }
     }
-    // data pulses riding the fibre outward from the hub
     if (o.pulse && prog.current >= 1) {
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
@@ -212,7 +196,6 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
       }
       ctx.fill();
     }
-    // a beacon on the home you flew to
     if (cen.current) {
       const a = W(cen.current.lon, cen.current.lat, 0), b = W(cen.current.lon, cen.current.lat, 40);
       ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 2;
@@ -223,7 +206,6 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
       ctx.globalAlpha = 1;
       ctx.fillStyle = "#ffffff"; ctx.beginPath(); ctx.arc(b[0], b[1], 4, 0, 7); ctx.fill();
     }
-    // towers as masts
     for (const t of data.towers) {
       if (!t.used) continue;
       const base = W(t.lon, t.lat, 0), top = W(t.lon, t.lat, 70);
@@ -254,7 +236,6 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
 
   useEffect(schedule, [progress, schedule]);
 
-  // slow turntable for decorative uses, until someone grabs it
   const grabbed = useRef(false);
   useEffect(() => {
     if (!((opts.pulse && progress >= 1) || focus)) return;
@@ -264,7 +245,6 @@ export default function Terrain3D({ data, progress, spin, compact, focus, onPick
     return () => cancelAnimationFrame(id);
   }, [opts.pulse, progress, draw, focus]);
 
-  // fly to a chosen home
   useEffect(() => {
     if (!focus) { cen.current = null; st.current.zoom = 1; schedule(); return; }
     cen.current = { lon: focus.lon, lat: focus.lat };

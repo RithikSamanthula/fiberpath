@@ -2,19 +2,15 @@
 import { useEffect, useRef } from "react";
 import type { Box } from "@/lib/iou";
 
-// A street photo with the detector's work drawn on it. Boxes appear as a scan line sweeps across the frame.
-//   blue  = utility pole (counts toward "fiber on poles")
-//   white = other pole, such as a street light (ignored)
-//   amber = the reference labels from Mapillary, when asked for
 type Props = {
   src: string;
   boxes?: Box[] | null;
   reference?: Box[] | null;
-  candidates?: Box[] | null; // every box the model proposed before suppression
+  candidates?: Box[] | null;
   stage?: "photo" | "candidates" | "final";
   scanning?: boolean;
   animate?: boolean;
-  ratio?: number; // height / width
+  ratio?: number;
   rounded?: boolean;
 };
 
@@ -37,13 +33,11 @@ export default function PhotoDetect({ src, boxes, reference, candidates, stage =
     if (c.width !== Math.round(W * dpr)) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
     const ctx = c.getContext("2d")!;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    // cover-fit the photo
     const s = Math.max(W / im.naturalWidth, H / im.naturalHeight);
     const dw = im.naturalWidth * s, dh = im.naturalHeight * s, ox = (W - dw) / 2, oy = (H - dh) / 2;
     ctx.drawImage(im, ox, oy, dw, dh);
     if (stage !== "photo") { ctx.fillStyle = "rgba(10,20,36,0.32)"; ctx.fillRect(0, 0, W, H); }
     const X = (v: number) => ox + v * dw, Y = (v: number) => oy + v * dh;
-    // sweep: boxes whose left edge the line has passed are shown
     const el = (now - t0.current) / 1000;
     const sweep = animate ? Math.min(1, el / 1.4) : 1;
     const bracket = (x: number, y: number, w: number, h: number, color: string, lw: number) => {

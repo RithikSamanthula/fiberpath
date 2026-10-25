@@ -11,12 +11,10 @@ type Props = {
   camH?: number;
 };
 
-// The street rebuilt in 3D from the photos: each camera position, a ray for every pole the detector saw,
-// and the poles those rays agree on, standing where the geometry says they are.
 export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1, camH = 1.6 }: Props) {
   const cv = useRef<HTMLCanvasElement>(null);
   const wrap = useRef<HTMLDivElement>(null);
-  const st = useRef({ yaw: 0, pitch: 0.62, zoom: 1, w: 0, h: 0, dpr: 1 }); // yaw is the viewer's own turn, added to "look along the road"
+  const st = useRef({ yaw: 0, pitch: 0.62, zoom: 1, w: 0, h: 0, dpr: 1 });
   const props = useRef({ frames, obs, poles, ref, current, camH });
   props.current = { frames, obs, poles, ref, current, camH };
   const raf = useRef(0);
@@ -26,7 +24,6 @@ export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1
     if (!c) return;
     const { frames, obs, poles, ref, current, camH } = props.current;
     const { pitch, zoom, w, h, dpr } = st.current;
-    // the view follows the photo you are on, looking down the road
     const here = frames[Math.max(0, Math.min(frames.length - 1, current))] ?? frames[0];
     const yaw = -((here?.heading ?? 0) * Math.PI) / 180 + st.current.yaw;
     const ctx = c.getContext("2d")!;
@@ -37,14 +34,13 @@ export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1
     const lat0 = here.lat, lon0 = here.lon;
     const kx = 111320 * Math.cos((lat0 * Math.PI) / 180), ky = 110574;
     const E = (lon: number) => (lon - lon0) * kx, N = (lat: number) => (lat - lat0) * ky;
-    const r = 70; // metres of street shown around the current photo
+    const r = 70;
     const sc = (Math.min(w, h) / (2 * r)) * 1.7 * zoom;
     const cs = Math.cos(yaw), sn = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
     const P = (x: number, y: number, z: number): [number, number] => {
       const rx = x * cs + y * sn, ry = -x * sn + y * cs;
       return [w / 2 + rx * sc, h * 0.72 - (ry * sp + z * cp) * sc];
     };
-    // ground grid, one line per 10 m
     ctx.strokeStyle = "#17283f"; ctx.lineWidth = 1;
     ctx.beginPath();
     for (let g = -Math.ceil(r / 10) * 10; g <= r + 10; g += 10) {
@@ -52,7 +48,6 @@ export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1
       a = P(-r, g, 0); b = P(r, g, 0); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]);
     }
     ctx.stroke();
-    // the path the camera took
     ctx.strokeStyle = "#707070"; ctx.lineWidth = 6; ctx.lineCap = "round"; ctx.lineJoin = "round";
     ctx.beginPath();
     frames.forEach((f, i) => { const p = P(E(f.lon), N(f.lat), 0); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); });
@@ -61,7 +56,6 @@ export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1
     ctx.beginPath();
     frames.forEach((f, i) => { const p = P(E(f.lon), N(f.lat), 0); i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); });
     ctx.stroke();
-    // rays: camera -> where the detector put the pole base
     ctx.lineWidth = 1;
     for (const o of obs) {
       const f = frames[o.frame];
@@ -71,7 +65,6 @@ export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1
       ctx.lineWidth = o.frame === current ? 2 : 1;
       ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
     }
-    // cameras
     frames.forEach((f, i) => {
       const p = P(E(f.lon), N(f.lat), camH);
       const hd = (f.heading * Math.PI) / 180;
@@ -81,7 +74,6 @@ export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1
       ctx.fillStyle = i === current ? "#ffb81c" : "#cfcfcf";
       ctx.beginPath(); ctx.arc(p[0], p[1], i === current ? 5 : 3, 0, 7); ctx.fill();
     });
-    // reference poles other sources mapped (hollow amber)
     for (const q of ref) {
       const x = E(q[0]), y = N(q[1]);
       if (Math.hypot(x, y) > r + 20) continue;
@@ -90,7 +82,6 @@ export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1
       ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.setLineDash([]);
       ctx.beginPath(); ctx.arc(b[0], b[1], 4, 0, 7); ctx.stroke();
     }
-    // wires between poles that are close together, the way a line would hang
     const sorted = [...poles].filter((p) => p.views >= 1);
     ctx.strokeStyle = "#e6ecf7"; ctx.lineWidth = 1.2;
     for (let i = 0; i < sorted.length; i++) for (let j = i + 1; j < sorted.length; j++) {
@@ -105,7 +96,6 @@ export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1
       }
       ctx.stroke();
     }
-    // the located poles
     for (const q of poles) {
       const x = E(q.lon), y = N(q.lat);
       const a = P(x, y, 0), b = P(x, y, 9);
@@ -114,7 +104,6 @@ export default function PoleScene3D({ frames, obs, poles, ref = [], current = -1
       ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
       const arm = [P(x - 1.2, y, 8.3), P(x + 1.2, y, 8.3)];
       ctx.beginPath(); ctx.moveTo(arm[0][0], arm[0][1]); ctx.lineTo(arm[1][0], arm[1][1]); ctx.stroke();
-      // uncertainty on the ground
       ctx.strokeStyle = "rgba(77,141,255,0.55)"; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.ellipse(a[0], a[1], Math.max(3, q.spread * sc), Math.max(2, q.spread * sc * sp), 0, 0, 7); ctx.stroke();
       if (good) { ctx.fillStyle = "#fff"; ctx.font = "600 11px -apple-system, Helvetica, Arial, sans-serif"; ctx.fillText(`${q.views} views`, b[0] + 6, b[1] + 3); }

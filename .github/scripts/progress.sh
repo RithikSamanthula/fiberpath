@@ -1,8 +1,4 @@
 #!/usr/bin/env bash
-# Progress lives on an orphan branch called "progress": one text file of finished GEOIDs per shard.
-#   progress.sh pull  <dir>            -> writes <dir>/done.txt with every finished GEOID
-#   progress.sh push  <shard> <file>   -> appends <file>'s GEOIDs to progress/shard-<shard>.txt
-#   progress.sh reset                  -> starts a new cycle (monthly refresh)
 set -euo pipefail
 repo="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
 work="$(mktemp -d)"
@@ -29,7 +25,6 @@ case "$1" in
     cp "$work/cycle.txt" "$2/cycle.txt"
     ;;
   published)
-    # $2 = file of GEOIDs that already have release files; merge into the progress branch
     for i in 1 2 3; do
       rm -rf "$work"; work="$(mktemp -d)"; clone
       cp "$2" "$work/published.txt"

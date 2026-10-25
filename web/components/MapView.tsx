@@ -15,19 +15,19 @@ export type Layers = {
 type Props = {
   data: County;
   layers: Layers;
-  progress?: number; // 0..1, how much of the plan has drawn in
+  progress?: number;
   selected?: Home | null;
   onPick?: (h: Home | null) => void;
   focus?: { lon: number; lat: number; zoom?: number; key: number } | null;
   link?: { a: [number, number]; b: [number, number] } | null;
   hexes?: { lon: number; lat: number; count: number }[];
   contours?: Contours | null;
-  reach?: Uint8Array | null; // per home: 1 sees the tower, 2 blocked
+  reach?: Uint8Array | null;
   ghost?: { lon: number; lat: number } | null;
   onMapClick?: ((lon: number, lat: number) => void) | null;
-  still?: boolean; // no pan or zoom, for decorative maps
-  pulse?: boolean; // animate data pulses flowing out from the hub along every route
-  satellite?: boolean; // aerial photos under the map, when zoomed in close
+  still?: boolean;
+  pulse?: boolean;
+  satellite?: boolean;
 };
 
 type View = { lon: number; lat: number; s: number };
@@ -73,7 +73,6 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
       ctx.lineJoin = "round";
       ctx.lineCap = "round";
 
-      // aerial photos (USGS, public domain), drawn only when close enough for them to be useful
       let aerial = false;
       if (satellite) {
         const pxPerDegLon = k * v.s;
@@ -105,7 +104,6 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
         }
       }
 
-      // county line
       ctx.lineWidth = 1.5;
       ctx.setLineDash([]);
       ctx.beginPath();
@@ -151,7 +149,6 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
         ctx.fill();
       }
     };
-    // The map, roads and served homes only change when the view does, so they are painted once and reused while the plan animates
     const cache = baseCache.current;
     if (!cache.cv || cache.key !== vk || cache.data !== data || cache.contours !== contours) {
       const cv2 = cache.cv ?? (cache.cv = document.createElement("canvas"));
@@ -167,7 +164,6 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
     ctx.strokeStyle = LINE;
     ctx.fillStyle = LINE;
 
-    // demand cells
     if (hexes && hexes.length) {
       for (const c of hexes) {
         const r = Math.min(26, 6 + Math.sqrt(c.count) * 3);
@@ -184,7 +180,6 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
     const depthNow = nPlan > 0 ? data.plan[Math.min(nPlan, data.plan.length) - 1][5] : -1;
 
     if (layers.wireless && progress >= 1) {
-      // every link when zoomed in, otherwise only the selected home's tower
       const all = v.s > 60000;
       ctx.strokeStyle = GREEN;
       ctx.lineWidth = 1.2;
@@ -204,7 +199,6 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
 
     if (layers.homes) {
       const r = Math.max(1.4, Math.min(5, v.s / 22000));
-      // homes still without service (filled)
       ctx.fillStyle = RED;
       ctx.beginPath();
       for (const hm of data.homes) {
@@ -216,7 +210,6 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
         ctx.arc(x, y, r, 0, Math.PI * 2);
       }
       ctx.fill();
-      // connected by the plan (hollow)
       if (layers.plan) {
         ctx.fillStyle = BG;
         ctx.strokeStyle = WHITE;
@@ -235,7 +228,6 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
     }
 
     if (layers.plan) {
-      // white casing under each route keeps it legible over dense homes
       for (const pass of [0, 1]) {
         for (const cls of [2, 1]) {
           ctx.strokeStyle = pass === 0 ? BG : cls === 1 ? BLUE : AMBER;
@@ -252,7 +244,6 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
         }
       }
       ctx.strokeStyle = LINE;
-      // where each new run starts: a plan edge whose start is nobody's end sits on the existing fiber network
       if (nPlan > 0 && data.meta.planVersion && data.meta.planVersion >= 2) {
         let c = joinCache.current;
         if (c.data !== data) {
@@ -276,7 +267,6 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
         ctx.strokeStyle = LINE;
       }
       if (pulse && progress >= 1) {
-        // each pulse rides one route segment outward from the hub; speed follows how far the segment is from the hub
         const t = performance.now() / 2200;
         const maxD = data.plan[data.plan.length - 1]?.[5] || 1;
         ctx.fillStyle = WHITE;
@@ -353,7 +343,6 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
       }
     }
 
-    // hub
     {
       const x = X(data.meta.hub[0]), y = Y(data.meta.hub[1]);
       ctx.lineWidth = 2;
@@ -424,7 +413,6 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
     view.current = { lon: (w0 + e0) / 2, lat, s: Math.min(sx, sy) };
   }, []);
 
-  // size + first fit
   useEffect(() => {
     const el = wrap.current!;
     const ro = new ResizeObserver(() => {
@@ -455,7 +443,6 @@ export default function MapView({ data, layers, progress = 1, selected, onPick, 
     schedule();
   }, [focus, schedule]);
 
-  // pointer gestures
   useEffect(() => {
     if (still) return;
     const cv = canvas.current!;

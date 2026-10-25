@@ -1,4 +1,3 @@
-// The six steps as one picture: public data goes in on the left, a plan comes out on the right.
 const STEPS = [
   { n: "1", t: "Find homes", d: "Building outlines", icon: "homes", color: "#d64533" },
   { n: "2", t: "Find poles", d: "Street photos and a detector", icon: "pole", color: "var(--blue)" },

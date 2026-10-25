@@ -25,7 +25,6 @@ async function boxesFor(id: string, token: string) {
   return boxes;
 }
 
-// Street photos near a point (nearest first), each with Mapillary's own pole detections as a reference.
 export async function GET(req: NextRequest) {
   const token = process.env.MAPILLARY_TOKEN;
   if (!token) return NextResponse.json({ configured: false });
@@ -43,7 +42,6 @@ export async function GET(req: NextRequest) {
   const ky = 110574, kx = 111320 * Math.cos((lat * Math.PI) / 180);
   const dist = (i: any) => Math.hypot((i.computed_geometry.coordinates[0] - lon) * kx, (i.computed_geometry.coordinates[1] - lat) * ky);
   imgs.sort((a, b) => dist(a) - dist(b));
-  // spread the picks along the road instead of taking five frames from the same second
   const picks: any[] = [];
   for (const i of imgs) {
     if (picks.length >= n) break;

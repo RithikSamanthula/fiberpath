@@ -39,7 +39,6 @@ def fetch_list():
             break
         off += 1000
     json.dump(out, open(LIST, "w"))
-    # compact list for the web app's national map: [geoid, name, state, lat, lon]
     os.makedirs(OUT, exist_ok=True)
     json.dump([[c["GEOID"], c["NAME"], c["STATE"], float(c["CENTLAT"]), float(c["CENTLON"])] for c in out],
               open(os.path.join(OUT, "counties.json"), "w"), separators=(",", ":"))
@@ -59,7 +58,6 @@ def save_status(s):
 def queue(args, st):
     counties = json.load(open(LIST))
     prio = []
-    # the committed list (Georgia's 9th District first, then the rest of Georgia) and any local one
     for pf in (os.path.join(HERE, "priority.txt"), os.path.join(CACHE, "priority.txt")):
         if os.path.exists(pf):
             prio += [l.strip() for l in open(pf) if l.strip() and l.strip() not in prio]
@@ -100,7 +98,7 @@ def work(c, st, lock_path):
 
             if publish.enabled() and publish.publish(g, county_config(g)["slug"]):
                 print("published", g, flush=True)
-        except Exception as e:  # a failed upload must not lose the county; it stays on disk and is retried next cycle
+        except Exception as e:
             print("publish failed", g, e, flush=True)
     return ok
 
@@ -134,9 +132,7 @@ if __name__ == "__main__":
                 st.setdefault(g, {"status": "done", "name": "", "seconds": 0})
         q = queue(a, st)
         if a.shard:
-            # shard by state so exactly one process ever writes a state's index
             k, N = (int(x) for x in a.shard.split("/"))
-            # balance the shards: biggest states first, each into the lightest shard so far
             counts = {}
             for c in json.load(open(LIST)):
                 counts[c["STATE"]] = counts.get(c["STATE"], 0) + 1

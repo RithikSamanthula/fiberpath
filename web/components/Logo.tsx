@@ -1,4 +1,3 @@
-// A square F built from two strokes, black on white or white on black like the favicon
 export function LogoMark({ size = 32 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" aria-hidden="true" className="logo-mark">

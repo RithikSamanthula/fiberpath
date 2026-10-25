@@ -10,8 +10,8 @@ from scipy.ndimage import map_coordinates
 
 DLON = 0.0003
 DLAT = 0.00027
-ELEV_SCALE = 10.0  # int16 decimeters
-CANOPY_SCALE = 4.0  # uint8 quarter meters
+ELEV_SCALE = 10.0
+CANOPY_SCALE = 4.0
 
 
 def build_grids(bb, dem, dem_meta, can, can_meta):
@@ -19,7 +19,7 @@ def build_grids(bb, dem, dem_meta, can, can_meta):
     nx = int(math.ceil((e - w) / DLON)) + 1
     ny = int(math.ceil((n - s) / DLAT)) + 1
     lons = w + np.arange(nx) * DLON
-    lats = n - np.arange(ny) * DLAT  # row 0 is the north edge
+    lats = n - np.arange(ny) * DLAT
     LON, LAT = np.meshgrid(lons, lats)
 
     x0, y0, z = dem_meta

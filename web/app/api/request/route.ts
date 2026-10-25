@@ -3,7 +3,6 @@ import { addPledge, requestCount } from "@/lib/server";
 
 export const dynamic = "force-dynamic";
 
-// Ask for a full plan for a county that has not been planned yet.
 export async function POST(req: NextRequest) {
   let b: any;
   try { b = await req.json(); } catch { return NextResponse.json({ error: "Bad request" }, { status: 400 }); }

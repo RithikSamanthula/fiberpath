@@ -6,7 +6,6 @@ export function iou(a: Box, b: Box) {
   return i / (a.w * a.h + b.w * b.h - i || 1);
 }
 
-// Greedy one-to-one matching at IoU >= 0.3. Poles are thin, so a loose threshold is used.
 export function agreement(ours: Box[], ref: Box[], thr = 0.3) {
   const used = new Set<number>();
   let tp = 0;

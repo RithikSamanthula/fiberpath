@@ -1,4 +1,3 @@
-/* black and white, like the logo; blue, amber, green and red are kept for data only */
 :root {
   color-scheme: dark;
   --ink: #f2f2f2;
@@ -50,7 +49,6 @@ body {
 a { color: var(--ink); text-underline-offset: 3px; }
 button, input, select { font: inherit; color: inherit; border-radius: 0; }
 
-/* app frame: a plain sidebar on a computer, a tab bar on a phone */
 .shell { display: grid; grid-template-columns: 224px minmax(0, 1fr); min-height: 100dvh; }
 .shell-main { min-width: 0; }
 .rail { position: sticky; top: 0; height: 100dvh; background: var(--paper); border-right: 1px solid var(--edge); display: flex; flex-direction: column; align-items: stretch; padding: 0 0 12px; gap: 0; z-index: 40; }
@@ -87,7 +85,6 @@ p + p { margin-top: 12px; }
 .label, .stat-card .l, .ah-stats .l { font-family: var(--font-mono), monospace; font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
 code { background: var(--soft); padding: 1px 6px; font-size: 0.92em; border-radius: 0; }
 
-/* buttons & fields */
 .btn {
   display: inline-block; border: 2px solid var(--accent); background: var(--accent); color: var(--on-accent);
   padding: 10px 20px; min-height: 46px; cursor: pointer; text-decoration: none; font-weight: 700; border-radius: 0; transition: background .15s, border-color .15s;
@@ -109,7 +106,6 @@ code { background: var(--soft); padding: 1px 6px; font-size: 0.92em; border-radi
 .search .btn { white-space: nowrap; border-radius: 0; min-height: 56px; padding: 0 28px; font-size: 17px; }
 select.field { min-height: 46px; font-size: 16px; }
 
-/* tables */
 table { border-collapse: collapse; width: 100%; margin: 14px 0; }
 th, td { border-bottom: 1px solid var(--line); padding: 10px 12px; text-align: left; vertical-align: top; }
 thead th { background: var(--soft); color: var(--ink); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.05em; }
@@ -117,7 +113,6 @@ thead th:first-child { border-radius: 0; } thead th:last-child { border-radius: 
 tbody th { font-weight: 700; }
 td.r, th.r { text-align: right; }
 
-/* blocks */
 .big { font-size: 56px; line-height: 1; font-weight: 800; letter-spacing: -0.03em; }
 .big.sm { font-size: 36px; }
 .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0; background: var(--soft); border-radius: 0; overflow: hidden; }
@@ -140,7 +135,6 @@ td.r, th.r { text-align: right; }
 .chip.red { background: var(--red); color: #fff; }
 .chip.gray { background: var(--soft); color: var(--ink); }
 
-/* landing */
 .hero { background: var(--fill); color: #fff; }
 .hero .wrap, .hero-grid { padding-top: 64px; padding-bottom: 64px; display: grid; grid-template-columns: 1fr 1.15fr; gap: 40px; align-items: start; }
 .hh-visuals { display: grid; grid-template-columns: 1fr 1.25fr; gap: 16px; align-items: stretch; }
@@ -191,13 +185,11 @@ td.r, th.r { text-align: right; }
 .footer { border-top: 1px solid var(--line); padding: 28px 0 40px; font-size: 14px; }
 .stat-card { border-radius: 0; }
 
-/* glossary */
 .terms { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; margin-top: 12px; }
 .term { background: var(--soft); padding: 14px 16px; border-left: 4px solid var(--edge); border-radius: 0; }
 .term.blue { border-color: var(--blue); } .term.amber { border-color: var(--amber); } .term.green { border-color: var(--green); } .term.red { border-color: var(--red); }
 .term b { display: block; margin-bottom: 2px; }
 
-/* map screens */
 .app { display: grid; grid-template-columns: 1fr 360px; height: 100dvh; }
 .app .stage { position: relative; min-height: 0; display: flex; flex-direction: column; background: var(--map); }
 .topbar { display: flex; flex-wrap: wrap; background: var(--paper); border-bottom: 1px solid var(--line); }
@@ -283,7 +275,6 @@ canvas.map { position: absolute; inset: 0; width: 100%; height: 100%; touch-acti
 @keyframes fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 @media (max-width: 860px) { .tour-grid { grid-template-columns: 1fr; } }
 
-/* app home */
 .ah { max-width: 1280px; margin: 0 auto; padding: 24px 20px 60px; display: grid; gap: 20px; }
 .ah-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 20px; align-items: stretch; }
 .ah-card { background: var(--fill); color: #fff; border-radius: 0; padding: 32px; display: flex; flex-direction: column; justify-content: center; }
@@ -325,7 +316,6 @@ canvas.map { position: absolute; inset: 0; width: 100%; height: 100%; touch-acti
 .tabs button.on { background: var(--card); color: var(--ink); }
 .ah-card .seg { margin-top: 6px; }
 
-/* rows of label, bar and number: the bar drops under the label on a phone */
 .row3 { display: grid; grid-template-columns: minmax(90px, var(--c1, 200px)) 1fr var(--c3, 90px); gap: 12px; align-items: center; }
 .tscroll { overflow-x: auto; -webkit-overflow-scrolling: touch; max-width: 100%; }
 .tscroll table { min-width: 640px; }
@@ -335,8 +325,7 @@ button, a, summary { touch-action: manipulation; }
 
 @media (max-width: 860px) {
   body { font-size: 16px; }
-  input, select, textarea, .field { font-size: 16px !important; } /* below 16px, iPhones zoom the page when a field is tapped */
-  .wrap { padding-left: 16px; padding-right: 16px; }
+  input, select, textarea, .field { font-size: 16px !important; }  .wrap { padding-left: 16px; padding-right: 16px; }
   .page { padding: 20px 16px 40px; }
   h1 { font-size: 30px; }
   h2 { font-size: 22px; margin: 36px 0 10px; }
@@ -367,7 +356,6 @@ button, a, summary { touch-action: manipulation; }
   .three { gap: 18px; }
   .terms { grid-template-columns: 1fr; }
   .thumbs { grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)) !important; }
-  /* the map screens: stats in one scrolling strip, a tall map, then the panel */
   .topbar { display: flex; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
   .topbar::-webkit-scrollbar { display: none; }
   .topbar .stat { flex: none; min-width: 112px; padding: 8px 14px; border-top: 0 !important; border-right: 1px solid var(--line) !important; }
@@ -383,7 +371,6 @@ button, a, summary { touch-action: manipulation; }
 }
 @media (max-width: 380px) { .ah-actions, .ah-stats { grid-template-columns: 1fr; } }
 
-/* county finder */
 .cb-open { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 12px; text-align: left; background: var(--card); border: 1px solid var(--edge); border-radius: 0; padding: 10px 14px; cursor: pointer; min-height: 56px; }
 .cb-open:hover { background: var(--soft); }
 .cb-open b { font-size: 17px; }
@@ -425,7 +412,6 @@ button, a, summary { touch-action: manipulation; }
   .cb-bar { gap: 8px; }
 }
 
-/* the wordmark sits in the hero card on a phone, where there is no sidebar */
 .ah-brand { display: none; margin-bottom: 22px; }
 .ah-brand .logo-word { color: #fff; }
 @media (max-width: 860px) { .ah-brand { display: block; } }

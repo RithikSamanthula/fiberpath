@@ -4,9 +4,7 @@ import { gunzipSync } from "zlib";
 import { gridDisk, latLngToCell } from "h3-js";
 import { REPO } from "./remote";
 
-// Who reports broadband service near a point, from the FCC National Broadband Map (December 2025 release).
-// One file per state, keyed by H3 hexagon (resolution 8, about 0.7 square km): provider, technology, fastest speeds.
-type Row = [string, string, number, number, number]; // brand, technology, down, up, locations
+type Row = [string, string, number, number, number];
 const cache = new Map<string, Record<string, Row[]>>();
 
 async function load(fips: string) {

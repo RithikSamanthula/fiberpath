@@ -1,4 +1,3 @@
-// Plain outline icons, one stroke weight, so every screen reads as one app
 const P = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "square" as const, strokeLinejoin: "miter" as const };
 export const ICONS: Record<string, React.ReactElement> = {
   home: <g {...P}><path d="M4 11l8-7 8 7" /><path d="M6 10v9h12v-9" /><path d="M10 19v-5h4v5" /></g>,

@@ -6,7 +6,6 @@ import { County, Home, loadCountyLite } from "@/lib/data";
 
 const layers: Layers = { roads: true, plan: true, homes: true, towers: true, poles: true, wireless: false };
 
-// Your address on the map, and your street as a camera saw it, with a pole detector looking at the photos.
 export default function HomeContext({ slug, home, lat, lon }: { slug?: string; home?: Home | null; lat: number; lon: number }) {
   const [d, setD] = useState<County | null>(null);
   useEffect(() => { if (slug) loadCountyLite(slug).then(setD).catch(() => {}); }, [slug]);

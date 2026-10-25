@@ -3,7 +3,6 @@ import { plans } from "@/lib/server";
 
 export const dynamic = "force-dynamic";
 
-// Every county in a state (Census TIGERweb), marked with whether FiberPath has a plan for it.
 export async function GET(req: NextRequest) {
   const st = req.nextUrl.searchParams.get("state") ?? "";
   if (!/^\d{2}$/.test(st)) return NextResponse.json({ error: "Bad request" }, { status: 400 });

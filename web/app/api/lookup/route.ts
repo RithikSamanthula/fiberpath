@@ -63,7 +63,6 @@ export async function GET(req: NextRequest) {
       out.home = home;
       out.homeMeters = Math.round(meters);
       out.coverageSource = meta.coverageSource;
-      // plans made before the FCC data was loaded still get the real answer for the address itself
       if (fcc !== null && meta.coverageSource !== "fcc") { out.home = { ...home, status: fcc }; out.coverageSource = "fcc"; out.replanning = true; }
       out.towers = null;
     } else {

@@ -48,7 +48,6 @@ def evaluate(W, SZ, device="cpu", conf=0.25):
     model = YOLO(W)
     imgs = sorted(glob.glob(os.path.join(HERE, "data", "images", "val", "*.jpg")))
     rows = []
-    # small chunks keep memory flat: one big call was killed by the OS on a busy laptop
     for k in range(0, len(imgs), 16):
         chunk = imgs[k:k + 16]
         for p, r in zip(chunk, model.predict(chunk, imgsz=SZ, conf=0.2, iou=0.5, device=device, verbose=False, batch=4)):

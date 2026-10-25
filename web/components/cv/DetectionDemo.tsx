@@ -13,7 +13,6 @@ const STEPS = [
   { stage: "final" as const, ms: 4200, t: "3  Result", d: "Overlapping guesses merge and street lights are dropped" },
 ];
 
-// The pole detector working on real photos, on a loop: photo, proposals, decision.
 export default function DetectionDemo() {
   const [ex, setEx] = useState<Ex[] | null>(null);
   const [m, setM] = useState<Metrics | null>(null);

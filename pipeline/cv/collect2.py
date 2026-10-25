@@ -20,7 +20,6 @@ G = "https://graph.mapillary.com"
 ROOT = relabel.ROOT
 PER = int(sys.argv[1])
 IDX = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "web", "public", "data", "index.json")))
-# the index on disk only has local counties; the live one has them all
 try:
     live = requests.get("http://localhost:3111/api/index", timeout=30).json()
 except Exception:

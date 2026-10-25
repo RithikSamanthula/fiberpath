@@ -1,5 +1,4 @@
 #!/bin/sh
-# Runs after training ends: install the model, bake the demo photos, commit and push.
 cd "$(dirname "$0")/../../web" || exit 1
 while pgrep -f "cv/train.py" >/dev/null; do sleep 20; done
 [ -f models/pole.onnx ] || { echo "no model produced"; exit 1; }
@@ -14,7 +13,6 @@ json.dump(m, open('../../web/public/data/cv-metrics.json', 'w'), indent=1)
 print(m)
 PY
 )
-# the site must be running to bake: start it if it is not
 curl -s -m 5 localhost:3111/api/index >/dev/null || { (npx next start -p 3111 >/tmp/fp-next.log 2>&1 &); sleep 8; }
 node scripts/bake-cv-demo.mjs 6
 cd .. && git add -A && git -c user.name=RithikSamanthula -c user.email=rithik.samanthula@gmail.com commit -q -m "Install the retrained pole detector and baked demo photos" && git push -q origin main

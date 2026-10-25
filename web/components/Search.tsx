@@ -10,10 +10,8 @@ export default function Search({ initial = "", autoFocus = false }: { initial?: 
   const [sel, setSel] = useState(-1);
   const typed = useRef(false);
   const inp = useRef<HTMLInputElement>(null);
-  // a phone keyboard that jumps up on arrival hides the page, so only focus where there is a mouse
   useEffect(() => { if (autoFocus && window.matchMedia("(pointer: fine)").matches) inp.current?.focus(); }, [autoFocus]);
 
-  // suggestions appear after a short pause in typing
   useEffect(() => {
     if (!typed.current) return;
     const t = setTimeout(() => {

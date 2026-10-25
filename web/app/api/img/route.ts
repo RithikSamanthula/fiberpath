@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// Same-origin proxy for Mapillary photos so the in-browser detector can read their pixels.
 export async function GET(req: NextRequest) {
   const u = req.nextUrl.searchParams.get("u") ?? "";
   let url: URL;

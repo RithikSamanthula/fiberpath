@@ -7,7 +7,6 @@ import { homeId } from "./data";
 import { remoteAsset, remoteIndex, unpack } from "./remote";
 
 let plansCache: { at: number; map: Record<string, string> } | null = null;
-// geoid -> slug for every planned county, local files plus everything the cloud pipeline has published
 export async function plans(): Promise<Record<string, string>> {
   if (plansCache && Date.now() - plansCache.at < 30_000) return plansCache.map;
   const map: Record<string, string> = {};
@@ -36,7 +35,6 @@ export async function getPlan(slug: string) {
     const raw: number[][] = JSON.parse(await fs.readFile(path.join(dir(slug), "homes.json"), "utf8"));
     c = { meta, homes: toHomes(raw) };
   } catch {
-    // not on disk: it was published by the cloud pipeline
     const geoid = Object.entries(await plans()).find(([, s]) => s === slug)?.[0];
     const pack = geoid ? await remoteAsset(geoid, "pack") : null;
     if (!pack) throw new Error("unknown county");
@@ -57,10 +55,6 @@ export function nearestHome(homes: Home[], lon: number, lat: number) {
   }
   return { home: best, meters: bd };
 }
-
-// ---- demand pledges -------------------------------------------------------
-// Stored per home id only. Nothing returned to the public includes an address.
-// Uses Supabase if SUPABASE_URL and SUPABASE_SERVICE_KEY are set, else a local file.
 
 type Pledge = { county: string; home: string; cell: string };
 const sb = () => {
@@ -106,7 +100,7 @@ export async function addPledge(county: string, h: { lat: number; lon: number },
   await fs.writeFile(/*turbopackIgnore: true*/ file(), JSON.stringify(all));
 }
 
-const MIN_CELL = 5; // a hexagon is only shown once it holds at least this many households
+const MIN_CELL = 5;
 
 export async function demand(county: string) {
   const all = await readAll(county);

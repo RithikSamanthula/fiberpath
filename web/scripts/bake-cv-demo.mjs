@@ -1,6 +1,3 @@
-// Bakes real detector output into public/cv-demo so the landing page can show the CV working without any
-// live API calls. Needs the site running locally (npm run start) with MAPILLARY_TOKEN set and models/pole.onnx present.
-//   node scripts/bake-cv-demo.mjs [count]
 import fs from "fs";
 import path from "path";
 

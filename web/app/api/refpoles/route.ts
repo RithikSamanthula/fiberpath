@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-// Utility poles that Mapillary has already mapped near a point. Used only to check our own estimates against.
 export async function GET(req: NextRequest) {
   const token = process.env.MAPILLARY_TOKEN;
   if (!token) return NextResponse.json({ poles: [] });

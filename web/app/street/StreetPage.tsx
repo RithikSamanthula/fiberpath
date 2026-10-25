@@ -26,7 +26,6 @@ export default function StreetPage() {
     setBusy(false);
   }
 
-  // a random street in a random planned county, somewhere poles have been mapped (so photos exist)
   async function surprise() {
     if (!index?.length) return;
     setBusy(true); setMsg("Looking for a street with photos");

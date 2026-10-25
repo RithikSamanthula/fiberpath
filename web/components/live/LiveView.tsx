@@ -8,7 +8,6 @@ type Mode = "idle" | "camera" | "replay";
 const px = (u: string) => `/api/img?u=${encodeURIComponent(u)}`;
 const rad = (d: number) => (d * Math.PI) / 180;
 
-// W3C example: compass direction the back of the device is pointing, from the orientation angles
 function backHeading(a: number, b: number, g: number) {
   const x = rad(b), y = rad(g), z = rad(a);
   const cY = Math.cos(y), cZ = Math.cos(z), sX = Math.sin(x), sY = Math.sin(y), sZ = Math.sin(z);
@@ -33,7 +32,6 @@ export default function LiveView({ startLat, startLon }: { startLat: number; sta
   const live = useRef({ lat: 0, lon: 0, acc: 99, heading: null as number | null, boxes: [] as Det[] });
   const run = useRef(0);
 
-  // fetch the model the first time, so the page can say when it is ready
   useEffect(() => { loadModel().then(() => setReady(true)).catch(() => setStatus("The detector could not load in this browser.")); }, []);
 
   const drawBoxes = (boxes: Det[], w: number, h: number) => {
@@ -79,7 +77,6 @@ export default function LiveView({ startLat, startLon }: { startLat: number; sta
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 } }, audio: false });
       const v = video.current!;
       v.srcObject = stream; v.setAttribute("playsinline", "true"); await v.play();
-      // compass: iPhones ask for permission, Android just works
       const DO: any = (window as any).DeviceOrientationEvent;
       if (DO?.requestPermission) { try { await DO.requestPermission(); } catch {} }
       const onOri = (e: any) => {
@@ -111,7 +108,6 @@ export default function LiveView({ startLat, startLon }: { startLat: number; sta
     }
   }
 
-  // a recorded drive along a real road, so the whole thing can be seen without a phone
   async function startReplay() {
     const my = ++run.current;
     setFrames([]); setDets([]); setCur(-1); setMode("replay"); setStatus("Loading a recorded drive");

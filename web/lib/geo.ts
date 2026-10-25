@@ -39,19 +39,18 @@ export const LOS = { towerH: 25, homeH: 6, freq: 5.8e9, fresnel: 0.6, k: 4 / 3, 
 
 export type Profile = {
   dist: number;
-  d: number[]; // meters along the path
+  d: number[];
   ground: number[];
-  surface: number[]; // ground + canopy
+  surface: number[];
   line: number[];
-  lower: number[]; // line minus 60% of the first Fresnel zone
-  clear: number[]; // clearance margin, negative = blocked
-  worst: number; // index of tightest point
+  lower: number[];
+  clear: number[];
+  worst: number;
   margin: number;
   blockedByTerrain: boolean;
   visible: boolean;
 };
 
-// Mirrors pipeline/los.py so the screen and the plan always agree.
 export function profile(d: County, a: { lon: number; lat: number }, b: { lon: number; lat: number }): Profile {
   const dist = distM(a.lon, a.lat, b.lon, b.lat);
   const lambda = 299792458 / LOS.freq;
@@ -90,8 +89,6 @@ export function profile(d: County, a: { lon: number; lat: number }, b: { lon: nu
   return { dist, d: ds, ground, surface, line, lower, clear, worst, margin, blockedByTerrain: terrainMargin < 0, visible: margin >= 0 };
 }
 
-// Which homes can a tower at (lon, lat) see? 0 out of range, 1 clear, 2 blocked.
-// Same math as profile() and pipeline/los.py, in one tight loop so it can run live as a tower is dragged.
 export function viewshed(d: County, lon: number, lat: number, homes: { lon: number; lat: number; status: number }[], maxM = 7000) {
   const { kx, ky } = metersPerDeg(lat);
   const lambda = 299792458 / LOS.freq;

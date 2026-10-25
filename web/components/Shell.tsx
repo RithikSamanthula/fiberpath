@@ -15,7 +15,6 @@ const TABS: [string, string, string][] = [
 ];
 const active = (path: string, href: string) => (href === "/" ? path === "/" : path === href || path.startsWith(href + "/"));
 
-// The frame around every screen: an icon rail on a computer, a tab bar on a phone, installable like any other app
 export default function Shell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   const [prompt, setPrompt] = useState<any>(null);

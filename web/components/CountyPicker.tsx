@@ -19,7 +19,6 @@ const miles = (la1: number, lo1: number, la2: number, lo2: number) => { const k 
 
 type Sort = "need" | "cheap" | "name" | "new";
 
-// Browse and find a county: search while typing, narrow by state, sort, pick on the map or start from where you are
 export function CountyBrowser({ onPick, current }: { onPick: (slug: string) => void; current?: string | null }) {
   const index = useIndex();
   const [q, setQ] = useState("");
@@ -39,7 +38,6 @@ export function CountyBrowser({ onPick, current }: { onPick: (slug: string) => v
 
   const list = useMemo(() => {
     if (!index) return [];
-    // every typed word has to match the county name or its state, so "towns ga" and "georgia towns" both work
     const words = q.toLowerCase().split(/[\s,]+/).filter(Boolean);
     let l = index.filter((c) => (!st || c.state === st) && (!fccOnly || c.coverageSource === "fcc") && words.every((w) => `${c.name} ${c.state} ${STATE_NAMES[c.state] ?? ""}`.toLowerCase().includes(w)));
     const cen = (c: IndexItem): [number, number] => [(c.bbox[1] + c.bbox[3]) / 2, (c.bbox[0] + c.bbox[2]) / 2];
@@ -48,7 +46,6 @@ export function CountyBrowser({ onPick, current }: { onPick: (slug: string) => v
     else if (sort === "cheap") l = [...l].filter((c) => c.homes && c.unserved > 20).sort((a, b) => perHome(a) - perHome(b));
     else if (sort === "name") l = [...l].sort((a, b) => a.name.localeCompare(b.name));
     else l = [...l].sort((a, b) => (b.plannedAt ?? "").localeCompare(a.plannedAt ?? ""));
-    // counties planned with real FCC data come first, since their numbers are the ones to trust
     if (sort !== "name") { const f = (c: IndexItem) => (c.coverageSource === "fcc" ? 0 : 1); l = [...l].sort((x, y) => f(x) - f(y)); }
     return l;
   }, [index, q, st, sort, fccOnly, near]);
@@ -126,7 +123,6 @@ export function CountyBrowser({ onPick, current }: { onPick: (slug: string) => v
   );
 }
 
-// A button that shows the current county and opens the browser as a sheet
 export function CountyButton({ index, slug, onChange }: { index: IndexItem[] | null; slug: string | null; onChange: (s: string) => void }) {
   const [open, setOpen] = useState(false);
   const cur = index?.find((c) => c.slug === slug);

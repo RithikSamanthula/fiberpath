@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { CountySelect, useCountyParam } from "@/lib/useCounty";
 import { costRange, dollars, money, num, range, totalCost } from "@/lib/cost";
 
-// A one-page flyer a neighbor can put up: the numbers for the county and a code that opens the address check
 export default function Flyer() {
   const { slug, setSlug, index, data } = useCountyParam();
   const [qr, setQr] = useState("");

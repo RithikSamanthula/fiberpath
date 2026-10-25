@@ -10,7 +10,6 @@ const ago = (iso?: string, now = Date.now()) => {
   return s < 90 ? "just now" : s < 3600 ? `${Math.round(s / 60)} min ago` : s < 86400 ? `${Math.round(s / 3600)} h ago` : `${Math.round(s / 86400)} d ago`;
 };
 
-// The pipeline's output as it arrives: the newest counties, with how long ago each one finished.
 export default function LiveFeed({ count = 6 }: { count?: number }) {
   const idx = useIndex();
   const [now, setNow] = useState(Date.now());

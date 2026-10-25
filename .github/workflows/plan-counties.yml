@@ -1,19 +1,14 @@
 name: Plan counties
 
-# Plans every U.S. county, forever. Each cycle runs up to six parallel shards (split by state) for about 5.5 hours.
-# Every county is published to a GitHub release the moment it finishes, so the website shows it live. Progress is recorded on the "progress" branch, then starts the next cycle.
-# When every county is done it waits 30 days and starts over with fresh data. The watchdog workflow restarts the loop
-# if it ever stops. Needs the repository secret MAPILLARY_TOKEN.
-
 on:
   push:
     branches: [main]
-    paths: [".github/trigger"]   # touch this file and push to start a run
+    paths: [".github/trigger"]
   workflow_dispatch:
 
 concurrency:
   group: plan-counties
-  cancel-in-progress: true   # a new run (for example after a push) replaces the one in flight
+  cancel-in-progress: true
 
 permissions:
   contents: write
@@ -38,7 +33,6 @@ jobs:
       - id: r
         run: |
           python pipeline/national.py list
-          # anything already published counts as done, even if an earlier cycle was cut off before recording it
           (cd pipeline && python published.py | sort -u > "$RUNNER_TEMP/published.txt")
           .github/scripts/progress.sh published "$RUNNER_TEMP/published.txt"
           .github/scripts/progress.sh pull "$RUNNER_TEMP/p"
@@ -50,7 +44,6 @@ jobs:
             .github/scripts/progress.sh reset
             remaining=$total
           fi
-          # a private repository only gets 2,000 free minutes a month, so it runs one short shard
           if [ "$(gh repo view "$GITHUB_REPOSITORY" --json isPrivate -q .isPrivate)" = "true" ]; then
             echo 'shards=[0]' >> "$GITHUB_OUTPUT"; echo 'budget=40' >> "$GITHUB_OUTPUT"
           else

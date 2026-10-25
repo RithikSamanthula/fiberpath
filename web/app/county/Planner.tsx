@@ -44,7 +44,6 @@ export default function Planner() {
   const vs = useMemo(() => (data?.hasGrids && ghost ? viewshed(data, ghost.lon, ghost.lat, data.homes) : null), [data, ghost]);
 
   useEffect(() => { if (data && !a) setA(data.meta.assumptions); }, [data, a]);
-  // links like /county?county=towns-ga&home=123&view=3d open straight to a home in 3D
   useEffect(() => {
     if (!data) return;
     const h = q.get("home");

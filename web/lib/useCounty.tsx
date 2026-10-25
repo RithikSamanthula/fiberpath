@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { County, IndexItem, ensureGrids, loadCountyLite } from "./data";
 import { useIndex } from "./useIndex";
 
-// The county shown on a screen comes from ?county=<slug>, so every view can be linked.
 export function useCountyParam() {
   const q = useSearchParams();
   const router = useRouter();
@@ -20,7 +19,6 @@ export function useCountyParam() {
     let live = true;
     setData(null);
     setError(null);
-    // The map needs only the plan, so show it as soon as that arrives; the 6 MB terrain grids fill in behind it
     loadCountyLite(slug).then((d) => {
       if (!live) return;
       setData(d);

@@ -1,5 +1,4 @@
 #!/bin/sh
-# Deploy exactly what is committed (not the scratch data on this laptop) to Vercel.
 set -e
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TMP="$(mktemp -d)"

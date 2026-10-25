@@ -4,12 +4,8 @@ import { detectPoles, haveModel } from "@/lib/yolo";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// FiberPath's pole detector (see lib/yolo.ts). There is deliberately no fallback model: a zero-shot detector
-// found no poles at all on real street photos, and a silent "no poles" is worse than saying the model is not ready.
-
 export async function GET(req: NextRequest) {
   let u = req.nextUrl.searchParams.get("u") ?? "";
-  // a Mapillary image id works too (the street viewer knows ids, not URLs)
   const id = req.nextUrl.searchParams.get("id");
   if (id && /^\d{6,20}$/.test(id) && process.env.MAPILLARY_TOKEN) {
     const g = await fetch(`https://graph.mapillary.com/${id}?access_token=${process.env.MAPILLARY_TOKEN}&fields=thumb_1024_url`, { cache: "no-store" }).then((r) => r.json()).catch(() => null);

@@ -5,8 +5,8 @@ import UsMap from "@/components/UsMap";
 import { RANGE_NOTE, costRange, dollars, money, num, range, totalCost } from "@/lib/cost";
 import type { Assumptions, IndexItem } from "@/lib/data";
 
-const PEOPLE = 2.5; // national average people per household
-const BENCH = 3540; // Blue Ridge Mountain EMC, dollars per home, the real project this tool is checked against
+const PEOPLE = 2.5;
+const BENCH = 3540;
 const LABELS: Record<keyof Assumptions, string> = {
   aerialPerFt: "Fiber on poles, $ per foot", buriedPerFt: "Buried fiber, $ per foot", dropBase: "Connection to a home, $", dropPerFt: "Connection, $ per foot",
   towerEach: "Wireless tower, $ each", wirelessCpe: "Antenna for a home, $",
@@ -97,7 +97,6 @@ function Histogram({ values, fmt }: { values: number[]; fmt: (v: number) => stri
 
 const Badge = ({ fcc }: { fcc: boolean }) => <span className={`chip ${fcc ? "green" : "gray"}`}>{fcc ? "FCC data" : "Estimate"}</span>;
 
-// One workspace for everyone: a co-op, a county office or a congressional office all see the same things.
 export default function Workspace({ items, name, note, prices, setPrices }: { items: IndexItem[]; name: string; note?: string; prices: Assumptions | null; setPrices: (p: Assumptions | null) => void }) {
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
   const nFcc = items.filter((c) => c.coverageSource === "fcc").length;

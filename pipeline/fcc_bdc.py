@@ -67,8 +67,8 @@ def main(fips):
     offers = [f for f in files if f.get("subcategory") == "Location Coverage" and f.get("technology_code_desc") in TERRESTRIAL]
     if not universe or not offers:
         sys.exit("Expected files were not found. Listing: " + ", ".join(sorted({str(f.get('subcategory')) for f in files})))
-    best = {}  # location id -> best tier offered
-    prov = {}  # hex -> {(brand, technology): [fastest down, fastest up, locations]}
+    best = {}
+    prov = {}
     for f in offers:
         print("  reading", f["technology_code_desc"], flush=True)
         for row in fetch_csv(f["file_id"]):
@@ -97,7 +97,6 @@ def main(fips):
         w.writerow(["h3_res8_id", "unserved", "underserved", "served"])
         for h, (u, m, s) in hexes.items():
             w.writerow([h, u, m, s])
-    # who offers service where: for every hexagon, each provider with its technology and fastest speeds
     pdir = os.path.join(HERE, "data", "fcc-providers")
     os.makedirs(pdir, exist_ok=True)
     js = {h: sorted(([b, t, int(v[0]), int(v[1]), v[2]] for (b, t), v in d.items()), key=lambda r: -r[2]) for h, d in prov.items()}

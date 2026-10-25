@@ -1,7 +1,7 @@
 """Wireless line of sight: terrain + canopy vs. the 60% Fresnel zone."""
 import numpy as np
 
-TOWER_H = 25.0  # m above ground
+TOWER_H = 25.0
 HOME_H = 6.0
 FREQ = 5.8e9
 LAMBDA = 299_792_458.0 / FREQ
@@ -10,7 +10,7 @@ R_EARTH = 6_371_000.0
 FRESNEL = 0.6
 MAX_M = 7000.0
 N = 300
-END_SKIP = 30.0  # ignore the first/last 30 m (the antenna sits above its own trees)
+END_SKIP = 30.0
 
 
 def margins(grid, t_lon, t_lat, lons, lats, kx, ky, use_canopy=True):

@@ -47,7 +47,7 @@ def overpass(c, name, body, bb):
         for url in mirrors * 2:
             try:
                 return http_json(url, data={"data": q}, timeout=200, tries=2)
-            except Exception as e:  # try the next mirror
+            except Exception as e:
                 last = e
         raise last
 

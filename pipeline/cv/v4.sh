@@ -1,5 +1,4 @@
 #!/bin/sh
-# Wait for the extra photos, fine-tune the detector at full 1024 px resolution, then install it.
 cd "$(dirname "$0")/.." || exit 1
 while pgrep -f "cv/collect2.py" >/dev/null; do sleep 20; done
 export MAPILLARY_TOKEN=unused

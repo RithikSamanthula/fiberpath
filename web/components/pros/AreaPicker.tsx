@@ -2,7 +2,6 @@
 import { useMemo, useState } from "react";
 import type { IndexItem } from "@/lib/data";
 
-// Choose the counties that make up a service area, a state program or a district
 export default function AreaPicker({ index, value, onChange, single }: { index: IndexItem[]; value: string[]; onChange: (g: string[]) => void; single?: boolean }) {
   const states = useMemo(() => [...new Set(index.map((c) => c.state))].sort(), [index]);
   const [st, setSt] = useState(() => (value.length ? index.find((c) => c.geoid === value[0])?.state : "") || "");

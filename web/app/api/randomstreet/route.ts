@@ -8,7 +8,6 @@ export const maxDuration = 30;
 
 const cache = new Map<string, number[][]>();
 
-// A spot in a planned county where utility poles were found in street photos, so photos are known to exist there.
 export async function GET(req: NextRequest) {
   const geoid = req.nextUrl.searchParams.get("geoid") ?? "";
   const slug = req.nextUrl.searchParams.get("slug") ?? "";
@@ -24,7 +23,6 @@ export async function GET(req: NextRequest) {
     }
     if (poles) { if (cache.size > 20) cache.delete(cache.keys().next().value as string); cache.set(geoid, poles); }
   }
-  // points from the photo detections (flag 0) are the ones that are guaranteed to have photos nearby
   const pts = (poles ?? []).filter((p) => p[2] === 0);
   if (!pts.length) return NextResponse.json({ error: "none" }, { status: 404 });
   const p = pts[Math.floor(Math.random() * pts.length)];

@@ -4,7 +4,6 @@ import { gunzipSync } from "zlib";
 import { gridDisk, latLngToCell } from "h3-js";
 import { REPO } from "./remote";
 
-// FCC National Broadband Map coverage per H3 hexagon, from pipeline/fcc_bdc.py: locations unserved, underserved, served.
 const cache = new Map<string, Map<string, [number, number, number]>>();
 
 async function load(fips: string) {
@@ -27,13 +26,11 @@ async function load(fips: string) {
   return m;
 }
 
-// how many locations the FCC counts in the home's own hexagon: [unserved, underserved, served]
 export async function hexTotals(lat: number, lon: number, fips: string): Promise<[number, number, number] | null> {
   const m = await load(fips);
   return m?.get(latLngToCell(lat, lon, 8)) ?? null;
 }
 
-// 0 served, 1 underserved, 2 unserved: the most common tier among the locations in the home's hexagon (as in the plan)
 export async function fccStatus(lat: number, lon: number, fips: string): Promise<number | null> {
   const m = await load(fips);
   if (!m) return null;

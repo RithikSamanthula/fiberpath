@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 export type Saved = { address: string; county: string; status?: number; at: string };
 const KEY = "fiberpath-saved-v1";
 
-// Places a person checked and kept, stored on their own device
 export function useSaved() {
   const [list, setList] = useState<Saved[]>([]);
   useEffect(() => { try { setList(JSON.parse(localStorage.getItem(KEY) || "[]")); } catch {} }, []);

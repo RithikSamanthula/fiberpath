@@ -3,7 +3,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { CountyBrowser } from "@/components/CountyPicker";
 import Planner from "./Planner";
 
-// /county opens the county finder; /county?county=<slug> opens that plan
 export default function CountyEntry() {
   const q = useSearchParams();
   const router = useRouter();

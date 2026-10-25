@@ -6,8 +6,6 @@ export const maxDuration = 30;
 const G = "https://graph.mapillary.com";
 const FIELDS = "id,computed_rotation,computed_geometry,computed_compass_angle,compass_angle,camera_type,camera_parameters,width,height,sequence,captured_at,thumb_1024_url,is_pano";
 
-// A run of street photos along one road, in driving order, with the camera pose of each:
-// where it was, which way it faced and its focal length. That is what turns a box in a photo into a spot on the ground.
 export async function GET(req: NextRequest) {
   const token = process.env.MAPILLARY_TOKEN;
   if (!token) return NextResponse.json({ configured: false });
@@ -22,7 +20,6 @@ export async function GET(req: NextRequest) {
   const all: any[] = ((await ir.json()).data ?? []).filter((i: any) => i.computed_geometry && i.thumb_1024_url && !i.is_pano && i.camera_parameters && i.width && i.computed_rotation);
   const xy = (i: any) => [(i.computed_geometry.coordinates[0] - lon) * kx, (i.computed_geometry.coordinates[1] - lat) * ky];
   const dist = (i: any) => Math.hypot(...(xy(i) as [number, number]));
-  // the sequence that passes closest to the point and has the most frames nearby
   const bySeq = new Map<string, any[]>();
   for (const i of all) (bySeq.get(i.sequence) ?? bySeq.set(i.sequence, []).get(i.sequence)!).push(i);
   let best: any[] = [], score = -1;
@@ -33,7 +30,6 @@ export async function GET(req: NextRequest) {
   }
   if (!best.length) return NextResponse.json({ configured: true, frames: [] });
   best.sort((a, b) => new Date(a.captured_at).getTime() - new Date(b.captured_at).getTime());
-  // thin to one frame every ~7 m so neighbours are not near-duplicates
   const thin: any[] = [];
   for (const i of best) {
     const [x, y] = xy(i);

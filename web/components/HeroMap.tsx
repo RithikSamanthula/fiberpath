@@ -9,7 +9,6 @@ import { dollars, edgeCosts, num, totalCost } from "@/lib/cost";
 
 const layers: Layers = { roads: true, plan: true, homes: true, towers: true, poles: false, wireless: false };
 
-// A real county plan drawing itself, on a loop. Nothing here is mocked: it is the Towns County, GA plan.
 export default function HeroMap() {
   const [d, setD] = useState<County | null>(null);
   const p = useLoop(7, HOLD, !!d);

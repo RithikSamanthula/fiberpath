@@ -24,7 +24,6 @@ const ABBR_OF: Record<string, string> = Object.fromEntries(Object.entries({
 }).map(([a, n]) => [n.toLowerCase(), a]));
 const norm = (s: string) => s.toLowerCase().replace(/[.,#]/g, " ").split(/\s+/).filter(Boolean);
 
-// Every word the person typed has to appear (as the start of a word) in the suggestion, and a house number has to match exactly
 function relevant(typed: string[], text: string) {
   const words = norm(text);
   return typed.every((t) => {
@@ -34,8 +33,6 @@ function relevant(typed: string[], text: string) {
   });
 }
 
-// "6333 US HWY 76, HIAWASSEE, GA, 30546" and "6333 US Highway 76, Hiawassee, GA 30546" are the same place,
-// so compare street (abbreviations spelled out), city and state, and leave the zip code out
 const LONG: Record<string, string> = { ...ABBR, highway: "highway", hwy: "highway", us: "us", usa: "us" };
 function key(s: string) {
   const [street = "", city = "", rest = ""] = s.split(",").map((x) => x.trim());
@@ -64,7 +61,6 @@ async function photon(q: string, lat: number | null, lon: number | null) {
   return out;
 }
 
-// The Census geocoder is what the address check uses, so an address it can match is guaranteed to work
 async function census(q: string) {
   const u = new URL("https://geocoding.geo.census.gov/geocoder/locations/onelineaddress");
   u.searchParams.set("address", q);

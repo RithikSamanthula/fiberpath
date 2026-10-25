@@ -19,9 +19,7 @@ COUNTIES = {
         "state": "GA",
         "geoid": "13281",
         "state_name": "Georgia",
-        # Hub: where the plan connects to existing backbone (Hiawassee town center).
         "hub": (34.9512, -83.7544),
-        # Places treated as already served in the coverage proxy (town cores).
         "cores": [(34.9512, -83.7544, 1800), (34.9367, -83.8466, 1800)],
         "benchmark": {
             "name": "Blue Ridge Mountain EMC",
@@ -62,7 +60,7 @@ def http_json(url, params=None, data=None, tries=6, timeout=180):
             if r.status_code == 200:
                 return r.json()
             last = f"{r.status_code} {r.text[:200]}"
-        except Exception as e:  # network hiccup, retry
+        except Exception as e:
             last = repr(e)
         time.sleep(8 * (i + 1) if "overpass" in url else 3 * (i + 1))
     raise RuntimeError(f"request failed: {url} {last}")
@@ -122,7 +120,7 @@ def county_config(arg):
 
     if arg in COUNTIES:
         return COUNTIES[arg]
-    for c in COUNTIES.values():  # a GEOID for a county that has a hand-made config uses it, so its benchmark and hub carry over
+    for c in COUNTIES.values():
         if c["geoid"] == arg:
             return c
     geoid = arg

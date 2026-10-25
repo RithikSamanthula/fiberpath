@@ -27,14 +27,12 @@ function segDist(px: number, py: number, ax: number, ay: number, bx: number, by:
   return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
 }
 
-// A live, single-address estimate for places FiberPath has not fully planned.
-// Uses what is checkable anywhere: nearby roads, utility poles, homes, and the nearest town.
 export async function GET(req: NextRequest) {
   const lat = Number(req.nextUrl.searchParams.get("lat"));
   const lon = Number(req.nextUrl.searchParams.get("lon"));
   if (!isFinite(lat) || !isFinite(lon) || Math.abs(lat) > 90 || Math.abs(lon) > 180) return NextResponse.json({ error: "Bad request" }, { status: 400 });
   const xy = toXY(lat);
-  const r = 0.0045; // ~500 m
+  const r = 0.0045;
   const token = process.env.MAPILLARY_TOKEN;
 
   const [roads, bldg, places, poles] = await Promise.all([
@@ -46,7 +44,6 @@ export async function GET(req: NextRequest) {
       : Promise.resolve(null),
   ]);
 
-  // nearest road and whether poles run along it
   let roadM: number | null = null, roadName = "";
   const segs: [number, number, number, number][] = [];
   for (const w of roads?.elements ?? []) {
@@ -59,7 +56,6 @@ export async function GET(req: NextRequest) {
     }
   }
   const poleList: [number, number][] = (poles?.data ?? []).map((f: any) => xy(f.geometry.coordinates[0], f.geometry.coordinates[1], lon) as [number, number]);
-  // poles within 45 m of any road segment within 150 m of the home
   let polesOnRoad = 0;
   for (const [px, py] of poleList) {
     for (const s of segs) {
@@ -73,7 +69,6 @@ export async function GET(req: NextRequest) {
   for (const p of places?.elements ?? []) {
     const [x, y] = xy(p.lon, p.lat, lon);
     const km = Math.hypot(x, y) / 1000;
-    // prefer real towns over tiny villages unless the village is much closer
     const score = km / (1 + 0.5 * (rank[p.tags.place] ?? 1));
     const best = town ? town.km / (1 + 0.5 * (rank[town.kind] ?? 1)) : Infinity;
     if (score < best) town = { name: p.tags.name, km, kind: p.tags.place };

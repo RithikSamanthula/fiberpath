@@ -2,7 +2,6 @@ import type { County } from "./data";
 
 export type Contours = { minor: Float32Array; major: Float32Array };
 
-// Marching squares over the elevation grid. Returns line segments as [lon1, lat1, lon2, lat2, ...].
 export function contours(d: County, stride = 3, step = 60, majorEvery = 5): Contours {
   const g = d.meta.grid;
   const nx = Math.floor((g.nx - 1) / stride), ny = Math.floor((g.ny - 1) / stride);
@@ -21,7 +20,6 @@ export function contours(d: County, stride = 3, step = 60, majorEvery = 5): Cont
         const a = z[r * (nx + 1) + c], b = z[r * (nx + 1) + c + 1], cc = z[(r + 1) * (nx + 1) + c + 1], dd = z[(r + 1) * (nx + 1) + c];
         const idx = (a > lv ? 8 : 0) | (b > lv ? 4 : 0) | (cc > lv ? 2 : 0) | (dd > lv ? 1 : 0);
         if (idx === 0 || idx === 15) continue;
-        // edge crossings: top, right, bottom, left
         const T = [lon(c) + t(a, b) * stride * g.dlon, lat(r)];
         const R = [lon(c + 1), lat(r) - t(b, cc) * stride * g.dlat];
         const B = [lon(c) + t(dd, cc) * stride * g.dlon, lat(r + 1)];

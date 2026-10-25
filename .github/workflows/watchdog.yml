@@ -1,6 +1,5 @@
 name: Watchdog
 
-# Every 3 hours: if no planning run is queued or in progress, start one.
 on:
   schedule:
     - cron: "11 */3 * * *"

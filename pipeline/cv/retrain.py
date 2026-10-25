@@ -74,7 +74,6 @@ def hold_out(pid):
 
 
 def lines(r):
-    # confirmed marks and poles you added are utility poles; marks you rejected are left unlabeled (background)
     out = []
     for b in [b for b in r["boxes"] if b["ok"]] + r["missed"]:
         out.append(f"0 {b['x'] + b['w'] / 2:.6f} {b['y'] + b['h'] / 2:.6f} {b['w']:.6f} {b['h']:.6f}")
@@ -128,18 +127,16 @@ def main():
     train = [(p, r) for p, r in ok.items() if not hold_out(p)]
     print(f"{len(train)} photos to learn from, {len(held)} kept for testing")
 
-    # earlier hand answers are removed first so the dataset never doubles up
     for d in ("train",):
         for f in glob.glob(os.path.join(HERE, "data", "*", d, "hand_*")):
             os.remove(f)
     for pid, r in train:
-        for k in range(3):  # a few copies, so a hundred hand-checked photos still count among thousands
+        for k in range(3):
             shutil.copy(os.path.join(HAND, pid + ".jpg"), os.path.join(HERE, "data", "images", "train", f"hand_{pid}_{k}.jpg"))
             open(os.path.join(HERE, "data", "labels", "train", f"hand_{pid}_{k}.txt"), "w").write("\n".join(lines(r)) + "\n")
     for f in glob.glob(os.path.join(HERE, "data", "labels", "*.cache")):
         os.remove(f)
 
-    # a gentle fine-tune from the current model
     m = YOLO(CUR)
     m.train(data=os.path.join(HERE, "data", "pole2.yaml"), epochs=8, imgsz=SZ, batch=8, device="mps", workers=4, lr0=0.002, warmup_epochs=0,
             project=os.path.join(HERE, "runs"), name="auto", exist_ok=True, patience=5, verbose=False, plots=False)
@@ -165,7 +162,6 @@ def main():
          "photo": e_new["photo"], "recallByDistance": e_new["recallByDistance"],
          "labels": "Boxes drawn by Mapillary's detector on street photos, plus photos checked by hand. Validation photos come from streets held out of training."}
     json.dump(m, open(os.path.join(WEB, "public", "data", "cv-metrics.json"), "w"), indent=1)
-    # 640 copy for the in-browser live view
     YOLO(new).export(format="onnx", imgsz=640, opset=12, simplify=True, device="cpu")
     shutil.copy(os.path.join(HERE, "runs", "auto", "weights", "best.onnx"), os.path.join(WEB, "public", "models", "pole-640.onnx"))
     shutil.copy(onnx, os.path.join(WEB, "models", "pole.onnx"))

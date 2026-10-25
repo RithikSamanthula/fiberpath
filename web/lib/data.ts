@@ -49,8 +49,6 @@ export type Meta = {
   generated: string;
 };
 
-// status: 0 served, 1 underserved, 2 unserved
-// tech: 0 none, 1 aerial fiber, 2 buried fiber, 3 fixed wireless
 export type Home = {
   i: number;
   lon: number;
@@ -63,8 +61,8 @@ export type Home = {
   blockedTower: number;
   poles: number;
   dropFt: number;
-  depth: number; // plan cost-distance at which the home connects
-  why: number; // 1 ridge, 2 trees, 3 no tower in range, 4 visible but fiber is cheaper
+  depth: number;
+  why: number;
 };
 
 export type Tower = { id: number; lon: number; lat: number; kind: string; used: boolean; homes: number; reach: number };
@@ -73,7 +71,6 @@ export type County = {
   meta: Meta;
   homes: Home[];
   roads: [number, number][][];
-  // lon1, lat1, lon2, lat2, class (1 aerial, 2 buried), cost-distance from hub, homes downstream
   plan: number[][];
   towers: Tower[];
   poles: [number, number, number][];
@@ -82,12 +79,10 @@ export type County = {
   hasGrids: boolean;
 };
 
-// Where the county files live. Set NEXT_PUBLIC_DATA_BASE to serve them from object storage or a CDN.
 export const DATA_BASE = process.env.NEXT_PUBLIC_DATA_BASE || "/data";
 
 const cache = new Map<string, Promise<County>>();
 
-// Everything but the terrain and canopy grids (about 5 MB), which only some screens need.
 export function loadCountyLite(slug: string): Promise<County> {
   let p = cache.get(slug);
   if (!p) {
@@ -119,7 +114,6 @@ export async function ensureGrids(d: County): Promise<County> {
   return d;
 }
 
-// Start the terrain download while the map is still being looked at, so 3D and the terrain layers open at once
 export function warmGrids(slug: string) {
   loadCountyLite(slug).then(ensureGrids).catch(() => {});
 }
@@ -133,7 +127,6 @@ async function gunzip(buf: ArrayBuffer): Promise<Uint8Array> {
   return new Uint8Array(await new Response(stream).arrayBuffer());
 }
 
-// .fpk = gzip( 4-byte header length | JSON header [{n, len}] | file bytes )
 async function unpack(res: Response): Promise<Record<string, Uint8Array>> {
   if (!res.ok) throw new Error("Could not load this county yet");
   const u = await gunzip(await res.arrayBuffer());
@@ -158,7 +151,6 @@ function build(meta: Meta, rawHomes: number[][], roads: County["roads"], plan: n
 async function fetchCounty(slug: string): Promise<County> {
   const item = (await loadIndex()).find((i) => i.slug === slug);
   if (item?.remote) {
-    // Counties used in demos ship with the site as files on the CDN, which is much faster than going through the cloud store
     let res = await fetch(`${DATA_BASE}/packs/${item.geoid}.fpk`).catch(() => null);
     if (!res?.ok || /html/.test(res.headers.get("content-type") ?? "")) res = await fetch(`/api/data/${item.geoid}/pack`);
     const f = await unpack(res);
@@ -184,13 +176,10 @@ export type IndexItem = {
   slug: string; name: string; state: string; geoid: string; bbox: [number, number, number, number];
   homes: number; unserved: number; reached: number; fiberHomes: number; wirelessHomes: number; towers: number;
   aerialFt: number; buriedFt: number; dropFt: number; assumptions: Assumptions; coverageSource: "fcc" | "proxy"; planVersion?: number;
-  plannedAt?: string; // when the pipeline finished it
-  remote?: boolean; // published by the cloud pipeline; loaded through /api/data
+  plannedAt?: string;
+  remote?: boolean;
 };
 
-// ---- the county index, live ------------------------------------------------------------------
-// Static counties ship with the site. Counties the cloud pipeline finishes appear through /api/index,
-// which is polled every 20 seconds, so new results show up in an open browser without a reload.
 let staticIdx: Promise<IndexItem[]> | null = null;
 let merged: IndexItem[] | null = null;
 let timer: ReturnType<typeof setInterval> | null = null;
@@ -201,7 +190,6 @@ function mergeIdx(a: IndexItem[], b: IndexItem[]) {
   for (const i of a) m.set(i.geoid, i);
   const rank = (x: IndexItem) => (x.coverageSource === "fcc" ? 10 : 0) + (x.planVersion ?? 1);
   for (const i of b) { const o = m.get(i.geoid); if (!o || rank(i) >= rank(o)) m.set(i.geoid, i); }
-  // Virginia's independent cities share a name with a county (Fairfax, Richmond, Roanoke...), so give them their own slug
   const out = [...m.values()];
   const n = new Map<string, number>();
   for (const i of out) n.set(i.slug, (n.get(i.slug) ?? 0) + 1);

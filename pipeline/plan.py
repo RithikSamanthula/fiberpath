@@ -19,7 +19,6 @@ from common import COUNTIES, OUT, county_config, Proj, point_in_polygon, polygon
 
 FT = 3.28084
 
-# Adjustable assumptions. The web app lets the user change every one of these.
 ASSUME = {
     "aerialPerFt": 9.0,
     "buriedPerFt": 19.0,
@@ -29,11 +28,11 @@ ASSUME = {
     "wirelessCpe": 700.0,
 }
 
-SEG_M = 60.0  # road densification step
+SEG_M = 60.0
 POLE_NEAR_M = 45.0
 MIN_HOME_M2 = 60.0
 MAX_HOME_M2 = 600.0
-TOWER_CAP = 250  # homes one tower site can serve
+TOWER_CAP = 250
 
 
 def main(arg):
@@ -47,13 +46,11 @@ def main(arg):
     ring_ll = geom["coordinates"][0] if geom["type"] == "Polygon" else max((p[0] for p in geom["coordinates"]), key=len)
     ring_xy = np.array(proj.fwd(*np.array(ring_ll).T)).T
 
-    # ---- terrain + canopy grids ------------------------------------------------
     dem, dem_meta = fetch.terrain(c, bb)
     can, can_meta = fetch.canopy(c, bb)
     elev_q, can_q, gmeta = geo.build_grids(bb, dem, dem_meta, can, can_meta)
     grid = geo.Grid(elev_q, can_q, gmeta)
 
-    # ---- stage 1: homes --------------------------------------------------------
     feats = fetch.footprints(c, bb)
     lon_c = np.array([sum(p[0] for p in r) / len(r) for r in feats])
     lat_c = np.array([sum(p[1] for p in r) / len(r) for r in feats])
@@ -64,7 +61,6 @@ def main(arg):
     n_homes = len(hx)
     print("homes", n_homes, "of", len(feats), "footprints")
 
-    # ---- road graph ------------------------------------------------------------
     ways = fetch.roads(c, bb)
     key2i, nlon, nlat = {}, [], []
     eu, ev, elen, eway, ename = [], [], [], [], []
@@ -103,9 +99,8 @@ def main(arg):
     eu, ev, elen, eway = map(np.array, (eu, ev, elen, eway))
     print("graph", len(nlon), "nodes", len(eu), "edges", round(elen.sum() / 1000), "km")
 
-    # ---- stage 2: poles -> aerial vs buried per road segment -------------------
     osm = fetch.osm_power(c, bb)
-    poles = []  # (lon, lat, source)
+    poles = []
     for e in osm:
         if e["type"] == "node" and e.get("tags", {}).get("power") == "pole":
             poles.append((e["lon"], e["lat"], "osm"))
@@ -134,27 +129,20 @@ def main(arg):
     aerial = counts > 0
     print("poles", len(poles), "source:", pole_source, "| aerial edges", round(aerial.mean() * 100, 1), "%")
 
-    # ---- coverage status per home ----------------------------------------------
     status, coverage_source = coverage(c, proj, lon_c, lat_c, hx, hy)
     print("coverage:", coverage_source, {k: int((status == k).sum()) for k in (0, 1, 2)})
 
-    # ---- snap homes to roads ---------------------------------------------------
     ntree = cKDTree(np.c_[nx_, ny_])
     dist_to_road, snap = ntree.query(np.c_[hx, hy])
     hub_node = int(ntree.query(proj.fwd(c["hub"][1], c["hub"][0]))[1])
 
-    # ---- existing fiber: where the FCC says fiber is already in place --------------
     src_nodes, n_fiber_hex = fiber_sources(c, nlon, nlat)
     print("existing fiber:", len(src_nodes), "road nodes in", n_fiber_hex, "fiber hexagons")
 
-    # ---- stage 3: wireless line of sight ---------------------------------------
-    unserved = np.where(status >= 1)[0]  # homes below 100/20: the unserved and the underserved, which BEAD both counts
+    unserved = np.where(status >= 1)[0]
     towers, tower_cover = pick_towers(c, osm, proj, grid, nlon, nlat, nx_, ny_, hx, hy, lon_c, lat_c, unserved)
     print("towers", len(towers), "covering", len({h for t in tower_cover for h in tower_cover[t]}), "unserved homes")
 
-    # ---- stages 4-5: network + pricing, with the wireless decision -------------
-    # One virtual node ties every existing-fiber road node and the hub together at no cost, so new fiber grows
-    # outward from the network that is already there instead of from a single point.
     roots = sorted(set(src_nodes) | {hub_node})
     V = len(nlon)
     g = Graph(np.r_[nlon, c["hub"][1]], np.r_[nlat, c["hub"][0]], np.r_[nx_, nx_[hub_node]], np.r_[ny_, ny_[hub_node]],
@@ -162,8 +150,6 @@ def main(arg):
     g.n_real = len(eu)
     g.n_roots = len(roots)
     hub_node = V
-    # Price fiber-for-everyone first, then move a home to wireless when a tower can see it and
-    # its fiber share costs more than its share of tower + CPE.
     tree_full = steiner(g, hub_node, snap[unserved], ASSUME)
     share_full = tree_full.node_share(snap, list(unserved), ASSUME, dist_to_road)
     assign = {}
@@ -173,7 +159,6 @@ def main(arg):
                 assign[h] = (t, m)
     wireless_set = set()
     for t in tower_cover:
-        # a sector tower serves a limited number of subscribers: keep the costliest-to-reach homes
         cand = sorted((h for h in assign if assign[h][0] == t and h not in wireless_set), key=lambda h: -share_full[h])[:TOWER_CAP]
         while cand:
             per = ASSUME["wirelessCpe"] + ASSUME["towerEach"] / len(cand)
@@ -194,9 +179,6 @@ def main(arg):
     emit(c, slug, proj, grid, gmeta, elev_q, can_q, ways, way_names, g, tree, terminals, unserved, wireless_set,
          wl_by_tower, used_towers, towers, tower_cover, assign, share, snap, dist_to_road, status, lon_c, lat_c, hx, hy,
          poles, counts, coverage_source, pole_source, hub_node, n_homes, bb, ring_ll)
-
-
-# ---------------------------------------------------------------------------
 
 
 def resolve_places(c, bb):
@@ -231,30 +213,29 @@ def coverage(c, proj, lon, lat, hx, hy):
         with (gzip.open(p, "rt") if p.endswith(".gz") else open(p)) as f:
             for r in csv.DictReader(f):
                 cnt[r["h3_res8_id"]] = (int(r["unserved"]), int(r["underserved"]), int(r["served"]))
-        st = np.zeros(len(lon), dtype=int)  # app codes: 0 served, 1 underserved, 2 unserved
+        st = np.zeros(len(lon), dtype=int)
         for i, (lo, la) in enumerate(zip(lon, lat)):
             cell = h3.latlng_to_cell(la, lo, 8)
-            tot = [0, 0, 0]  # unserved, underserved, served
-            for k in ([cell] if cell in cnt else h3.grid_disk(cell, 1)):  # a home outside every mapped hexagon borrows its neighbors
+            tot = [0, 0, 0]
+            for k in ([cell] if cell in cnt else h3.grid_disk(cell, 1)):
                 for j, v in enumerate(cnt.get(k, (0, 0, 0))):
                     tot[j] += v
             if sum(tot) == 0:
                 st[i] = 2
             else:
-                m = max(tot)  # the tier most of the locations around the home are in; a tie goes to the worse one
+                m = max(tot)
                 st[i] = 2 if tot[0] == m else (1 if tot[1] == m else 0)
         return st, "fcc"
     served = np.zeros(len(lon), dtype=bool)
     for la, lo, r in c["cores"]:
         cx, cy = proj.fwd(lo, la)
         served |= np.hypot(hx - cx, hy - cy) <= r
-    # dense neighborhoods are almost always served by cable or fiber: 25+ homes within 300 m
     pts = np.c_[hx, hy]
     dense = np.array([len(x) for x in cKDTree(pts).query_ball_point(pts, 300)]) >= 25
     return np.where(served | dense, 0, 2), "proxy"
 
 
-FIBER_SHARE = 0.5  # a hexagon counts as fiber-served when half of its addresses report fiber at 100 Mbps or more
+FIBER_SHARE = 0.5
 
 
 def fiber_sources(c, nlon, nlat):
@@ -293,7 +274,6 @@ def pick_towers(c, osm, proj, grid, nlon, nlat, nx_, ny_, hx, hy, lon_c, lat_c, 
                 cands.append((lo, la, "existing"))
     el = grid.elev(nlon, nlat)
     tree = cKDTree(np.c_[nx_, ny_])
-    # road-accessible high points: highest node first, suppress everything within 1.2 km
     local = np.zeros(len(nlon), dtype=bool)
     dead = np.zeros(len(nlon), dtype=bool)
     for i in np.argsort(-el):
@@ -310,7 +290,6 @@ def pick_towers(c, osm, proj, grid, nlon, nlat, nx_, ny_, hx, hy, lon_c, lat_c, 
     order = idx[np.argsort(prom)[::-1]][:90]
     for i in order:
         cands.append((nlon[i], nlat[i], "site"))
-    # evaluate
     kx, ky = proj.kx, proj.ky
     cover = []
     ux, uy = hx[unserved], hy[unserved]
@@ -324,7 +303,6 @@ def pick_towers(c, osm, proj, grid, nlon, nlat, nx_, ny_, hx, hy, lon_c, lat_c, 
                 if mm >= 0:
                     d[int(unserved[j])] = float(mm)
         cover.append(d)
-    # greedy set cover
     chosen, covered = [], set()
     for _ in range(14):
         best, gain = None, 0
@@ -360,7 +338,7 @@ class Graph:
 class Tree:
     def __init__(self, g, root, edges, homes_at):
         self.g, self.root = g, root
-        self.edges = edges  # set of edge indices
+        self.edges = edges
         adj = {}
         for ei in edges:
             u, v = int(g.eu[ei]), int(g.ev[ei])
@@ -438,7 +416,6 @@ def steiner(g, root, term_nodes, a):
         chosen.add(ei)
         walk(u)
         walk(v)
-    # remove cycles, then prune non-terminal leaves
     sub = list(chosen)
     S = csr_matrix(coo_matrix((w[sub] + 1e-9, (g.eu[sub], g.ev[sub])), shape=(n, n)))
     m2 = minimum_spanning_tree(S).tocoo()
@@ -473,7 +450,6 @@ def emit(c, slug, proj, grid, gmeta, elev_q, can_q, ways, way_names, g, tree, te
     os.makedirs(out, exist_ok=True)
     r5 = lambda x: round(float(x), 5)
 
-    # tree edges with animation order (cost distance from hub)
     w = g.weights(ASSUME)
     depth = {tree.root: 0.0}
     for u in tree.order[1:]:
@@ -483,7 +459,7 @@ def emit(c, slug, proj, grid, gmeta, elev_q, can_q, ways, way_names, g, tree, te
     for u in tree.order[1:]:
         ei = tree.pedge[u]
         p = tree.parent[u]
-        if ei >= g.n_real:  # the virtual link to an existing-fiber node is not a road
+        if ei >= g.n_real:
             continue
         cls = 1 if g.aerial[ei] else 2
         ft = g.elen[ei] * FT
@@ -493,7 +469,6 @@ def emit(c, slug, proj, grid, gmeta, elev_q, can_q, ways, way_names, g, tree, te
     tedges.sort(key=lambda e: e[5])
     max_depth = tedges[-1][5] if tedges else 0
 
-    # homes
     fiber_homes = [h for h in terminals if int(snap[h]) in tree.parent]
     unreached = [h for h in terminals if int(snap[h]) not in tree.parent]
     fcoords = np.array([hx[fiber_homes], hy[fiber_homes]]).T if fiber_homes else np.zeros((0, 2))
@@ -502,7 +477,6 @@ def emit(c, slug, proj, grid, gmeta, elev_q, can_q, ways, way_names, g, tree, te
     tower_xy = [proj.fwd(towers[t]["lon"], towers[t]["lat"]) for t in range(len(towers))]
     all_t = np.array([[x, y] for x, y in tower_xy]) if tower_xy else np.zeros((0, 2))
     drop_ft_total = 0.0
-    # why a fiber home is not wireless: 1 ridge, 2 trees, 3 no tower in range, 4 visible but fiber is cheaper
     why = {}
     fib = np.array(sorted(fiber_set))
     if len(fib) and len(all_t):
@@ -530,7 +504,7 @@ def emit(c, slug, proj, grid, gmeta, elev_q, can_q, ways, way_names, g, tree, te
                 n = int(snap[h])
                 hdepth = int(depth.get(n, 0))
                 pe = tree.pedge.get(n)
-                if pe is None or pe >= g.n_real:  # sits on existing fiber or the hub; borrow a real tree edge
+                if pe is None or pe >= g.n_real:
                     pe = next((e for e in tree.edges if e < g.n_real), None)
                 tech = 1 if (pe is not None and g.aerial[pe]) else 2
                 npole = int(counts[pe]) if pe is not None else 0
@@ -540,7 +514,6 @@ def emit(c, slug, proj, grid, gmeta, elev_q, can_q, ways, way_names, g, tree, te
             else:
                 tech = 0
                 cost = 0
-            # nearest candidate tower that cannot see this home (for the line-of-sight screen)
             if tech in (1, 2) and len(all_t):
                 dd = np.hypot(all_t[:, 0] - hx[h], all_t[:, 1] - hy[h])
                 j = int(dd.argmin())
@@ -570,7 +543,6 @@ def emit(c, slug, proj, grid, gmeta, elev_q, can_q, ways, way_names, g, tree, te
                 + drop_ft_total * ASSUME["dropPerFt"] + len(used_towers) * ASSUME["towerEach"] + n_wl * ASSUME["wirelessCpe"])
     print("TOTALS", totals, "cost", round(tot_cost), "per home", round(tot_cost / max(n_fiber + n_wl, 1)))
 
-    # all roads for the basemap
     roads = []
     for w_ in ways:
         roads.append([[r5(p["lon"]), r5(p["lat"])] for p in w_["geometry"]])
@@ -584,7 +556,7 @@ def emit(c, slug, proj, grid, gmeta, elev_q, can_q, ways, way_names, g, tree, te
         "assumptions": ASSUME, "totals": totals,
         "benchmark": c["benchmark"],
         "coverageSource": coverage_source,
-        "planVersion": 2,  # 2: new fiber grows out from existing fiber, not from one hub
+        "planVersion": 2,
         "existingFiberNodes": int(g.n_roots - 1),
         "poleSource": pole_source,
         "poleCount": len(pole_pts),

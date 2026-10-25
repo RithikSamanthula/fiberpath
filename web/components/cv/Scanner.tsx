@@ -9,7 +9,6 @@ type Stage = "photo" | "candidates" | "final";
 
 const px = (u: string) => `/api/img?u=${encodeURIComponent(u)}`;
 
-// Street photos near a point, with the pole detector run on all of them as soon as they load.
 export default function Scanner({ lat, lon, ratio = 0.5625, onEmpty }: { lat: number; lon: number; ratio?: number; onEmpty?: (empty: boolean) => void }) {
   const [state, setState] = useState<{ kind: "loading" | "ready" | "off" | "error"; images?: Img[]; msg?: string }>({ kind: "loading" });
   const [out, setOut] = useState<Record<string, Out>>({});

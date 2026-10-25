@@ -37,7 +37,6 @@ export default function Report() {
   const a = meta.assumptions;
   const c = totalCost(t, a);
   const rg = costRange(t, a);
-  // the cloud copy of Towns County was planned without its benchmark, so the real project is filled in here
   const b = meta.benchmark ?? (meta.slug === "towns-ga" ? { name: "Blue Ridge Mountain EMC", total: 13_100_000, homes: 3700, per_home: 3540, grant: 3_800_000 } : null);
   const names = ["", "Fiber on poles", "Buried fiber", "Fixed wireless"];
   const colors = ["", "var(--blue)", "var(--amber)", "var(--green)"];

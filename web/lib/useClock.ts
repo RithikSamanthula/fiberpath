@@ -1,8 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 
-// A looping 0..1 progress value that updates about 15 times a second, not 60, so text that depends on it
-// does not force the page to re-lay out on every frame. Pauses when the tab is hidden.
 export function useLoop(seconds: number, hold = [0.8, 3.5], enabled = true) {
   const [p, setP] = useState(0);
   useEffect(() => {

@@ -1,5 +1,4 @@
 #!/bin/sh
-# Second pass: states that were downloaded before provider names were kept get their provider file now.
 cd "$(dirname "$0")"
 while pgrep -f fcc_all.sh >/dev/null; do sleep 20; done
 for f in data/state-*-fcc-h3.csv.gz; do

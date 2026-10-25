@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { dollars, money, num } from "@/lib/cost";
 import type { County } from "@/lib/data";
 
-// "What does my grant buy?" Homes are ranked by their own cost to connect, cheapest first.
 export default function BudgetLens({ data, onMask }: { data: County; onMask: (m: Uint8Array | null) => void }) {
   const { order, cum } = useMemo(() => {
     const o = data.homes.map((h, i) => ({ i, c: h.cost })).filter((x) => data.homes[x.i].tech > 0).sort((a, b) => a.c - b.c);
@@ -29,7 +28,6 @@ export default function BudgetLens({ data, onMask }: { data: County; onMask: (m:
     return () => onMask(null);
   }, [show, funded, order, data, onMask]);
 
-  // coverage curve
   const W = 300, H = 110, pts = 60;
   const line = Array.from({ length: pts + 1 }, (_, k) => {
     const idx = Math.min(order.length - 1, Math.round((k / pts) * (order.length - 1)));
